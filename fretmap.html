@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Guitar Sheet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f2f2f2; font-family: 'Georgia', serif; color: #111; padding: 32px; }
+
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+.song-info { display:flex; flex-direction:column; gap:4px; }
+.song-title { font-size:26px; font-weight:700; padding:2px 6px; border-radius:4px; min-width:180px; }
+.song-author { font-size:14px; color:#777; padding:2px 6px; border-radius:4px; min-width:140px; }
+.song-meta { display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.meta-label { font-size:10px; color:#bbb; font-family:sans-serif; text-transform:uppercase; letter-spacing:0.6px; }
+.song-key { font-size:13px; font-family:sans-serif; color:#555; min-width:70px; padding:1px 5px; border-radius:4px; }
+.tuning-cells { display:flex; gap:1px; }
+.tuning-cell { font-size:12px; font-family:sans-serif; color:#555; min-width:22px; max-width:28px; text-align:center; padding:1px 3px; border-radius:3px; }
+.tuning-sep { font-size:11px; color:#ddd; font-family:sans-serif; line-height:1.8; }
+.header-actions { display:flex; gap:8px; align-items:center; }
+
+[contenteditable] { outline:none; }
+[contenteditable]:hover { background:rgba(0,0,0,0.04); }
+[contenteditable]:focus { background:#eef4ff; border-radius:4px; }
+[contenteditable]:empty:before { content:attr(data-ph); color:#ccc; pointer-events:none; }
+
+.btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-family:sans-serif; }
+.btn-dark { background:#111; color:#fff; }
+.btn-dark:hover { background:#333; }
+.btn-outline { background:white; border:1px solid #ddd; color:#555; }
+.btn-outline:hover { background:#f5f5f5; }
+.btn-sm { padding:2px 7px; font-size:11px; border:1px solid #ddd; border-radius:3px; background:white; cursor:pointer; color:#999; font-family:sans-serif; line-height:1.6; }
+.btn-sm:hover { background:#f0f0f0; color:#444; }
+
+.grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; align-items:flex-start; }
+@media (min-width:700px)  { .grid { grid-template-columns:repeat(3,1fr); } }
+@media (min-width:1000px) { .grid { grid-template-columns:repeat(4,1fr); } }
+
+.measure { background:white; border:1px solid #e2e2e2; border-radius:10px; overflow:hidden; }
+.measure-header { display:flex; align-items:center; justify-content:space-between; padding:6px 12px; background:#fafafa; border-bottom:1px solid #f0f0f0; }
+.measure-num { font-size:10px; color:#ccc; font-family:sans-serif; text-transform:uppercase; }
+.beat-controls { display:flex; align-items:center; gap:5px; }
+.beat-count { font-size:11px; color:#aaa; font-family:sans-serif; min-width:20px; text-align:center; }
+
+.beats-row { display:flex; }
+.beat-cell { flex:1; text-align:center; min-height:20px; display:flex; align-items:center; justify-content:center; padding:1px; border-radius:3px; min-width:0; }
+.beat-cell:focus { background:#eef4ff; outline:none; }
+.beat-cell[contenteditable]:empty:before { content:'·'; color:#e8e8e8; }
+.beat-chord { font-size:15px; font-weight:700; min-height:22px; }
+.beat-note  { font-size:13px; color:#222; min-height:19px; }
+
+/* CHORD LANE */
+.chord-lane { border-bottom:1px solid #f0f0f0; }
+.chord-lane-header { padding:9px 12px 4px; }
+.chord-lane-cells { padding:2px 12px 4px; }
+.chord-lane-extra { border-top:1px solid #ececec; }
+.chord-lane-extra .chord-lane-cells { padding-top:3px; }
+.sec-label { font-size:10px; color:#ccc; letter-spacing:0.8px; font-family:sans-serif; text-transform:uppercase; }
+/* inline × for extra lanes */
+.lane-row { display:flex; align-items:center; }
+.lane-row .beats-row { flex:1; }
+.btn-lane-remove { flex-shrink:0; opacity:0; transition:opacity 0.12s; background:none; border:none; cursor:pointer; font-size:11px; color:#ccc; font-family:sans-serif; padding:0 4px; }
+.chord-lane-extra:hover .btn-lane-remove { opacity:1; }
+.btn-lane-remove:hover { color:#e00; }
+
+/* ADD LANE */
+.add-lane-wrap { padding:4px 12px; border-bottom:1px solid #f0f0f0; }
+
+/* MELODY */
+.melody-header { padding:9px 12px 4px; display:flex; align-items:center; justify-content:space-between; }
+.melody-cells { padding:2px 12px 4px; border-top:1px solid #f0f0f0; }
+.melody-row + .melody-row { border-top:1px solid #f5f5f5; }
+
+/* DIAGRAMS */
+.diagrams-wrap { background:#fafafa; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+
+/* melody diagram block */
+.mel-diag-block { display:flex; flex-direction:column; }
+.add-mel-lane-wrap { padding:3px 0 0; }
+
+/* melody lane delete bar (same pattern as diag-del) */
+.mel-lane-wrap { }
+.mel-lane-del { height:0; overflow:hidden; transition:height 0.12s; }
+.mel-lane-wrap:hover .mel-lane-del { height:18px; }
+.mel-lane-del button { width:100%; background:none; border:none; cursor:pointer; font-size:10px; color:#bbb; font-family:sans-serif; padding:2px 0; text-align:right; padding-right:4px; }
+.mel-lane-del button:hover { color:#e00; }
+
+/* diag-container: SVG full width, × appears as thin bar below on hover — takes zero space normally */
+.diag-container { display:flex; flex-direction:column; }
+.diag-container svg { width:100%; display:block; border-radius:4px; cursor:crosshair; }
+.diag-del { height:0; overflow:hidden; transition:height 0.12s; }
+.diag-container:hover .diag-del { height:18px; }
+.diag-del button { width:100%; background:none; border:none; cursor:pointer; font-size:10px; color:#bbb; font-family:sans-serif; padding:2px 0; text-align:right; padding-right:4px; }
+.diag-del button:hover { color:#e00; }
+
+.btn-add-diag { width:100%; padding:5px; border:1px dashed #e0e0e0; border-radius:4px; background:none; cursor:pointer; font-size:11px; color:#ccc; font-family:sans-serif; }
+.btn-add-diag:hover { border-color:#aaa; color:#888; }
+.btn-add-lane { width:100%; padding:5px; border:1px dashed #c8c8c8; border-radius:4px; background:none; cursor:pointer; font-size:11px; color:#bbb; font-family:sans-serif; }
+.btn-add-lane:hover { border-color:#888; color:#666; }
+
+#note-tooltip { display:none; position:fixed; z-index:9999; background:#222; color:#fff; font-family:sans-serif; font-size:12px; font-weight:bold; padding:3px 8px; border-radius:4px; pointer-events:none; letter-spacing:0.5px; white-space:nowrap; }
+
+@media print {
+  body { background:white; padding:14px; }
+  .no-print { display:none !important; }
+  .grid { gap:8px; grid-template-columns:repeat(2,1fr) !important; }
+  .measure { break-inside:avoid; }
+  .measure-header { display:none; }
+  [contenteditable] { cursor:default; }
+  [contenteditable]:empty:before { display:none; }
+  [contenteditable]:focus { background:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="song-info">
+    <div class="song-title" contenteditable="true" data-ph="Song Title" id="song-title" oninput="state.title=this.textContent">My Song</div>
+    <div class="song-author" contenteditable="true" data-ph="Artist Name" id="song-author" oninput="state.author=this.textContent">Artist Name</div>
+    <div class="song-meta no-print">
+      <span class="meta-label">Key</span>
+      <div id="song-key" class="song-key" contenteditable="true" data-ph="—" oninput="state.key=this.textContent"></div>
+      <span class="meta-label" style="margin-left:8px">Tuning</span>
+      <div class="tuning-cells">
+        <div class="tuning-cell" id="tuning-5" contenteditable="true" oninput="updateTuning(5,this.textContent)">E</div>
+        <span class="tuning-sep">·</span>
+        <div class="tuning-cell" id="tuning-4" contenteditable="true" oninput="updateTuning(4,this.textContent)">A</div>
+        <span class="tuning-sep">·</span>
+        <div class="tuning-cell" id="tuning-3" contenteditable="true" oninput="updateTuning(3,this.textContent)">D</div>
+        <span class="tuning-sep">·</span>
+        <div class="tuning-cell" id="tuning-2" contenteditable="true" oninput="updateTuning(2,this.textContent)">G</div>
+        <span class="tuning-sep">·</span>
+        <div class="tuning-cell" id="tuning-1" contenteditable="true" oninput="updateTuning(1,this.textContent)">B</div>
+        <span class="tuning-sep">·</span>
+        <div class="tuning-cell" id="tuning-0" contenteditable="true" oninput="updateTuning(0,this.textContent)">e</div>
+      </div>
+    </div>
+  </div>
+  <div class="header-actions no-print">
+    <button class="btn btn-outline" onclick="loadFile()">Open</button>
+    <button class="btn btn-outline" onclick="saveFile()">Save</button>
+    <button class="btn btn-dark" onclick="window.print()">⬇ PDF</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+<div style="margin-top:14px;display:flex;justify-content:center;" class="no-print">
+  <button class="btn btn-outline" onclick="addMeasure()" style="font-size:14px;padding:10px 28px;">+ Add Measure</button>
+</div>
+<input type="file" id="file-input" accept=".json" style="display:none" onchange="onFileLoad(event)">
+<div id="note-tooltip"></div>
+
+<script>
+const STRINGS=6, FRETS=12, MARKERS=[3,5,7,9,12];
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTE_SEMITONES={'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'e':4,'b':11,'g':7,'d':2,'a':9,'f':5,'c':0};
+function noteToSemi(name){ const n=(name||'').trim(); return NOTE_SEMITONES[n]??NOTE_SEMITONES[n.charAt(0).toUpperCase()+n.slice(1)]??4; }
+function noteAtFret(si,fi){ return NOTE_NAMES[(noteToSemi(state.tuning[si])+fi)%12]; }
+
+// ── AUDIO ──
+const BASE_MIDI=[64,59,55,50,45,40]; // standard tuning MIDI, index 0=high e
+let _actx=null;
+function actx(){ if(!_actx) _actx=new(window.AudioContext||window.webkitAudioContext)(); return _actx; }
+
+function stringMidi(si){
+  const baseSemi=BASE_MIDI[si]%12, newSemi=noteToSemi(state.tuning[si]);
+  const adj=((newSemi-baseSemi+6)%12)-6;
+  return BASE_MIDI[si]+adj;
+}
+function midiFreq(midi){ return 440*Math.pow(2,(midi-69)/12); }
+
+function playNote(freq,vol=0.32,dur=1.5){
+  const ctx=actx(), now=ctx.currentTime;
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(vol,now);
+  master.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  master.connect(ctx.destination);
+  [[1,0.55],[2,0.22],[3,0.08],[4,0.04]].forEach(([mult,amp])=>{
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.value=freq*mult; g.gain.value=amp;
+    o.connect(g); g.connect(master); o.start(now); o.stop(now+dur);
+  });
+}
+
+function playFretNote(si,fi){ playNote(midiFreq(stringMidi(si)+fi)); }
+
+const CHORD_TYPES={
+  '':     [0,4,7],  'maj':  [0,4,7],  'M':    [0,4,7],
+  'm':    [0,3,7],  'min':  [0,3,7],  '-':    [0,3,7],
+  '5':    [0,7],
+  '6':    [0,4,7,9],  'm6': [0,3,7,9],
+  '7':    [0,4,7,10], 'dom7':[0,4,7,10],
+  'maj7': [0,4,7,11], 'M7': [0,4,7,11], 'Δ':  [0,4,7,11],
+  'm7':   [0,3,7,10], 'min7':[0,3,7,10],
+  'mM7':  [0,3,7,11], 'mMaj7':[0,3,7,11],
+  'dim':  [0,3,6],  'º':   [0,3,6],
+  'dim7': [0,3,6,9], 'º7':  [0,3,6,9],
+  'aug':  [0,4,8],  '+':   [0,4,8],
+  'aug7': [0,4,8,10],'+7':  [0,4,8,10],
+  'sus2': [0,2,7],  'sus4': [0,5,7],  'sus':  [0,5,7],
+  '7sus4':[0,5,7,10],'7sus2':[0,2,7,10],
+  'add9': [0,4,7,14],'add2': [0,2,4,7],
+  '9':    [0,4,7,10,14], 'maj9':[0,4,7,11,14], 'm9':[0,3,7,10,14],
+  '11':   [0,4,7,10,14,17],'maj11':[0,4,7,11,14,17],'m11':[0,3,7,10,14,17],
+  '13':   [0,4,7,10,14,17,21],
+  'm7b5': [0,3,6,10], 'ø':  [0,3,6,10], 'hdim':[0,3,6,10],
+  '6/9':  [0,4,7,9,14], 'm6/9':[0,3,7,9,14],
+};
+
+function parseChord(name){
+  const s=name.trim(); if(!s) return null;
+  const rm=s.match(/^([A-Ga-g][#b]?)/); if(!rm) return null;
+  const root=rm[1];
+  const rootSemi=NOTE_SEMITONES[root]??NOTE_SEMITONES[root.charAt(0).toUpperCase()+root.slice(1)];
+  if(rootSemi===undefined) return null;
+  const suffix=s.slice(root.length).split('/')[0]; // ignore slash bass
+  const intervals=CHORD_TYPES[suffix]??CHORD_TYPES[suffix.toLowerCase()]??null;
+  if(!intervals) return null;
+  return {rootSemi,intervals};
+}
+
+function playChordByName(name){
+  const p=parseChord(name); if(!p) return;
+  const base=48+p.rootSemi; // voice around C3
+  p.intervals.forEach((iv,i)=>{
+    setTimeout(()=>playNote(midiFreq(base+iv),0.22,2.0),i*28);
+  });
+}
+
+let _chordTimer=null;
+function scheduleChordPlay(name){
+  clearTimeout(_chordTimer);
+  if(!name.trim()) return;
+  _chordTimer=setTimeout(()=>playChordByName(name),420);
+}
+
+function diagramHover(ev){
+  const c=ev.target.closest('[data-si]');
+  const tip=document.getElementById('note-tooltip');
+  if(!c){ tip.style.display='none'; return; }
+  const si=parseInt(c.dataset.si), fi=parseInt(c.dataset.fi);
+  tip.textContent=`${state.tuning[si]} · ${fi===0?'open':'fret '+fi}  →  ${noteAtFret(si,fi)}`;
+  tip.style.display='block';
+  tip.style.left=(ev.clientX+14)+'px';
+  tip.style.top=(ev.clientY-12)+'px';
+}
+function diagramLeave(){ document.getElementById('note-tooltip').style.display='none'; }
+
+// ── STATE ──
+const state = {
+  title: 'My Song',
+  author: 'Artist Name',
+  key: '',
+  tuning: ['e','B','G','D','A','E'],
+  measures: [
+    { chordLanes: [{ chords: Array(8).fill(''), diagrams: [] }], melodyRows: [], melodyDiagrams: [] },
+    { chordLanes: [{ chords: Array(8).fill(''), diagrams: [] }], melodyRows: [], melodyDiagrams: [] },
+    { chordLanes: [{ chords: Array(8).fill(''), diagrams: [] }], melodyRows: [], melodyDiagrams: [] },
+    { chordLanes: [{ chords: Array(8).fill(''), diagrams: [] }], melodyRows: [], melodyDiagrams: [] }
+  ]
+};
+
+// ── FRETBOARD SVG ──
+function makeSVG(notes, onclickStr) {
+  const VW=560,VH=110,pL=6,pR=6,pT=10,pB=14;
+  const openW=26,nutX=pL+openW;
+  const fw=(VW-nutX-pR)/FRETS, sh=(VH-pT-pB)/(STRINGS-1);
+  const r=Math.min(fw,sh)*0.40, el=[];
+  el.push(`<rect width="${VW}" height="${VH}" fill="white" rx="4"/>`);
+  for(const mf of MARKERS){
+    const x=nutX+(mf-1)*fw;
+    el.push(`<rect x="${x}" y="${pT-3}" width="${fw}" height="${VH-pT-pB+6}" fill="#f6f6f6" rx="1"/>`);
+  }
+  const sw=[0.5,0.6,0.8,1.0,1.2,1.5];
+  for(let s=0;s<STRINGS;s++){
+    const y=pT+s*sh;
+    el.push(`<line x1="${pL}" y1="${y}" x2="${VW-pR}" y2="${y}" stroke="#ccc" stroke-width="${sw[s]}"/>`);
+  }
+  el.push(`<line x1="${nutX}" y1="${pT-3}" x2="${nutX}" y2="${VH-pB+3}" stroke="#333" stroke-width="3"/>`);
+  for(let f=1;f<=FRETS;f++){
+    const x=nutX+f*fw;
+    el.push(`<line x1="${x}" y1="${pT-2}" x2="${x}" y2="${VH-pB+2}" stroke="#e8e8e8" stroke-width="0.7"/>`);
+  }
+  for(let s=0;s<STRINGS;s++){
+    const cx=pL+openW*0.5, cy=pT+s*sh, on=notes.some(n=>n.si===s&&n.fi===0);
+    el.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on?'#222':'white'}" stroke="${on?'none':'#ddd'}" stroke-width="0.9" data-si="${s}" data-fi="0" style="cursor:pointer"/>`);
+  }
+  for(let s=0;s<STRINGS;s++){
+    for(let f=1;f<=FRETS;f++){
+      const cx=nutX+(f-0.5)*fw, cy=pT+s*sh, on=notes.some(n=>n.si===s&&n.fi===f);
+      el.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on?'#222':'white'}" stroke="${on?'none':'#e0e0e0'}" stroke-width="0.9" data-si="${s}" data-fi="${f}" style="cursor:pointer"/>`);
+    }
+  }
+  for(const mf of MARKERS)
+    el.push(`<text x="${nutX+(mf-0.5)*fw}" y="${VH-2}" text-anchor="middle" font-size="7" fill="#ccc" font-family="sans-serif">${mf}</text>`);
+  el.push(`<text x="${pL+openW*0.5}" y="${VH-2}" text-anchor="middle" font-size="7" fill="#ccc" font-family="sans-serif">0</text>`);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VW} ${VH}" onclick="${onclickStr}" onmousemove="diagramHover(event)" onmouseleave="diagramLeave()">${el.join('')}</svg>`;
+}
+
+function diagContainer(svgHtml, deleteOnclick) {
+  return `<div class="diag-container">
+    ${svgHtml}
+    <div class="diag-del no-print"><button onclick="${deleteOnclick}">× delete diagram</button></div>
+  </div>`;
+}
+
+// ── NAVIGATION ──
+function cellNav(e, mIdx, laneOrType, ri, bi) {
+  const beats = state.measures[mIdx].chordLanes[0].chords.length;
+  if (e.key==='ArrowRight'||(e.key==='Tab'&&!e.shiftKey)) { e.preventDefault(); if(bi<beats-1) focusCell(mIdx,laneOrType,ri,bi+1); }
+  else if (e.key==='ArrowLeft'||(e.key==='Tab'&&e.shiftKey)) { e.preventDefault(); if(bi>0) focusCell(mIdx,laneOrType,ri,bi-1); }
+}
+function focusCell(mIdx, lot, ri, bi) {
+  const sel = typeof lot==='number'
+    ? `[data-m="${mIdx}"][data-type="cl"][data-lane="${lot}"][data-bi="${bi}"]`
+    : `[data-m="${mIdx}"][data-type="n"][data-ri="${ri}"][data-bi="${bi}"]`;
+  const el=document.querySelector(sel); if(!el) return;
+  el.focus();
+  const r=document.createRange(),s=window.getSelection();
+  r.selectNodeContents(el); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+}
+
+// ── FRET CLICKS ──
+function chordFretClick(ev, mIdx, lIdx, dIdx) {
+  const c=ev.target.closest('circle[data-si]'); if(!c) return;
+  const si=parseInt(c.dataset.si), fi=parseInt(c.dataset.fi);
+  const notes=state.measures[mIdx].chordLanes[lIdx].diagrams[dIdx];
+  const idx=notes.findIndex(n=>n.si===si&&n.fi===fi);
+  if(idx>=0) notes.splice(idx,1); else notes.push({si,fi});
+  document.querySelector(`.dw[data-m="${mIdx}"][data-lane="${lIdx}"][data-d="${dIdx}"]`).innerHTML=
+    makeSVG(notes,`chordFretClick(event,${mIdx},${lIdx},${dIdx})`);
+}
+function melodyFretClick(ev, mIdx, dIdx) {
+  const c=ev.target.closest('circle[data-si]'); if(!c) return;
+  const si=parseInt(c.dataset.si), fi=parseInt(c.dataset.fi);
+  const notes=state.measures[mIdx].melodyDiagrams[dIdx].notes;
+  const idx=notes.findIndex(n=>n.si===si&&n.fi===fi);
+  if(idx>=0) notes.splice(idx,1); else { notes.push({si,fi}); playFretNote(si,fi); }
+  document.querySelector(`.dw[data-m="${mIdx}"][data-mel="${dIdx}"]`).innerHTML=
+    diagContainer(makeSVG(notes,`melodyFretClick(event,${mIdx},${dIdx})`),`removeMelodyDiag(${mIdx},${dIdx})`);
+}
+
+// ── BEAT COUNT ──
+function addBeat(mIdx) {
+  const m=state.measures[mIdx];
+  m.chordLanes.forEach(lane=>lane.chords.push(''));
+  m.melodyRows.forEach(r=>r.push(''));
+  m.melodyDiagrams.forEach(d=>d.rows.forEach(r=>r.push('')));
+  renderMeasure(mIdx);
+}
+function removeBeat(mIdx) {
+  const m=state.measures[mIdx];
+  if(m.chordLanes[0].chords.length<=1) return;
+  m.chordLanes.forEach(lane=>lane.chords.pop());
+  m.melodyRows.forEach(r=>r.pop());
+  m.melodyDiagrams.forEach(d=>d.rows.forEach(r=>r.pop()));
+  renderMeasure(mIdx);
+}
+
+// ── CHORD LANES ──
+function addChordLane(mIdx) {
+  const beats=state.measures[mIdx].chordLanes[0].chords.length;
+  state.measures[mIdx].chordLanes.push({ chords: Array(beats).fill(''), diagrams: [] });
+  renderMeasure(mIdx);
+}
+function removeChordLane(mIdx, lIdx) {
+  if(state.measures[mIdx].chordLanes.length<=1) return;
+  state.measures[mIdx].chordLanes.splice(lIdx,1);
+  renderMeasure(mIdx);
+}
+function addChordDiag(mIdx, lIdx) {
+  state.measures[mIdx].chordLanes[lIdx].diagrams.push([]);
+  renderMeasure(mIdx);
+}
+function removeChordDiag(mIdx, lIdx, dIdx) {
+  state.measures[mIdx].chordLanes[lIdx].diagrams.splice(dIdx,1);
+  renderMeasure(mIdx);
+}
+
+// ── MELODY ──
+function addMelRow(mIdx) {
+  const beats=state.measures[mIdx].chordLanes[0].chords.length;
+  state.measures[mIdx].melodyRows.push(Array(beats).fill(''));
+  renderMeasure(mIdx);
+}
+function remMelRow(mIdx, ri) {
+  state.measures[mIdx].melodyRows.splice(ri,1);
+  renderMeasure(mIdx);
+}
+function addMelodyDiag(mIdx) {
+  const beats=state.measures[mIdx].chordLanes[0].chords.length;
+  state.measures[mIdx].melodyDiagrams.push({ notes: [], rows: [Array(beats).fill('')] });
+  renderMeasure(mIdx);
+}
+function addMelDiagLane(mIdx, dIdx) {
+  const beats=state.measures[mIdx].chordLanes[0].chords.length;
+  state.measures[mIdx].melodyDiagrams[dIdx].rows.push(Array(beats).fill(''));
+  renderMeasure(mIdx);
+}
+function remMelDiagLane(mIdx, dIdx, ri) {
+  state.measures[mIdx].melodyDiagrams[dIdx].rows.splice(ri,1);
+  renderMeasure(mIdx);
+}
+function syncMelDiagNote(mIdx,dIdx,ri,bi,el){
+  state.measures[mIdx].melodyDiagrams[dIdx].rows[ri][bi]=el.textContent;
+}
+function removeMelodyDiag(mIdx, dIdx) {
+  state.measures[mIdx].melodyDiagrams.splice(dIdx,1);
+  renderMeasure(mIdx);
+}
+
+// ── ADD MEASURE ──
+function addMeasure() {
+  const beats=8;
+  state.measures.push({
+    chordLanes: [{ chords: Array(beats).fill(''), diagrams: [] }],
+    melodyRows: [],
+    melodyDiagrams: []
+  });
+  const mIdx=state.measures.length-1;
+  const card=document.createElement('div'); card.className='measure'; card.id=`m${mIdx}`;
+  document.getElementById('grid').appendChild(card);
+  renderMeasure(mIdx);
+}
+
+// ── TUNING ──
+function updateTuning(si, val) {
+  const v = val.trim(); if(!v) return;
+  state.tuning[si] = v;
+}
+
+// ── SYNC TEXT ──
+function syncChord(mIdx,lIdx,bi,el){ state.measures[mIdx].chordLanes[lIdx].chords[bi]=el.textContent; scheduleChordPlay(el.textContent); }
+function syncNote(mIdx,ri,bi,el){ state.measures[mIdx].melodyRows[ri][bi]=el.textContent; }
+
+// ── SAVE / LOAD ──
+function saveFile() {
+  state.title=document.getElementById('song-title').textContent;
+  state.author=document.getElementById('song-author').textContent;
+  state.key=document.getElementById('song-key').textContent;
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`${state.title||'sheet'}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+function loadFile(){ document.getElementById('file-input').click(); }
+function onFileLoad(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const loaded=JSON.parse(ev.target.result);
+      Object.assign(state,loaded);
+      if(!state.tuning) state.tuning=['e','B','G','D','A','E'];
+      if(!state.key) state.key='';
+      document.getElementById('song-title').textContent=state.title||'';
+      document.getElementById('song-author').textContent=state.author||'';
+      document.getElementById('song-key').textContent=state.key||'';
+      state.tuning.forEach((_,si)=>{ const el=document.getElementById(`tuning-${si}`); if(el) el.textContent=state.tuning[si]; });
+      const grid=document.getElementById('grid'); grid.innerHTML='';
+      state.measures.forEach((_,i)=>{
+        const card=document.createElement('div'); card.className='measure'; card.id=`m${i}`;
+        grid.appendChild(card); renderMeasure(i);
+      });
+    }catch(err){ alert('Could not read file: '+err.message); }
+  };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ── RENDER ──
+function renderMeasure(mIdx) {
+  const m=state.measures[mIdx];
+  const beats=m.chordLanes[0].chords.length;
+  const card=document.getElementById(`m${mIdx}`);
+
+  let h=`<div class="measure-header no-print">
+    <span class="measure-num">Measure ${mIdx+1}</span>
+    <div class="beat-controls">
+      <button class="btn-sm" onclick="removeBeat(${mIdx})">−</button>
+      <span class="beat-count">${beats}</span>
+      <button class="btn-sm" onclick="addBeat(${mIdx})">+</button>
+    </div>
+  </div>`;
+
+  // chord lanes
+  m.chordLanes.forEach((lane, lIdx) => {
+    const isFirst = lIdx === 0;
+    const canRemove = m.chordLanes.length > 1;
+    h+=`<div class="chord-lane ${isFirst?'':'chord-lane-extra'}">`;
+    if(isFirst) h+=`<div class="chord-lane-header"><span class="sec-label">Chords</span></div>`;
+    h+=`<div class="chord-lane-cells"><div class="${canRemove&&!isFirst?'lane-row':'beats-row'}">`;
+    if(canRemove&&!isFirst) h+=`<div class="beats-row">`;
+    lane.chords.forEach((c,bi) => {
+      h+=`<div class="beat-cell beat-chord" contenteditable="true" data-ph="·"
+        data-m="${mIdx}" data-type="cl" data-lane="${lIdx}" data-bi="${bi}"
+        oninput="syncChord(${mIdx},${lIdx},${bi},this)"
+        onkeydown="cellNav(event,${mIdx},${lIdx},0,${bi})">${c}</div>`;
+    });
+    if(canRemove&&!isFirst) h+=`</div><button class="btn-lane-remove no-print" onclick="removeChordLane(${mIdx},${lIdx})">×</button>`;
+    h+=`</div></div>`;
+
+    h+=`<div class="diagrams-wrap">`;
+    lane.diagrams.forEach((notes,dIdx) => {
+      h+=`<div class="dw" data-m="${mIdx}" data-lane="${lIdx}" data-d="${dIdx}">
+        ${diagContainer(makeSVG(notes,`chordFretClick(event,${mIdx},${lIdx},${dIdx})`), `removeChordDiag(${mIdx},${lIdx},${dIdx})`)}
+      </div>`;
+    });
+    h+=`<button class="btn-add-diag no-print" onclick="addChordDiag(${mIdx},${lIdx})">+ add diagram</button>
+    </div></div>`;
+  });
+
+  h+=`<div class="add-lane-wrap no-print">
+    <button class="btn-add-lane" onclick="addChordLane(${mIdx})">+ add chord lane</button>
+  </div>`;
+
+  // melody
+  h+=`<div>
+    <div class="melody-header">
+      <span class="sec-label">Melody</span>
+    </div>
+    <div class="melody-cells">`;
+  m.melodyRows.forEach((row,ri) => {
+    h+=`<div class="mel-lane-wrap">`;
+    h+=`<div class="beats-row">`;
+    row.forEach((n,bi) => {
+      h+=`<div class="beat-cell beat-note" contenteditable="true" data-ph="·"
+        data-m="${mIdx}" data-type="n" data-ri="${ri}" data-bi="${bi}"
+        oninput="syncNote(${mIdx},${ri},${bi},this)"
+        onkeydown="cellNav(event,${mIdx},'n',${ri},${bi})">${n}</div>`;
+    });
+    h+=`</div>`;
+    h+=`<div class="mel-lane-del no-print"><button onclick="remMelRow(${mIdx},${ri})">× delete lane</button></div>`;
+    h+=`</div>`;
+  });
+  h+=`</div>
+  <div class="add-lane-wrap no-print">
+    <button class="btn-add-lane" onclick="addMelRow(${mIdx})">+ add melody lane</button>
+  </div>
+  <div class="diagrams-wrap">`;
+  m.melodyDiagrams.forEach((diag,dIdx) => {
+    if(Array.isArray(diag)){ m.melodyDiagrams[dIdx]=diag={notes:diag,rows:[]}; }
+    h+=`<div class="mel-diag-block">`;
+    diag.rows.forEach((row,ri) => {
+      h+=`<div class="mel-lane-wrap">`;
+      h+=`<div class="beats-row">`;
+      row.forEach((n,bi) => {
+        h+=`<div class="beat-cell beat-note" contenteditable="true" data-ph="·"
+          data-m="${mIdx}" data-type="md" data-di="${dIdx}" data-ri="${ri}" data-bi="${bi}"
+          oninput="syncMelDiagNote(${mIdx},${dIdx},${ri},${bi},this)">${n}</div>`;
+      });
+      h+=`</div>`;
+      h+=`<div class="mel-lane-del no-print"><button onclick="remMelDiagLane(${mIdx},${dIdx},${ri})">× delete lane</button></div>`;
+      h+=`</div>`;
+    });
+    h+=`<div class="dw" data-m="${mIdx}" data-mel="${dIdx}">
+      ${diagContainer(makeSVG(diag.notes,`melodyFretClick(event,${mIdx},${dIdx})`), `removeMelodyDiag(${mIdx},${dIdx})`)}
+    </div>`;
+    h+=`<div class="add-mel-lane-wrap no-print">
+      <button class="btn-add-lane" onclick="addMelDiagLane(${mIdx},${dIdx})">+ add melody lane</button>
+    </div>`;
+    h+=`</div>`;
+  });
+  h+=`<button class="btn-add-diag no-print" onclick="addMelodyDiag(${mIdx})">+ add diagram</button>
+  </div></div>`;
+
+  card.innerHTML=h;
+}
+
+// ── INIT ──
+const grid=document.getElementById('grid');
+state.measures.forEach((_,i)=>{
+  const card=document.createElement('div'); card.className='measure'; card.id=`m${i}`;
+  grid.appendChild(card); renderMeasure(i);
+});
+</script>
+</body>
+</html>

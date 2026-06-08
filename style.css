@@ -1,0 +1,223 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #080808;
+  --text: #dedede;
+  --text-dim: #4a4a4a;
+  --text-mid: #888;
+  --divider: #141414;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Nav ── */
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 3rem;
+  z-index: 100;
+}
+
+.nav-mark {
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  color: var(--text-dim);
+}
+
+/* ── Hero ── */
+
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 max(3rem, 8vw) 18vh;
+}
+
+#hero h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(4.5rem, 13vw, 10rem);
+  line-height: 0.88;
+  letter-spacing: -0.025em;
+  margin-bottom: 3rem;
+}
+
+.tagline {
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: var(--text-mid);
+  line-height: 2;
+  letter-spacing: 0.02em;
+}
+
+/* ── Shared section layout ── */
+
+section {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 max(3rem, 8vw);
+}
+
+/* ── About ── */
+
+#about {
+  padding-top: 16vh;
+  padding-bottom: 16vh;
+}
+
+#about p {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #999;
+  margin-bottom: 1.6rem;
+}
+
+#about p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Work ── */
+
+#work {
+  padding-top: 8vh;
+  padding-bottom: 14vh;
+  border-top: 1px solid var(--divider);
+}
+
+.section-label {
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 3.5rem;
+}
+
+#work ul {
+  list-style: none;
+}
+
+#work li {
+  display: flex;
+  align-items: baseline;
+  gap: 2.5rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.work-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+.work-value {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+#work a {
+  font-size: 0.95rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+#work a:hover {
+  color: #fff;
+}
+
+/* ── Contact ── */
+
+#contact {
+  padding-top: 8vh;
+  padding-bottom: 16vh;
+  border-top: 1px solid var(--divider);
+}
+
+.email-link {
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 1.2rem;
+  transition: color 0.2s ease;
+}
+
+.email-link:hover {
+  color: #fff;
+}
+
+.contact-note {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+/* ── Footer ── */
+
+footer {
+  padding: 8vh max(3rem, 8vw);
+  border-top: 1px solid var(--divider);
+}
+
+footer p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #282828;
+  line-height: 2.2;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 640px) {
+  nav {
+    padding: 1.5rem;
+  }
+
+  #hero {
+    padding: 0 1.5rem 14vh;
+  }
+
+  section {
+    padding: 0 1.5rem;
+  }
+
+  footer {
+    padding: 8vh 1.5rem;
+  }
+
+  #work li {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}

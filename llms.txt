@@ -1,0 +1,30 @@
+# Sebastian Macchia
+
+> Miami-based musician, audio plugin developer, and vibe coder.
+
+## Who I am
+
+Sebastian Macchia is a musician and creator based in Miami, Florida. He makes electronic music with influences rooted in jazz, builds custom audio plugins (VST3/AU) for music production, and runs a YouTube channel documenting the intersection of creativity and AI-native tools.
+
+His work exists at the intersection of artistic intuition and generative systems — using AI as a collaborator, not a replacement for craft.
+
+## What I make
+
+- **Music** — Electronic compositions released as nobodyandthecomputer
+- **Audio plugins** — VST3/AU instruments and effects built with JUCE and Claude Code
+- **YouTube** — @nobodyandthecomputer (57,600+ subscribers) — process videos, vibe coding, music production
+- **Vibe coding** — Building software through conversation with AI; no traditional engineering background required
+
+## Contact
+
+nobodyandthecomputer@gmail.com
+For collaborations, licensing, and serious inquiries.
+
+## Links
+
+- Website: https://sebastianmacchia.com
+- YouTube: https://youtube.com/@nobodyandthecomputer
+
+## Keywords
+
+musician, audio plugins, VST3, AU, JUCE, vibe coding, generative music, electronic music, jazz, Miami, AI-native creation, nobodyandthecomputer
