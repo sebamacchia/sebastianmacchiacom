@@ -100,6 +100,29 @@ body { background: #f2f2f2; font-family: 'Georgia', serif; color: #111; padding:
 
 #note-tooltip { display:none; position:fixed; z-index:9999; background:#222; color:#fff; font-family:sans-serif; font-size:12px; font-weight:bold; padding:3px 8px; border-radius:4px; pointer-events:none; letter-spacing:0.5px; white-space:nowrap; }
 
+.cloud-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center; }
+.cloud-modal { background:white; border-radius:12px; padding:24px; width:440px; max-width:92vw; max-height:82vh; display:flex; flex-direction:column; gap:14px; box-shadow:0 8px 40px rgba(0,0,0,0.18); }
+.cloud-modal-head { display:flex; align-items:center; justify-content:space-between; }
+.cloud-modal-title { font-weight:700; font-size:16px; font-family:sans-serif; }
+.cloud-modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:#bbb; line-height:1; padding:0 2px; }
+.cloud-modal-close:hover { color:#333; }
+.token-row { display:flex; gap:8px; align-items:center; }
+.token-row input { flex:1; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:12px; font-family:sans-serif; outline:none; }
+.token-row input:focus { border-color:#aaa; }
+.cloud-divider { border:none; border-top:1px solid #f0f0f0; margin:0; }
+.cloud-section-label { font-size:10px; color:#bbb; font-family:sans-serif; text-transform:uppercase; letter-spacing:0.7px; margin-bottom:6px; }
+.gist-list { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; }
+.gist-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border:1px solid #f0f0f0; border-radius:7px; gap:8px; }
+.gist-item.gist-current { border-color:#b8d4ff; background:#f4f8ff; }
+.gist-item:hover { background:#fafafa; }
+.gist-item.gist-current:hover { background:#eef4ff; }
+.gist-info { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.gist-name { font-size:13px; font-weight:600; font-family:sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gist-date { font-size:10px; color:#bbb; font-family:sans-serif; }
+.gist-btns { display:flex; gap:5px; flex-shrink:0; }
+.btn-cloud-save { width:100%; }
+#cloud-status { font-size:11px; font-family:sans-serif; color:#888; text-align:center; min-height:14px; }
+
 @media print {
   body { background:white; padding:14px; }
   .no-print { display:none !important; }
@@ -140,7 +163,29 @@ body { background: #f2f2f2; font-family: 'Georgia', serif; color: #111; padding:
   <div class="header-actions no-print">
     <button class="btn btn-outline" onclick="loadFile()">Open</button>
     <button class="btn btn-outline" onclick="saveFile()">Save</button>
+    <button class="btn btn-outline" onclick="openCloudModal()">☁ Cloud</button>
     <button class="btn btn-dark" onclick="window.print()">⬇ PDF</button>
+  </div>
+</div>
+
+<!-- Cloud Modal -->
+<div class="cloud-modal-overlay" id="cloud-overlay" onclick="if(event.target===this)closeCloudModal()">
+  <div class="cloud-modal">
+    <div class="cloud-modal-head">
+      <span class="cloud-modal-title">Cloud Songs</span>
+      <button class="cloud-modal-close" onclick="closeCloudModal()">×</button>
+    </div>
+    <div class="token-row">
+      <input id="token-input" type="password" placeholder="GitHub token (ghp_...)">
+      <button class="btn btn-outline" style="white-space:nowrap;padding:7px 12px;" onclick="saveToken()">Set Token</button>
+    </div>
+    <button id="cloud-save-btn" class="btn btn-dark btn-cloud-save" onclick="saveToCloud()">Save to Cloud</button>
+    <div id="cloud-status"></div>
+    <hr class="cloud-divider">
+    <div>
+      <div class="cloud-section-label">My Songs</div>
+      <div class="gist-list" id="gist-list"><div style="color:#bbb;font-size:12px;padding:6px 0">Set your token to see saved songs.</div></div>
+    </div>
   </div>
 </div>
 
@@ -565,6 +610,129 @@ function renderMeasure(mIdx) {
   </div></div>`;
 
   card.innerHTML=h;
+}
+
+// ── CLOUD / GITHUB GISTS ──
+function getToken(){ return localStorage.getItem('fretmap_gh_token')||''; }
+function setToken(t){ localStorage.setItem('fretmap_gh_token',t.trim()); }
+
+async function gistAPI(method,path,body){
+  const token=getToken();
+  if(!token) throw new Error('No GitHub token set');
+  const res=await fetch('https://api.github.com'+path,{
+    method,
+    headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+    body:body?JSON.stringify(body):undefined
+  });
+  if(method==='DELETE'&&res.status===204) return null;
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.message||'GitHub API error '+res.status); }
+  return res.json();
+}
+
+function captureHeader(){
+  state.title=document.getElementById('song-title').textContent;
+  state.author=document.getElementById('song-author').textContent;
+  state.key=document.getElementById('song-key').textContent;
+}
+
+function setCloudStatus(msg,color){
+  const el=document.getElementById('cloud-status');
+  el.textContent=msg; el.style.color=color||'#888';
+}
+
+async function saveToCloud(){
+  captureHeader();
+  const btn=document.getElementById('cloud-save-btn');
+  btn.textContent='Saving...'; btn.disabled=true; setCloudStatus('');
+  try{
+    const filename=(state.title||'sheet').replace(/[^a-z0-9]/gi,'_')+'.json';
+    const body={description:'FretMap: '+(state.title||'Untitled'),public:false,files:{[filename]:{content:JSON.stringify(state,null,2)}}};
+    let result;
+    if(state.gistId){
+      result=await gistAPI('PATCH','/gists/'+state.gistId,body);
+    } else {
+      result=await gistAPI('POST','/gists',body);
+      state.gistId=result.id;
+    }
+    setCloudStatus('Saved to GitHub!','#2a9d2a');
+    setTimeout(()=>setCloudStatus(''),2500);
+    refreshGistList();
+  }catch(e){ setCloudStatus(e.message,'#c00'); }
+  btn.textContent='Save to Cloud'; btn.disabled=false;
+}
+
+async function refreshGistList(){
+  const list=document.getElementById('gist-list');
+  list.innerHTML='<div style="color:#bbb;font-size:12px;padding:6px 0">Loading...</div>';
+  try{
+    const gists=await gistAPI('GET','/gists?per_page=100');
+    const mine=gists.filter(g=>g.description&&g.description.startsWith('FretMap:'));
+    if(!mine.length){ list.innerHTML='<div style="color:#bbb;font-size:12px;padding:6px 0">No saved songs yet.</div>'; return; }
+    list.innerHTML=mine.map(g=>{
+      const title=g.description.replace(/^FretMap:\s*/,'');
+      const date=new Date(g.updated_at).toLocaleDateString();
+      const cur=g.id===state.gistId;
+      return `<div class="gist-item${cur?' gist-current':''}">
+        <div class="gist-info">
+          <span class="gist-name">${title}${cur?' ✓':''}</span>
+          <span class="gist-date">${date}</span>
+        </div>
+        <div class="gist-btns">
+          <button class="btn-sm" onclick="loadFromGist('${g.id}')">Open</button>
+          <button class="btn-sm" onclick="deleteGist('${g.id}',this)">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){ list.innerHTML=`<div style="color:#c00;font-size:12px;padding:6px 0">${e.message}</div>`; }
+}
+
+async function loadFromGist(id){
+  try{
+    const gist=await gistAPI('GET','/gists/'+id);
+    const file=Object.values(gist.files)[0];
+    const loaded=JSON.parse(file.content);
+    loaded.gistId=id;
+    Object.assign(state,loaded);
+    if(!state.tuning) state.tuning=['e','B','G','D','A','E'];
+    document.getElementById('song-title').textContent=state.title||'';
+    document.getElementById('song-author').textContent=state.author||'';
+    document.getElementById('song-key').textContent=state.key||'';
+    state.tuning.forEach((_,si)=>{ const el=document.getElementById('tuning-'+si); if(el) el.textContent=state.tuning[si]; });
+    const g=document.getElementById('grid'); g.innerHTML='';
+    state.measures.forEach((_,i)=>{ const c=document.createElement('div'); c.className='measure'; c.id='m'+i; g.appendChild(c); renderMeasure(i); });
+    closeCloudModal();
+  }catch(e){ alert('Could not load: '+e.message); }
+}
+
+async function deleteGist(id,btn){
+  if(!confirm('Delete this song from GitHub?')) return;
+  btn.textContent='...'; btn.disabled=true;
+  try{
+    await gistAPI('DELETE','/gists/'+id);
+    if(state.gistId===id) state.gistId=null;
+    refreshGistList();
+  }catch(e){ alert('Could not delete: '+e.message); btn.textContent='Delete'; btn.disabled=false; }
+}
+
+function saveToken(){
+  const t=document.getElementById('token-input').value.trim();
+  if(!t) return;
+  setToken(t);
+  setCloudStatus('Token saved.','#2a9d2a');
+  setTimeout(()=>setCloudStatus(''),2000);
+  refreshGistList();
+}
+
+function openCloudModal(){
+  const overlay=document.getElementById('cloud-overlay');
+  overlay.style.display='flex';
+  const t=getToken();
+  document.getElementById('token-input').value=t;
+  if(t) refreshGistList();
+}
+
+function closeCloudModal(){
+  document.getElementById('cloud-overlay').style.display='none';
 }
 
 // ── INIT ──
