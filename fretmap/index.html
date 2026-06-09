@@ -474,10 +474,8 @@ function onFileLoad(e){
   const reader=new FileReader();
   reader.onload=ev=>{
     try{
-      const loaded=JSON.parse(ev.target.result);
+      const loaded=migrateSong(JSON.parse(ev.target.result));
       Object.assign(state,loaded);
-      if(!state.tuning) state.tuning=['e','B','G','D','A','E'];
-      if(!state.key) state.key='';
       document.getElementById('song-title').textContent=state.title||'';
       document.getElementById('song-author').textContent=state.author||'';
       document.getElementById('song-key').textContent=state.key||'';
@@ -617,13 +615,30 @@ async function openSongsModal(){
   }catch(e){ list.innerHTML=`<div style="color:#c00;font-size:12px;padding:6px 0">${e.message}</div>`; }
 }
 
+function migrateSong(loaded){
+  loaded.measures=(loaded.measures||[]).map(m=>{
+    // old format: measure.chords (flat array) instead of chordLanes
+    if(!m.chordLanes){
+      const chordDiags=[];
+      if(m.chordDiags) Object.values(m.chordDiags).forEach(d=>{ chordDiags.push(Array.isArray(d)?d:(d.notes||[])); });
+      const melodyDiagrams=(m.diagrams||[]).map(notes=>({notes:notes||[],rows:[]}));
+      return { chordLanes:[{chords:m.chords||[],diagrams:chordDiags}], melodyRows:m.melodyRows||[], melodyDiagrams };
+    }
+    // ensure melodyDiagrams rows exist
+    (m.melodyDiagrams||[]).forEach(d=>{ if(!d.rows) d.rows=[]; });
+    return m;
+  });
+  if(!loaded.tuning) loaded.tuning=['e','B','G','D','A','E'];
+  if(!loaded.key) loaded.key='';
+  return loaded;
+}
+
 async function loadOnlineSong(filename, label){
   try{
     const res=await fetch(SONGS_RAW+filename+'?t='+Date.now());
     if(!res.ok) throw new Error('Could not load song');
-    const loaded=await res.json();
+    const loaded=migrateSong(await res.json());
     Object.assign(state,loaded);
-    if(!state.tuning) state.tuning=['e','B','G','D','A','E'];
     document.getElementById('song-title').textContent=state.title||'';
     document.getElementById('song-author').textContent=state.author||'';
     document.getElementById('song-key').textContent=state.key||'';
