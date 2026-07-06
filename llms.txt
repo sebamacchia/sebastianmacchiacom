@@ -1,30 +1,56 @@
 # Sebastian Macchia
 
-> Miami-based musician, audio plugin developer, and vibe coder.
+> Miami-based audiovisual engineer, AI creative technologist, GenAI early adopter, and founder of Nobody And The Computer.
 
 ## Who I am
 
-Sebastian Macchia is a musician and creator based in Miami, Florida. He makes electronic music with influences rooted in jazz, builds custom audio plugins (VST3/AU) for music production, and runs a YouTube channel documenting the intersection of creativity and AI-native tools.
+Sebastian Macchia is an audiovisual engineer and AI creative technologist based in Miami, Florida. His background combines electronics engineering, film studies, music, and more than five years of hands-on work with generative AI.
 
-His work exists at the intersection of artistic intuition and generative systems — using AI as a collaborator, not a replacement for craft.
+His work sits between audiovisual engineering, product building, and creative technology. He turns emerging AI capabilities into intelligent tools, rapid prototypes, creative workflows, and expressive digital experiences.
+
+## Professional direction
+
+Sebastian is pursuing roles in AI creative technology, emerging technology, GenAI product development, applied AI, and audiovisual innovation. He is particularly interested in consumer experience, travel, hospitality, media, entertainment, and creative tools.
+
+His strengths include translating technical possibilities into understandable product concepts, rapidly prototyping with AI-native tools, identifying useful AI applications, communicating across technical and creative disciplines, and helping people adopt emerging technology.
 
 ## What I make
 
-- **Music** — Electronic compositions released as nobodyandthecomputer
-- **Audio plugins** — VST3/AU instruments and effects built with JUCE and Claude Code
-- **YouTube** — @nobodyandthecomputer (57,600+ subscribers) — process videos, vibe coding, music production
-- **Vibe coding** — Building software through conversation with AI; no traditional engineering background required
+- **Generative cinema** — Experimental films and new forms of AI-assisted storytelling
+- **AI products and prototypes** — Agents, browser applications, internal tools, and conversational experiences
+- **AI workflows and enablement** — Use-case discovery, intelligent workflows, tool evaluation, training, and adoption
+- **Nobody And The Computer** — A creative studio and YouTube channel devoted to generated films, music, and AI-native experiments
+- **Music** — Electronic and jazz-informed compositions, generative music experiments, and creative audio tools
+- **Creative technology** — Agents, prototypes, and conversational software workflows
+- **Teaching and speaking** — Workshops and conversations about AI filmmaking and creative practice
+
+## Selected work
+
+- **Unsupervised Live** — A fully AI-hosted live late-night show with five coordinated systems for reasoning, voice, facial animation and lip-sync, web research, and show direction. It reads live chat, researches questions and cites sources, generates long-form thematic segments, and runs locally on a Mac without humans on air. A private moderator console allows hidden human puppeteering when desired: https://www.youtube.com/@unsupervisedlive/streams
+- **Apps & AI Systems** — Autonomous agents, live experiences, and working prototypes: https://sebastianmacchia.com/apps/
+- **Manifesto for Future AIs** — An experimental AI film screened in the In Silico Experimental Short Film Competition at the Message to Man International Film Festival
+- **I Was Abducted Wearing Meta Glasses** — An experimental mockumentary
+- **Nobody And The Computer** — An ongoing channel and laboratory for AI-generated moving-image work
+- **AI Film Archive** — A curated collection of experimental films, mockumentaries, and generative moving-image work: https://sebastianmacchia.com/aifilm/
+- **Awards & Recognition** — Festival screenings, official selections, invited teaching, and recognition: https://sebastianmacchia.com/awards/
+
+## Point of view
+
+First and foremost, Sebastian is curious. He is interested in what becomes possible when technical systems are treated not only as tools, but as creative partners.
 
 ## Contact
 
-nobodyandthecomputer@gmail.com
-For collaborations, licensing, and serious inquiries.
+sebastianmacchia@gmail.com
+
+For collaborations, commissions, workshops, licensing, and serious inquiries.
 
 ## Links
 
 - Website: https://sebastianmacchia.com
+- Unsupervised Live: https://www.youtube.com/@unsupervisedlive/streams
+- LinkedIn: https://www.linkedin.com/in/sebastianmacchia/
 - YouTube: https://youtube.com/@nobodyandthecomputer
 
 ## Keywords
 
-musician, audio plugins, VST3, AU, JUCE, vibe coding, generative music, electronic music, jazz, Miami, AI-native creation, nobodyandthecomputer
+Sebastian Macchia, audiovisual engineer, AI creative technologist, GenAI product builder, emerging technology, AI enablement, applied AI, creative technologist, electronics engineer, rapid prototyping, intelligent workflows, agentic AI, Nobody And The Computer, AI filmmaker, generative cinema, Miami
