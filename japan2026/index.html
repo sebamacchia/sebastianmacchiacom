@@ -9,7 +9,7 @@
   <meta name="description" content="Personal Japan 2026 itinerary and trip notes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=DM+Mono:wght@400;500&family=Roboto+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&amp;family=DM+Mono:wght@400;500&amp;family=Roboto+Condensed:wght@600;700&amp;display=swap" rel="stylesheet">
   <style>
     :root {
       --blue: #0b4bd3;
@@ -37,7 +37,7 @@
     button, input, textarea { font: inherit; }
     #top { scroll-margin-top: 70px; }
     ::selection { color: var(--blue); background: var(--yellow); }
-    .mono { font-family: "DM Mono", monospace; font-size: 11px; line-height: 1.55; letter-spacing: .11em; text-transform: uppercase; }
+    .mono { font-family: "DM Mono", monospace; font-size: 13px; line-height: 1.6; letter-spacing: .09em; text-transform: uppercase; }
     .shell { width: min(1500px, 100%); margin: 0 auto; padding: 0 42px; }
     .topbar {
       position: sticky;
@@ -74,7 +74,7 @@
     .section { padding: 96px 0; border-top: 1px solid var(--line); }
     .section-head { display: grid; grid-template-columns: .45fr 1fr; gap: 50px; align-items: end; margin-bottom: 55px; }
     .section-head h2 { margin: 0; font-family: "Bodoni Moda", Didot, serif; font-size: clamp(4rem, 8vw, 8rem); font-weight: 500; font-style: italic; line-height: .82; letter-spacing: -.06em; }
-    .section-head p { max-width: 550px; margin: 0 0 8px auto; font-family: "DM Mono", monospace; font-size: 11px; line-height: 1.75; font-weight: 400; }
+    .section-head p { max-width: 650px; margin: 0 0 8px auto; font-family: "DM Mono", monospace; font-size: 15px; line-height: 1.75; font-weight: 400; }
     .calendar { display: grid; grid-template-columns: repeat(7, minmax(140px, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); overflow-x: auto; }
     .weekday { min-width: 140px; padding: 12px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); opacity: .7; }
     .day { min-width: 140px; min-height: 185px; padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
@@ -84,15 +84,40 @@
     .day.tokyo { box-shadow: inset 0 4px 0 var(--green); }
     .day-number { font-size: 2.1rem; line-height: 1; }
     .day-city { display: block; margin: 10px 0 15px; }
-    .day p { margin: 0; font-family: "DM Mono", monospace; font-size: 9px; line-height: 1.6; font-weight: 400; opacity: .86; }
+    .day p { margin: 0; font-family: "DM Mono", monospace; font-size: 13px; line-height: 1.65; font-weight: 400; opacity: .9; }
     .legend { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 20px; }
     .legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 8px; background: currentColor; }
     .legend .l-travel { color: var(--yellow); }.legend .l-osaka { color: var(--red); }.legend .l-tokyo { color: var(--green); }
+    .moves { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .move { min-height: 330px; padding: 24px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
+    .move h3 { margin: 18px 0 28px; font-size: clamp(2rem, 4vw, 4rem); line-height: .92; letter-spacing: -.04em; text-transform: uppercase; }
+    .move ol { margin: 0; padding: 0; list-style: none; counter-reset: move; font-family: "DM Mono", monospace; font-size: 15px; line-height: 1.75; font-weight: 400; }
+    .move li { counter-increment: move; display: grid; grid-template-columns: 28px 1fr; gap: 8px; margin-top: 12px; }
+    .move li::before { content: counter(move, decimal-leading-zero); color: var(--yellow); }
+    .move-links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; }
+    .move-links a { color: var(--yellow); text-decoration: none; border-bottom: 1px solid currentColor; }
+    .agenda-list { border-top: 1px solid var(--line); }
+    .agenda-day { border-bottom: 1px solid var(--line); background: var(--panel); }
+    .agenda-day summary { display: grid; grid-template-columns: 105px 155px 1fr 34px; gap: 20px; align-items: center; min-height: 78px; padding: 24px 18px; cursor: pointer; list-style: none; }
+    .agenda-day summary::-webkit-details-marker { display: none; }
+    .agenda-day summary::after { content: "+"; justify-self: end; font-size: 1.6rem; line-height: 1; color: var(--yellow); }
+    .agenda-day[open] summary::after { content: "−"; }
+    .agenda-day[open] summary { border-bottom: 1px solid var(--line); }
+    .agenda-date { font-size: 1.8rem; line-height: 1; }
+    .agenda-title { font-size: clamp(1.35rem, 2.5vw, 2.4rem); line-height: 1; text-transform: uppercase; }
+    .agenda-content { display: grid; grid-template-columns: 1fr 1fr; gap: 55px; padding: 34px 24px 42px 278px; }
+    .agenda-content h4 { margin: 0 0 15px; color: var(--yellow); }
+    .agenda-content ul { margin: 0; padding: 0; list-style: none; font-family: "DM Mono", monospace; font-size: 16px; line-height: 1.8; font-weight: 400; }
+    .agenda-content li + li { margin-top: 12px; }
+    .agenda-content li::before { content: "→ "; color: var(--yellow); }
+    .agenda-note { display: block; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(248,244,235,.22); opacity: .72; }
+    .research-links { display: flex; flex-wrap: wrap; gap: 18px; padding-top: 24px; }
+    .research-links a { color: var(--yellow); text-decoration: none; border-bottom: 1px solid currentColor; }
     .cards { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
     .card { min-height: 300px; padding: 25px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; justify-content: space-between; background: var(--panel); }
     .card h3 { max-width: 540px; margin: 18px 0 0; font-size: clamp(2rem, 4vw, 4.2rem); line-height: .94; letter-spacing: -.04em; text-transform: uppercase; }
     .card-details { display: grid; grid-template-columns: 1fr auto; gap: 25px; align-items: end; margin-top: 50px; }
-    .card p { max-width: 480px; margin: 0; font-family: "DM Mono", monospace; font-size: 10px; line-height: 1.7; font-weight: 400; opacity: .8; }
+    .card p { max-width: 520px; margin: 0; font-family: "DM Mono", monospace; font-size: 15px; line-height: 1.75; font-weight: 400; opacity: .88; }
     .map-link { text-decoration: none; border-bottom: 1px solid var(--yellow); color: var(--yellow); white-space: nowrap; }
     .flight-board { border-top: 1px solid var(--line); }
     .flight { display: grid; grid-template-columns: 90px 1fr auto 1fr auto; gap: 24px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--line); }
@@ -101,8 +126,20 @@
     .ideas-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
     .idea { min-height: 260px; padding: 22px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
     .idea h3 { margin: 26px 0 15px; font-size: clamp(1.8rem, 3vw, 3.2rem); line-height: .95; letter-spacing: -.035em; text-transform: uppercase; }
-    .idea ul { margin: 0; padding: 0; list-style: none; font-family: "DM Mono", monospace; font-size: 10px; line-height: 1.8; font-weight: 400; }
+    .idea ul { margin: 0; padding: 0; list-style: none; font-family: "DM Mono", monospace; font-size: 15px; line-height: 1.8; font-weight: 400; }
     .idea li::before { content: "→ "; color: var(--yellow); }
+    .idea a { color: var(--yellow); text-decoration: none; border-bottom: 1px solid currentColor; }
+    .vinyl-grid { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .vinyl-card { min-height: 400px; padding: 25px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
+    .vinyl-card-head { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 32px; }
+    .vinyl-card h3 { margin: 8px 0 0; font-size: clamp(2.4rem, 4vw, 4.5rem); line-height: .9; letter-spacing: -.04em; text-transform: uppercase; }
+    .vinyl-day { color: var(--yellow); text-align: right; }
+    .vinyl-list { margin: 0; padding: 0; list-style: none; }
+    .vinyl-store { display: grid; grid-template-columns: minmax(135px, .42fr) 1fr; gap: 18px; padding: 15px 0; border-top: 1px solid var(--line); }
+    .vinyl-store a { color: var(--cream); font-family: "Roboto Condensed", Arial, sans-serif; font-size: 20px; font-weight: 700; line-height: 1.1; letter-spacing: .02em; text-decoration: none; text-transform: uppercase; }
+    .vinyl-store p { margin: 0; font-family: "DM Mono", monospace; font-size: 14px; line-height: 1.55; opacity: .82; }
+    .vinyl-note { display: grid; grid-template-columns: .4fr 1fr; gap: 30px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .vinyl-note p { max-width: 720px; margin: 0; font-family: "DM Mono", monospace; font-size: 15px; line-height: 1.7; }
     .planner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
     .checklist { border-top: 1px solid var(--line); }
     .check-row { display: flex; align-items: flex-start; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
@@ -110,13 +147,20 @@
     .check-row input:checked { background: var(--yellow); box-shadow: inset 0 0 0 4px var(--blue); }
     .check-row:has(input:checked) span { opacity: .48; text-decoration: line-through; }
     .notes-label { display: block; margin-bottom: 14px; }
-    .notes { width: 100%; min-height: 420px; resize: vertical; padding: 20px; border: 1px solid var(--line); border-radius: 0; outline: 0; color: var(--cream); background: var(--panel); font-family: "DM Mono", monospace; font-size: 12px; line-height: 1.75; font-weight: 400; }
+    .notes { width: 100%; min-height: 420px; resize: vertical; padding: 22px; border: 1px solid var(--line); border-radius: 0; outline: 0; color: var(--cream); background: var(--panel); font-family: "DM Mono", monospace; font-size: 16px; line-height: 1.75; font-weight: 400; }
     .notes:focus { border-color: var(--yellow); }
     .save-status { margin-top: 10px; opacity: .65; }
     .photo-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; grid-auto-rows: 260px; gap: 12px; }
-    .photo-slot { display: grid; place-items: center; padding: 25px; border: 1px dashed rgba(248,244,235,.5); background: var(--panel); text-align: center; }
-    .photo-slot:first-child { grid-row: span 2; }
-    .photo-slot span { max-width: 210px; opacity: .65; }
+    .photo-card { position: relative; min-width: 0; margin: 0; overflow: hidden; background: var(--panel); }
+    .photo-card:first-child { grid-row: span 2; }
+    .photo-card.wide { grid-column: span 2; }
+    .photo-card img { width: 100%; height: 100%; display: block; object-fit: cover; filter: saturate(.92) contrast(1.03); transition: transform .5s ease; }
+    .photo-card:hover img { transform: scale(1.025); }
+    .photo-card::after { content: ""; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, rgba(4,22,65,.92)); pointer-events: none; }
+    .photo-caption { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; display: flex; justify-content: space-between; gap: 14px; align-items: flex-end; }
+    .photo-place { font-family: "Roboto Condensed", Arial, sans-serif; font-size: 25px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    .photo-credit { max-width: 150px; color: var(--cream); font-family: "DM Mono", monospace; font-size: 10px; line-height: 1.35; text-align: right; opacity: .78; }
+    .photo-credit a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(248,244,235,.55); }
     .footer { display: flex; justify-content: space-between; gap: 30px; padding: 35px 0 50px; border-top: 1px solid var(--line); opacity: .72; }
     @media (max-width: 900px) {
       .shell { padding: 0 20px; }
@@ -136,18 +180,23 @@
       .day-city { margin: 4px 0 0; }
       .day p { padding-left: 4px; }
       .cards, .planner-grid { grid-template-columns: 1fr; }
+      .moves { grid-template-columns: 1fr; }
+      .agenda-day summary { grid-template-columns: 88px 135px 1fr 28px; gap: 14px; }
+      .agenda-content { grid-template-columns: 1fr; gap: 32px; padding: 30px 18px 38px 244px; }
       .ideas-grid { grid-template-columns: 1fr 1fr; }
+      .vinyl-grid { grid-template-columns: 1fr; }
       .flight { grid-template-columns: 70px 1fr auto 1fr; gap: 12px; }
       .flight > :last-child { grid-column: 2 / -1; }
       .photo-grid { grid-template-columns: 1fr 1fr; }
-      .photo-slot:first-child { grid-row: auto; }
+      .photo-card:first-child { grid-row: auto; }
+      .photo-card.wide { grid-column: auto; }
     }
     @media (max-width: 560px) {
       body { background-size: 48px 48px; }
       .shell { padding-left: 16px; padding-right: 16px; }
       .topbar { min-height: 60px; }
       #top { scroll-margin-top: 60px; }
-      .topbar > .mono:last-child { font-size: 8px; letter-spacing: .07em; }
+      .topbar > .mono:last-child { font-size: 11px; letter-spacing: .06em; }
       .hero { min-height: auto; padding: 54px 0 65px; gap: 55px; }
       h1 { padding-left: 8px; font-size: clamp(5.7rem, 29vw, 7.5rem); }
       h1 small { margin-top: 28px; margin-left: 4%; font-size: .82rem; }
@@ -164,17 +213,32 @@
       .weekday, .day.empty { display: none; }
       .day { min-width: 0; min-height: 0; display: grid; grid-template-columns: 42px 105px 1fr; gap: 10px; align-items: start; padding: 16px 12px; border-left: 1px solid var(--line); }
       .day-number { font-size: 1.75rem; }
-      .day-city { margin: 3px 0 0; font-size: 9px; }
-      .day p { padding-left: 2px; font-size: 9px; }
+      .day-city { margin: 3px 0 0; font-size: 12px; }
+      .day p { padding-left: 2px; font-size: 13px; }
       .legend { gap: 13px; }
       .card { min-height: 250px; padding: 20px 16px; }
       .card h3 { font-size: 2.4rem; }
       .card-details { grid-template-columns: 1fr; gap: 18px; margin-top: 38px; }
       .map-link { justify-self: start; min-height: 36px; display: inline-flex; align-items: center; }
+      .move { min-height: 0; padding: 20px 16px 26px; }
+      .move h3 { font-size: 2.35rem; }
+      .agenda-day summary { grid-template-columns: 62px 1fr 28px; gap: 12px; min-height: 82px; padding: 19px 14px; }
+      .agenda-date { font-size: 1.5rem; }
+      .agenda-place { grid-column: 2; grid-row: 2; font-size: 11px; }
+      .agenda-title { font-size: 1.2rem; }
+      .agenda-day summary::after { grid-column: 3; grid-row: 1 / span 2; }
+      .agenda-content { padding: 26px 16px 34px; }
       .ideas-grid, .photo-grid { grid-template-columns: 1fr; }
+      .vinyl-card { min-height: 0; padding: 21px 18px; }
+      .vinyl-card-head { margin-bottom: 24px; }
+      .vinyl-store { grid-template-columns: 1fr; gap: 7px; padding: 17px 0; }
+      .vinyl-store a { font-size: 23px; }
+      .vinyl-note { grid-template-columns: 1fr; gap: 8px; }
       .idea { min-height: 225px; padding: 20px 16px; }
       .idea h3 { font-size: 2.35rem; }
-      .photo-grid { grid-auto-rows: 220px; }
+      .photo-grid { grid-auto-rows: 250px; }
+      .photo-caption { left: 15px; right: 15px; bottom: 14px; }
+      .photo-place { font-size: 27px; }
       .flight { grid-template-columns: 54px 1fr 24px 1fr; gap: 8px; padding: 18px 0; }
       .airport { font-size: 1.65rem; }
       .flight-arrow { font-size: 1rem; }
@@ -188,7 +252,7 @@
   <header class="topbar shell">
     <a class="brand mono" href="#top">Japan <span>2026</span></a>
     <nav class="topnav mono" aria-label="Trip planner sections">
-      <a href="#calendar">Calendar</a><a href="#stays">Stays</a><a href="#flights">Flights</a><a href="#ideas">Ideas</a><a href="#prepare">Prepare</a><a href="#photos">Photos</a>
+      <a href="#calendar">Calendar</a><a href="#guide">Guide</a><a href="#stays">Stays</a><a href="#flights">Flights</a><a href="#ideas">Ideas</a><a href="#vinyl">Vinyl</a><a href="#prepare">Prepare</a>
     </nav>
     <span class="mono">Personal trip planner</span>
   </header>
@@ -222,21 +286,70 @@
         <article class="day tokyo"><strong class="day-number">3</strong><span class="day-city mono">Tokyo</span><p>Asakusa base<br>Meiji Shrine · Yoyogi</p></article>
         <article class="day travel"><strong class="day-number">4</strong><span class="day-city mono">Tokyo → Osaka</span><p>Ryokan checkout<br>Check in: The Flag</p></article>
         <article class="day osaka"><strong class="day-number">5</strong><span class="day-city mono">Osaka</span><p>Open day<br>Shinsaibashi base</p></article>
-        <article class="day osaka"><strong class="day-number">6</strong><span class="day-city mono">Osaka</span><p>Open day<br>Food + neighborhoods</p></article>
-        <article class="day osaka"><strong class="day-number">7</strong><span class="day-city mono">Osaka · Birthday</span><p>Laura’s birthday 🎂<br>Dinner idea saved</p></article>
-        <article class="day osaka"><strong class="day-number">8</strong><span class="day-city mono">Osaka</span><p>Open day<br>Last full Osaka day</p></article>
+        <article class="day osaka"><strong class="day-number">6</strong><span class="day-city mono">Kyoto day trip</span><p>Fushimi Inari early<br>Higashiyama · Gion</p></article>
+        <article class="day osaka"><strong class="day-number">7</strong><span class="day-city mono">Osaka · Birthday</span><p>Indoor + slow 🎂<br>Special dinner</p></article>
+        <article class="day osaka"><strong class="day-number">8</strong><span class="day-city mono">Nara day trip</span><p>Nara Park · Tōdai-ji<br>Osaka evening</p></article>
         <article class="day travel"><strong class="day-number">9</strong><span class="day-city mono">Osaka → Tokyo</span><p>Check in: Mustard Hotel<br>Shimokitazawa</p></article>
         <article class="day tokyo"><strong class="day-number">10</strong><span class="day-city mono">Tokyo</span><p>Shimokitazawa base<br>Neighborhood day</p></article>
-        <article class="day tokyo"><strong class="day-number">11</strong><span class="day-city mono">Tokyo</span><p>Ueno · Asakusa<br>Flexible</p></article>
+        <article class="day tokyo"><strong class="day-number">11</strong><span class="day-city mono">Tokyo · Holiday</span><p>Nakameguro · Daikanyama<br>Mountain Day</p></article>
         <article class="day tokyo"><strong class="day-number">12</strong><span class="day-city mono">Tokyo</span><p>Harajuku · Omotesando<br>Coffee stop</p></article>
         <article class="day travel"><strong class="day-number">13</strong><span class="day-city mono">Move hotels</span><p>Mustard checkout<br>Blossom Shinjuku</p></article>
-        <article class="day tokyo"><strong class="day-number">14</strong><span class="day-city mono">Tokyo</span><p>Shinjuku<br>City + shopping</p></article>
-        <article class="day tokyo"><strong class="day-number">15</strong><span class="day-city mono">Tokyo</span><p>Musashino idea<br>Museum + library</p></article>
-        <article class="day tokyo"><strong class="day-number">16</strong><span class="day-city mono">Tokyo</span><p>Open day<br>Follow curiosity</p></article>
-        <article class="day tokyo"><strong class="day-number">17</strong><span class="day-city mono">Tokyo</span><p>Final full day<br>Last walk + packing</p></article>
+        <article class="day tokyo"><strong class="day-number">14</strong><span class="day-city mono">Tokyo</span><p>Ueno · Akihabara<br>Museum optional</p></article>
+        <article class="day tokyo"><strong class="day-number">15</strong><span class="day-city mono">Tokyo</span><p>Musashino · Kichijoji<br>Park + architecture</p></article>
+        <article class="day tokyo"><strong class="day-number">16</strong><span class="day-city mono">Tokyo · Obon</span><p>Tsukiji · Ginza<br>Easy city day</p></article>
+        <article class="day tokyo"><strong class="day-number">17</strong><span class="day-city mono">Tokyo</span><p>Koenji · final shopping<br>Packing</p></article>
         <article class="day travel"><strong class="day-number">18</strong><span class="day-city mono">Return</span><p>NRT → DFW → MIA<br>Departure 6:30 PM</p></article>
       </div>
       <div class="legend mono"><span class="l-travel">Travel / move</span><span class="l-osaka">Osaka</span><span class="l-tokyo">Tokyo</span></div>
+    </section>
+
+    <section class="section shell" id="guide">
+      <div class="section-head"><h2>day guide</h2><p>A researched, heat-aware plan with the useful part first: how to move between the airport, hotels, cities, and day trips. Exact departure times should be rechecked in Japan.</p></div>
+
+      <div class="moves" aria-label="Essential transfers">
+        <article class="move">
+          <span class="mono">Arrival · Aug 2</span><h3>Narita → Asakusa</h3>
+          <ol><li>After immigration, follow Train signs to the Keisei station in your terminal.</li><li>Use Suica or buy a ticket for Asakusa. Take the Access Express bound for Oshiage, Asakusa, or Haneda Airport.</li><li>If your train goes toward Ueno instead, change at Aoto for an Asakusa-line through train.</li><li>Exit at Toei Asakusa Station, then walk about 10 minutes to Ryokan Asakusa Shigetsu.</li></ol>
+          <div class="move-links mono"><a href="https://www.keisei.co.jp/keisei/tetudou/skyliner/us/traffic/express_fares.php" target="_blank" rel="noopener">Keisei fares ↗</a><a href="https://www.google.com/maps/dir/?api=1&origin=Narita+International+Airport&destination=Ryokan+Asakusa+Shigetsu&travelmode=transit" target="_blank" rel="noopener">Live route ↗</a></div>
+        </article>
+        <article class="move">
+          <span class="mono">Transfer · Aug 4</span><h3>Tokyo → Osaka</h3>
+          <ol><li>Walk to Asakusa Station; take the Ginza Line to Kanda, then JR one stop to Tokyo Station. With luggage, a taxi to Tokyo Station is simpler.</li><li>Take a reserved Nozomi Tokaido Shinkansen from Tokyo to Shin-Osaka, about 2 hours 20 minutes.</li><li>At Shin-Osaka, take the Osaka Metro Midosuji Line to Shinsaibashi.</li><li>Walk about 7 minutes to Hotel The Flag.</li></ol>
+          <div class="move-links mono"><a href="https://smart-ex.jp/en/reservation/reserve_smart/sp/" target="_blank" rel="noopener">Book SmartEX ↗</a><a href="https://www.google.com/maps/dir/?api=1&origin=Ryokan+Asakusa+Shigetsu&destination=HOTEL+THE+FLAG+Shinsaibashi&travelmode=transit" target="_blank" rel="noopener">Live route ↗</a></div>
+        </article>
+        <article class="move">
+          <span class="mono">Transfer · Aug 9</span><h3>Osaka → Shimokitazawa</h3>
+          <ol><li>Take the Midosuji Line from Shinsaibashi to Shin-Osaka.</li><li>Take a reserved Nozomi to Shinagawa.</li><li>Take the JR Yamanote Line to Shibuya, then the Keio Inokashira Line to Shimokitazawa.</li><li>Walk to Mustard Hotel Shimokitazawa. Allow extra time for the Shibuya transfer with luggage.</li></ol>
+          <div class="move-links mono"><a href="https://smart-ex.jp/en/" target="_blank" rel="noopener">SmartEX ↗</a><a href="https://www.google.com/maps/dir/?api=1&origin=HOTEL+THE+FLAG+Shinsaibashi&destination=MUSTARD+HOTEL+SHIMOKITAZAWA&travelmode=transit" target="_blank" rel="noopener">Live route ↗</a></div>
+        </article>
+        <article class="move">
+          <span class="mono">Departure · Aug 18</span><h3>Shinjuku → Narita</h3>
+          <ol><li>Leave luggage with the hotel after checkout and have an early lunch nearby.</li><li>Walk to JR Shinjuku Station and follow signs for the Narita Express.</li><li>Take a reserved N’EX directly to your Narita terminal. Target a train around 2:00 PM.</li><li>Aim to reach the airport by 3:30 PM for the 6:30 PM international flight.</li></ol>
+          <div class="move-links mono"><a href="https://www.jreast.co.jp/en/multi/nex/" target="_blank" rel="noopener">N’EX official ↗</a><a href="https://www.google.com/maps/dir/?api=1&origin=JR+Kyushu+Hotel+Blossom+Shinjuku&destination=Narita+International+Airport&travelmode=transit" target="_blank" rel="noopener">Live route ↗</a></div>
+        </article>
+      </div>
+
+      <div class="agenda-list" aria-label="Daily agenda">
+        <details class="agenda-day" data-date="2026-08-01"><summary><strong class="agenda-date">Aug 1</strong><span class="agenda-place mono">Travel</span><span class="agenda-title">Miami to Tokyo</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Fly MIA → DFW → NRT.</li><li>Keep one change of clothes, medication, and chargers in carry-on.</li><li>Sleep according to Tokyo time after leaving Dallas.</li></ul></div><div><h4 class="mono">Before boarding</h4><ul><li>Save Visit Japan QR codes offline.</li><li>Confirm the arrival terminal and activate the eSIM after landing.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-02"><summary><strong class="agenda-date">Aug 2</strong><span class="agenda-place mono">Tokyo</span><span class="agenda-title">Arrival + Asakusa</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Arrive NRT at 3:00 PM; allow 60–90 minutes for immigration, baggage, and customs.</li><li>Check in, shower, and keep the evening intentionally light.</li><li>Walk through Sensō-ji after sunset and eat near the ryokan.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Keisei Access Express to Asakusa; follow the arrival route above.</li><li>Use the Toei Asakusa station—not Tsukuba Express Asakusa—for the easiest airport connection.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-03"><summary><strong class="agenda-date">Aug 3</strong><span class="agenda-place mono">Tokyo east</span><span class="agenda-title">Asakusa + Ueno</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>7:30 Sensō-ji and quiet backstreets before the crowds.</li><li>Breakfast, then Kappabashi kitchenware street.</li><li>Indoor lunch and rest during peak heat.</li><li>Late afternoon Ueno Park and Ameyoko; skip museums if closed Monday.</li></ul></div><div><h4 class="mono">Getting around</h4><ul><li>Walk around Asakusa and Kappabashi.</li><li>Ginza Line: Tawaramachi or Asakusa → Ueno.</li><li>Ginza Line back to Asakusa after dinner.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-04"><summary><strong class="agenda-date">Aug 4</strong><span class="agenda-place mono">Osaka</span><span class="agenda-title">Shinkansen + Dotonbori</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Check out and take a late-morning Shinkansen.</li><li>Check in at The Flag and rest.</li><li>Explore Shinsaibashi and Dotonbori after sunset.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Follow the Tokyo → Osaka route above.</li><li>Reserve the Shinkansen in SmartEX; a mid-morning train avoids rush hour.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-05"><summary><strong class="agenda-date">Aug 5</strong><span class="agenda-place mono">Osaka</span><span class="agenda-title">Markets + old Osaka</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Kuromon Market in the morning.</li><li>Namba Yasaka Shrine, then indoor lunch.</li><li>Late afternoon Shinsekai and Tsutenkaku area.</li><li>Chibo okonomiyaki or a small izakaya for dinner.</li></ul></div><div><h4 class="mono">Getting around</h4><ul><li>Walk or take one Midosuji Line stop: Shinsaibashi → Namba.</li><li>From Namba, use the Sakaisuji Line area or walk south toward Shinsekai.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-06"><summary><strong class="agenda-date">Aug 6</strong><span class="agenda-place mono">Kyoto</span><span class="agenda-title">Fushimi Inari + Gion</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Leave early and reach Fushimi Inari before 8:00 AM.</li><li>Walk only as far up the torii route as the heat allows.</li><li>Long indoor lunch/rest near Kyoto Station or Kawaramachi.</li><li>Higashiyama lanes and Gion in the cooler late afternoon.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Midosuji Line: Shinsaibashi → Umeda; walk to JR Osaka Station.</li><li>JR Special Rapid to Kyoto, then JR Nara Line to Inari.</li><li>For Gion, use Keihan from Fushimi-Inari to Gion-Shijo; return via Kyoto or Osaka.</li><li class="agenda-note">Avoid buses when possible; Kyoto’s official guide recommends rail for Fushimi.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-07"><summary><strong class="agenda-date">Aug 7</strong><span class="agenda-place mono">Osaka</span><span class="agenda-title">Birthday, slow + special</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Sleep in and have a relaxed breakfast.</li><li>Choose one indoor anchor: Osaka Aquarium Kaiyukan or shopping/cafés in Umeda.</li><li>Return to the hotel to reset before dinner.</li><li>Birthday dinner—reserve in advance.</li></ul></div><div><h4 class="mono">Getting around</h4><ul><li>For Kaiyukan: Midosuji to Hommachi, transfer to Chuo Line for Osakako.</li><li>For Umeda: direct Midosuji Line from Shinsaibashi.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-08"><summary><strong class="agenda-date">Aug 8</strong><span class="agenda-place mono">Nara</span><span class="agenda-title">Nara Park half-day</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Leave early for Nara Park before the strongest heat.</li><li>Tōdai-ji and the Great Buddha.</li><li>Lunch in Naramachi, then return to Osaka mid-afternoon.</li><li>Final Osaka evening near the hotel.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Midosuji Line: Shinsaibashi → Namba; walk to Osaka-Namba.</li><li>Kintetsu Nara Line Rapid Express to Kintetsu-Nara, then walk to Nara Park.</li><li>Suica works on JR and Kintetsu routes; check the live route that morning.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-09"><summary><strong class="agenda-date">Aug 9</strong><span class="agenda-place mono">Tokyo</span><span class="agenda-title">Return + Shimokitazawa</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Travel after breakfast and check in at Mustard Hotel.</li><li>Stay local: thrift shops, record stores, cafés, and dinner nearby.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Follow the Osaka → Shimokitazawa route above.</li><li>Reserve seats before the weekend; keep luggage compact for Shibuya.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-10"><summary><strong class="agenda-date">Aug 10</strong><span class="agenda-place mono">Tokyo west</span><span class="agenda-title">Shimokitazawa slow day</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Late breakfast and neighborhood walk.</li><li>Thrift shops and vinyl stores as they open.</li><li>Indoor afternoon break, then live music or a small bar at night.</li></ul></div><div><h4 class="mono">Getting around</h4><ul><li>Everything is walkable from Mustard Hotel.</li><li>No cross-city travel today—use it as a recovery day.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-11"><summary><strong class="agenda-date">Aug 11</strong><span class="agenda-place mono">National holiday</span><span class="agenda-title">Nakameguro + Daikanyama</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Walk the Meguro River in the morning.</li><li>Daikanyama T-Site and nearby design shops.</li><li>Lunch/coffee, then continue on foot toward Ebisu if energy allows.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Keio Inokashira Line: Shimokitazawa → Shibuya.</li><li>Tokyu Toyoko Line: Shibuya → Nakameguro.</li><li>Walk Nakameguro → Daikanyama → Ebisu; return via Shibuya.</li><li class="agenda-note">Mountain Day: expect holiday crowds and verify shop hours.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-12"><summary><strong class="agenda-date">Aug 12</strong><span class="agenda-place mono">Tokyo</span><span class="agenda-title">Meiji + Harajuku</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Meiji Jingu early while the forest is cooler.</li><li>Harajuku and Takeshita Street late morning.</li><li>Indoor lunch, then Omotesando architecture and Café Reissue.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Keio Inokashira Line to Shibuya.</li><li>JR Yamanote Line one stop to Harajuku.</li><li>Walk Meiji Jingu → Harajuku → Omotesando; return from Omote-sando or Shibuya.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-13"><summary><strong class="agenda-date">Aug 13</strong><span class="agenda-place mono">Shinjuku</span><span class="agenda-title">Hotel move + city views</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Move to Blossom Shinjuku and leave bags if the room is not ready.</li><li>Lunch, department stores, and the free Tokyo Metropolitan Government Building view.</li><li>Omoide Yokocho or a calmer nearby dinner.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Odakyu Line: Shimokitazawa → Shinjuku, about 10 minutes on an express.</li><li>Use the South Exit area and walk to the hotel.</li><li class="agenda-note">Obon begins: staying within Tokyo avoids the busiest long-distance travel.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-14"><summary><strong class="agenda-date">Aug 14</strong><span class="agenda-place mono">Tokyo east</span><span class="agenda-title">Ueno + Akihabara</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Tokyo National Museum or another Ueno museum in the morning.</li><li>Ueno Park and Ameyoko lunch.</li><li>Akihabara electronics, arcades, and camera shops late afternoon.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>JR Yamanote Line: Shinjuku → Ueno.</li><li>JR Yamanote/Keihin-Tōhoku Line: Ueno → Akihabara.</li><li>Return directly to Shinjuku on JR Chuo-Sobu or Yamanote.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-15"><summary><strong class="agenda-date">Aug 15</strong><span class="agenda-place mono">West Tokyo</span><span class="agenda-title">Musashino + Kichijoji</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Edo-Tokyo Open Air Architectural Museum in the morning.</li><li>Indoor lunch and rest.</li><li>Kichijoji and Inokashira Park toward sunset.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>JR Chuo Line: Shinjuku → Musashi-Koganei, then local bus to the museum.</li><li>JR Chuo Line onward to Kichijoji.</li><li>Return Kichijoji → Shinjuku directly on the Chuo Line.</li><li class="agenda-note">Check museum hours before going; August 15 is within Obon.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-16"><summary><strong class="agenda-date">Aug 16</strong><span class="agenda-place mono">Tokyo central</span><span class="agenda-title">Tsukiji + Ginza</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Tsukiji Outer Market early for breakfast.</li><li>Walk to Ginza for air-conditioned shops and galleries.</li><li>Tokyo Station/Marunouchi near sunset, then dinner.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Toei Oedo Line: Shinjuku-nishiguchi → Tsukijishijo.</li><li>Walk Tsukiji → Ginza; then Tokyo Metro Marunouchi Line or walk to Tokyo Station.</li><li>Marunouchi Line direct back to Shinjuku.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-17"><summary><strong class="agenda-date">Aug 17</strong><span class="agenda-place mono">Tokyo west</span><span class="agenda-title">Koenji + final shopping</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Arrive around noon, when the independent shops begin opening.</li><li>Start south of the station: PAL and Look shopping streets.</li><li>Browse vintage clothing, record shops, and the smaller side streets.</li><li>Stay for an early izakaya dinner, then return to pack.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>JR Chuo-Sobu Local: Shinjuku → Koenji, roughly 10 minutes.</li><li>Use the South Exit for PAL and Look; explore the north side later if energy allows.</li><li>Take the same local line back to Shinjuku.</li><li class="agenda-note">Check Monday opening hours and respect no-photo signs inside small shops and venues.</li></ul></div></div></details>
+        <details class="agenda-day" data-date="2026-08-18"><summary><strong class="agenda-date">Aug 18</strong><span class="agenda-place mono">Departure</span><span class="agenda-title">Shinjuku to Miami</span></summary><div class="agenda-content"><div><h4 class="mono">Plan</h4><ul><li>Check out by 11:00 AM and leave luggage at the hotel.</li><li>Early lunch and collect bags around 1:30 PM.</li><li>N’EX around 2:00 PM; airport target 3:30 PM.</li><li>Fly NRT → DFW → MIA at 6:30 PM.</li></ul></div><div><h4 class="mono">Getting there</h4><ul><li>Follow the Shinjuku → Narita route above.</li><li>Verify your terminal, N’EX departure, and airline check-in cutoff the day before.</li></ul></div></div></details>
+      </div>
+      <div class="research-links mono"><a href="https://www.gotokyo.org/en/story/walks-and-tours/best-of-tokyo/index.html" target="_blank" rel="noopener">Go Tokyo ↗</a><a href="https://osaka-info.jp/en/special/universal/course01/" target="_blank" rel="noopener">Osaka Info ↗</a><a href="https://kyoto.travel/en/areas/fushimi/" target="_blank" rel="noopener">Kyoto Travel ↗</a><a href="https://www.visitnara.jp/travel-to-nara/" target="_blank" rel="noopener">Visit Nara ↗</a><a href="https://www.japan.travel/en/guide/august/" target="_blank" rel="noopener">Japan in August ↗</a></div>
     </section>
 
     <section class="section shell" id="stays">
@@ -262,13 +375,61 @@
     <section class="section shell" id="ideas">
       <div class="section-head"><h2>ideas</h2><p>A flexible collection from the notes—not a rigid itinerary. Pick what fits the weather, energy, and neighborhood each day.</p></div>
       <div class="ideas-grid">
-        <article class="idea"><span class="mono">Tokyo / Walk</span><h3>Neighborhoods</h3><ul><li>Asakusa + Sensō-ji</li><li>Ueno Park</li><li>Harajuku + Takeshita Street</li><li>Omotesando</li><li>Shinjuku</li><li>Shimokitazawa</li></ul></article>
+        <article class="idea"><span class="mono">Tokyo / Walk</span><h3>Neighborhoods</h3><ul><li>Asakusa + Sensō-ji</li><li>Ueno Park</li><li>Harajuku + Takeshita Street</li><li>Nakameguro canal</li><li>Daikanyama T-Site</li><li>Shimokitazawa</li></ul></article>
         <article class="idea"><span class="mono">Tokyo / Coffee</span><h3>Coffee & sweets</h3><ul><li>Nadoya no KaTte</li><li>Lambert Coffee Tokyo</li><li>Sisiri wagashi</li><li>Café Reissue</li></ul></article>
         <article class="idea"><span class="mono">Tokyo / Culture</span><h3>Musashino</h3><ul><li>Public library</li><li>Open-air museum</li><li>Pancakes</li><li>Coco Ichibanya</li></ul></article>
-        <article class="idea"><span class="mono">Osaka / Food</span><h3>Eat</h3><ul><li>Chibo okonomiyaki</li><li>Dorayaki</li><li>Convenience-store egg sandwich</li><li>Birthday dinner</li></ul></article>
+        <article class="idea"><span class="mono">Osaka / Food</span><h3>Eat</h3><ul><li>Chibo okonomiyaki</li><li>Dotonbori at night</li><li>Street food</li><li>Small izakaya</li><li>Dorayaki</li></ul></article>
         <article class="idea"><span class="mono">Tokyo / Shopping</span><h3>Look for</h3><ul><li>Gachapon</li><li>Bic Camera film rolls</li><li>GU + Uniqlo</li><li>Muji travel things</li><li>Adidas</li></ul></article>
         <article class="idea"><span class="mono">Useful / Transit</span><h3>Move around</h3><ul><li>Add Suica to iPhone</li><li>Narita Express from airport</li><li>Use station letters + numbers</li><li>Keep Holafly eSIM ready</li></ul></article>
+        <article class="idea"><span class="mono">Backup / Not scheduled</span><h3>Weather alternatives</h3><ul><li>Kamakura — early day trip</li><li>Hakone — onsen day</li><li>Extra indoor Tokyo day</li><li>Repeat a favorite area</li></ul></article>
+        <article class="idea"><span class="mono">August / Daily rhythm</span><h3>Heat strategy</h3><ul><li>Outdoor plans early</li><li>Midday indoors or resting</li><li>Return outside at night</li><li>Light clothes + water</li><li>Keep the pace slow</li></ul></article>
+        <article class="idea"><span class="mono">Beyond the guidebooks / Tokyo</span><h3>Koenji</h3><ul><li>PAL + Look shōtengai</li><li>Vintage and secondhand shops</li><li>Independent record stores</li><li>Live houses + tiny bars</li><li>Best from midday into evening</li><li><a href="https://www.gotokyo.org/en/destinations/western-tokyo/koenji/index.html" target="_blank" rel="noopener">Official neighborhood guide ↗</a></li></ul></article>
       </div>
+    </section>
+
+    <section class="section shell" id="vinyl">
+      <div class="section-head"><h2>vinyl<br>digging</h2><p>The strongest record-store clusters already fit the itinerary. Start after noon—many independent shops open late—and check each store on the day before crossing the city for it.</p></div>
+      <div class="vinyl-grid">
+        <article class="vinyl-card">
+          <div class="vinyl-card-head"><div><span class="mono">Osaka · Amemura + Minamihorie</span><h3>Deep first dig</h3></div><span class="vinyl-day mono">Aug 5 or 7</span></div>
+          <ul class="vinyl-list">
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Time+Bomb+Records+Osaka" target="_blank" rel="noopener">Time Bomb ↗</a><p>Punk, psych, new wave, soul, ska, rockabilly and Japanese rock. Excellent curated stop.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Groovenut+Records+Osaka" target="_blank" rel="noopener">Groovenut ↗</a><p>Soul, funk, jazz, disco, hip-hop and R&amp;B—one of the priority shops for groove-heavy digging.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=King+Kong+Record+Store+Osaka" target="_blank" rel="noopener">King Kong ↗</a><p>Large, long-running all-genre shop with affordable bins, Japanese music and rarer records.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Newtone+Records+Osaka" target="_blank" rel="noopener">Newtone ↗</a><p>Electronic, experimental, ambient, house and left-field music. More selective, less obvious.</p></li>
+          </ul>
+        </article>
+
+        <article class="vinyl-card">
+          <div class="vinyl-card-head"><div><span class="mono">Tokyo · Shimokitazawa</span><h3>Near the hotel</h3></div><span class="vinyl-day mono">Aug 10</span></div>
+          <ul class="vinyl-list">
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Disk+Union+Shimokitazawa" target="_blank" rel="noopener">Disk Union ↗</a><p>The broad first stop: used rock, Japanese music, hip-hop, R&amp;B, house and techno with reliable grading.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Pianola+Records+Shimokitazawa" target="_blank" rel="noopener">Pianola ↗</a><p>Experimental, ambient, contemporary, global and independent releases in Bonus Track.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Flash+Disc+Ranch+Shimokitazawa" target="_blank" rel="noopener">Flash Disc Ranch ↗</a><p>Old-school, densely packed used-vinyl experience. Rock, jazz, soul and the pleasure of patient crate digging.</p></li>
+          </ul>
+        </article>
+
+        <article class="vinyl-card">
+          <div class="vinyl-card-head"><div><span class="mono">Tokyo · Koenji</span><h3>Underground route</h3></div><span class="vinyl-day mono">Aug 17</span></div>
+          <ul class="vinyl-list">
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=EAD+Record+Koenji" target="_blank" rel="noopener">EAD ↗</a><p>Rare groove, jazz-funk, disco, house, Japanese synth, fusion, ambient and soundtracks.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Uptown+Records+Koenji" target="_blank" rel="noopener">Uptown ↗</a><p>Experimental, synth, avant-garde, post-punk, noise and Chinese underground music.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Record+Boy+Koenji" target="_blank" rel="noopener">Record Boy ↗</a><p>A Koenji institution for hardcore punk, metal and obscure Japanese underground releases.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=BE-IN+Records+Koenji" target="_blank" rel="noopener">BE-IN ↗</a><p>Collector-grade used vinyl, especially Beatles, Stones and scarce UK pressings.</p></li>
+          </ul>
+        </article>
+
+        <article class="vinyl-card">
+          <div class="vinyl-card-head"><div><span class="mono">Tokyo · Shibuya + Shinjuku</span><h3>Big inventory</h3></div><span class="vinyl-day mono">Aug 12 or 14</span></div>
+          <ul class="vinyl-list">
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=HMV+record+shop+Shibuya" target="_blank" rel="noopener">HMV Shibuya ↗</a><p>Around 80,000 records: Japanese pop and rock downstairs; jazz, soul, hip-hop, R&amp;B and dance upstairs.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Face+Records+Miyashita+Park" target="_blank" rel="noopener">Face Records ↗</a><p>Clean, accessible selection of soul, jazz, city pop, Japanese pressings and collectible titles.</p></li>
+            <li class="vinyl-store"><a href="https://maps.google.com/?q=Disk+Union+Shinjuku+Record+Store" target="_blank" rel="noopener">Disk Union Shinjuku ↗</a><p>Multiple specialist shops and floors. Choose by genre instead of attempting the entire complex.</p></li>
+          </ul>
+        </article>
+      </div>
+      <div class="vinyl-note"><span class="mono">Digging strategy</span><p>Prioritize the “new arrivals” bins, check the vinyl grading and pressing details, and ask before using a listening station. Save heavy purchases for the final Tokyo days—or carry a rigid record mailer so the sleeves survive the flight.</p></div>
+      <div class="research-links mono"><a href="https://timebomb.co.jp/en" target="_blank" rel="noopener">Time Bomb ↗</a><a href="https://uptown-records.com/pages/about-uptown-records-tokyo-shanghai" target="_blank" rel="noopener">Uptown Records ↗</a><a href="https://eadrecord.theshop.jp/about" target="_blank" rel="noopener">EAD Record ↗</a><a href="https://www.hmv.co.jp/recordshop/news/shibuya" target="_blank" rel="noopener">HMV Record Shop ↗</a><a href="https://pianola-records.com/en/pages/about-us" target="_blank" rel="noopener">Pianola ↗</a></div>
     </section>
 
     <section class="section shell" id="prepare">
@@ -294,13 +455,52 @@
     </section>
 
     <section class="section shell" id="photos">
-      <div class="section-head"><h2>photo diary</h2><p>Empty on purpose. After the trip begins, real photographs can replace these spaces without changing the rest of the planner.</p></div>
+      <div class="section-head"><h2>the route,<br>in pictures</h2><p>A visual preview of the places ahead. These are real, openly licensed photographs; after the trip, our own images can take their place.</p></div>
       <div class="photo-grid">
-        <div class="photo-slot"><span class="mono">First arrival<br>Tokyo · Aug 2</span></div>
-        <div class="photo-slot"><span class="mono">Asakusa</span></div>
-        <div class="photo-slot"><span class="mono">Osaka</span></div>
-        <div class="photo-slot"><span class="mono">Shimokitazawa</span></div>
-        <div class="photo-slot"><span class="mono">Shinjuku</span></div>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Orange%20Gate%20and%20Lanterns%2C%20Asakusa%20%2853416864113%29.jpg?width=1400" alt="Lanterns and an orange gate in Asakusa at night" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Asakusa</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Orange_Gate_and_Lanterns,_Asakusa_(53416864113).jpg" target="_blank" rel="noreferrer">Photo · Wikimedia Commons</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Dotonbori%2C%20Osaka%2C%20at%20night%2C%20November%202016.jpg?width=1400" alt="Illuminated signs in Dotonbori, Osaka, at night" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Osaka</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Dotonbori,_Osaka,_at_night,_November_2016.jpg" target="_blank" rel="noreferrer">Martin Falbisoner · Commons</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Torii%20gate%2C%20Fushimi%20Inari-taisha%2C%20Kyoto%2C%2020240818%201342%204405.jpg?width=1400" alt="Red torii gates at Fushimi Inari shrine in Kyoto" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Kyoto</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Torii_gate,_Fushimi_Inari-taisha,_Kyoto,_20240818_1342_4405.jpg" target="_blank" rel="noreferrer">Jakub Hałun · CC BY 4.0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Sika%20Deer%2C%20Nara%2C%20Japan%2C%2020240819%201541%204775.jpg?width=1400" alt="A sika deer resting in Nara" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Nara</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Sika_Deer,_Nara,_Japan,_20240819_1541_4775.jpg" target="_blank" rel="noreferrer">Jakub Hałun · CC BY 4.0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Night%20in%20Shinjuku.JPG?width=1400" alt="Traffic and city lights in Shinjuku at night" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Shinjuku</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Night_in_Shinjuku.JPG" target="_blank" rel="noreferrer">Martin Falbisoner · Commons</a></span></figcaption>
+        </figure>
+        <figure class="photo-card wide">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Shimokitazawa%20Street%20%2820260227194844%29.jpg?width=1600" alt="A lively street in Shimokitazawa at night" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Shimokitazawa</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Shimokitazawa_Street_(20260227194844).jpg" target="_blank" rel="noreferrer">深鸣 · CC BY-SA 4.0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Japan%20A%20night%20in%20Akihabara%20%2815624982052%29.jpg?width=1400" alt="Neon lights and pedestrians in Akihabara at night" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Akihabara</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Japan_A_night_in_Akihabara_(15624982052).jpg" target="_blank" rel="noreferrer">Yiannis T. Michellis · CC0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Ginza%20at%20night%2C%20Tokyo%20JP.jpg?width=1400" alt="Illuminated buildings in Ginza at night" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Ginza</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Ginza_at_night,_Tokyo_JP.jpg" target="_blank" rel="noreferrer">Stefano Vigorelli · CC BY-SA 4.0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card wide">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Inokashira%20Park%20%40%20Kichijoji%20%289434336524%29.jpg?width=1600" alt="Green trees and water at Inokashira Park in Kichijoji" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Kichijoji</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Inokashira_Park_@_Kichijoji_(9434336524).jpg" target="_blank" rel="noreferrer">Guilhem Vellut · CC BY 2.0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Torii%20Gate%20at%20Meiji%20Jingu%20Shrine%2C%20Tokyo%20%2850125273602%29.jpg?width=1400" alt="A large wooden torii gate at Meiji Jingu shrine" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Meiji Jingu</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Torii_Gate_at_Meiji_Jingu_Shrine,_Tokyo_(50125273602).jpg" target="_blank" rel="noreferrer">Ray in Manila · CC BY 2.0</a></span></figcaption>
+        </figure>
+        <figure class="photo-card">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Koen-ji%20entrance%202024-10-27.jpg?width=1400" alt="Entrance to Koen-ji temple in Koenji, Tokyo" loading="lazy">
+          <figcaption class="photo-caption"><span class="photo-place">Koenji</span><span class="photo-credit"><a href="https://commons.wikimedia.org/wiki/File:Koen-ji_entrance_2024-10-27.jpg" target="_blank" rel="noreferrer">Photo · Wikimedia Commons</a></span></figcaption>
+        </figure>
       </div>
     </section>
   </main>
@@ -339,6 +539,10 @@
         status.textContent = 'Saved locally';
       }, 300);
     });
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayAgenda = document.querySelector(`.agenda-day[data-date="${todayKey}"]`);
+    if (todayAgenda) todayAgenda.open = true;
   </script>
 </body>
 </html>
