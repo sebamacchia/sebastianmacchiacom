@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="theme-color" content="#0b4bd3">
+  <meta name="theme-color" content="#bc002d">
   <title>Japan 2026 — Trip Planner</title>
   <meta name="description" content="Personal Japan 2026 itinerary and trip notes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,21 +12,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&amp;family=DM+Mono:wght@400;500&amp;family=Roboto+Condensed:wght@600;700&amp;display=swap" rel="stylesheet">
   <style>
     :root {
-      --blue: #0b4bd3;
+      --japan-red: #bc002d;
       --cream: #f8f4eb;
       --yellow: #ffd313;
-      --red: #ff4d3d;
+      --osaka: #ff8a3d;
       --green: #30d06f;
       --grid: rgba(248, 244, 235, .12);
       --line: rgba(248, 244, 235, .42);
-      --panel: rgba(5, 39, 121, .34);
+      --panel: rgba(93, 0, 25, .34);
     }
     *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; background: var(--blue); }
+    html { scroll-behavior: smooth; background: var(--japan-red); }
     body {
       margin: 0;
       color: var(--cream);
-      background-color: var(--blue);
+      background-color: var(--japan-red);
       background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
       background-size: 64px 64px;
       font-family: "Roboto Condensed", Arial, sans-serif;
@@ -36,7 +36,7 @@
     a { color: inherit; }
     button, input, textarea { font: inherit; }
     #top { scroll-margin-top: 70px; }
-    ::selection { color: var(--blue); background: var(--yellow); }
+    ::selection { color: var(--japan-red); background: var(--yellow); }
     .mono { font-family: "DM Mono", monospace; font-size: 13px; line-height: 1.6; letter-spacing: .09em; text-transform: uppercase; }
     .shell { width: min(1500px, 100%); margin: 0 auto; padding: 0 42px; }
     .topbar {
@@ -49,7 +49,7 @@
       gap: 24px;
       min-height: 70px;
       border-bottom: 1px solid var(--line);
-      background: rgba(11, 75, 211, .9);
+      background: rgba(188, 0, 45, .92);
       backdrop-filter: blur(14px);
     }
     .brand { text-decoration: none; }
@@ -80,14 +80,14 @@
     .day { min-width: 140px; min-height: 185px; padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
     .day.empty { background: transparent; }
     .day.travel { box-shadow: inset 0 4px 0 var(--yellow); }
-    .day.osaka { box-shadow: inset 0 4px 0 var(--red); }
+    .day.osaka { box-shadow: inset 0 4px 0 var(--osaka); }
     .day.tokyo { box-shadow: inset 0 4px 0 var(--green); }
     .day-number { font-size: 2.1rem; line-height: 1; }
     .day-city { display: block; margin: 10px 0 15px; }
     .day p { margin: 0; font-family: "DM Mono", monospace; font-size: 13px; line-height: 1.65; font-weight: 400; opacity: .9; }
     .legend { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 20px; }
     .legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 8px; background: currentColor; }
-    .legend .l-travel { color: var(--yellow); }.legend .l-osaka { color: var(--red); }.legend .l-tokyo { color: var(--green); }
+    .legend .l-travel { color: var(--yellow); }.legend .l-osaka { color: var(--osaka); }.legend .l-tokyo { color: var(--green); }
     .moves { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
     .move { min-height: 330px; padding: 24px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
     .move h3 { margin: 18px 0 28px; font-size: clamp(2rem, 4vw, 4rem); line-height: .92; letter-spacing: -.04em; text-transform: uppercase; }
@@ -144,7 +144,7 @@
     .checklist { border-top: 1px solid var(--line); }
     .check-row { display: flex; align-items: flex-start; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
     .check-row input { appearance: none; flex: 0 0 22px; width: 22px; height: 22px; margin: 0; border: 1px solid var(--cream); border-radius: 0; cursor: pointer; }
-    .check-row input:checked { background: var(--yellow); box-shadow: inset 0 0 0 4px var(--blue); }
+    .check-row input:checked { background: var(--yellow); box-shadow: inset 0 0 0 4px var(--japan-red); }
     .check-row:has(input:checked) span { opacity: .48; text-decoration: line-through; }
     .notes-label { display: block; margin-bottom: 14px; }
     .notes { width: 100%; min-height: 420px; resize: vertical; padding: 22px; border: 1px solid var(--line); border-radius: 0; outline: 0; color: var(--cream); background: var(--panel); font-family: "DM Mono", monospace; font-size: 16px; line-height: 1.75; font-weight: 400; }
@@ -156,7 +156,7 @@
     .photo-card.wide { grid-column: span 2; }
     .photo-card img { width: 100%; height: 100%; display: block; object-fit: cover; filter: saturate(.92) contrast(1.03); transition: transform .5s ease; }
     .photo-card:hover img { transform: scale(1.025); }
-    .photo-card::after { content: ""; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, rgba(4,22,65,.92)); pointer-events: none; }
+    .photo-card::after { content: ""; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, rgba(72,0,18,.94)); pointer-events: none; }
     .photo-caption { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; display: flex; justify-content: space-between; gap: 14px; align-items: flex-end; }
     .photo-place { font-family: "Roboto Condensed", Arial, sans-serif; font-size: 25px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
     .photo-credit { max-width: 150px; color: var(--cream); font-family: "DM Mono", monospace; font-size: 10px; line-height: 1.35; text-align: right; opacity: .78; }
