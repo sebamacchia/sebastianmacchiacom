@@ -234,12 +234,25 @@
       padding: 24px 0;
     }
 
+    .board-wrap.vertical-board {
+      overflow-x: visible;
+    }
+
+    .board-wrap.vertical-board .markers {
+      display: none;
+    }
+
     .fretboard {
       width: max(100%, 900px);
       display: grid;
       grid-template-columns: var(--string-col) repeat(13, minmax(54px, 1fr));
       border-left: 1px solid var(--line);
       border-top: 1px solid var(--line);
+    }
+
+    .fretboard.vertical {
+      width: 100%;
+      grid-template-columns: 52px repeat(6, minmax(38px, 1fr));
     }
 
     .cell {
@@ -259,6 +272,11 @@
     .string {
       justify-items: start;
       padding-left: 18px;
+    }
+
+    .fretboard.vertical .string {
+      justify-items: center;
+      padding-left: 0;
     }
 
     .note-cell {
@@ -577,12 +595,20 @@
         width: 820px;
         grid-template-columns: var(--string-col) repeat(13, 1fr);
       }
+      .fretboard.vertical {
+        width: 100%;
+        grid-template-columns: 52px repeat(6, minmax(38px, 1fr));
+      }
       .legend { flex-direction: column; }
     }
 
     @media (max-width: 420px) {
       .fretboard,
       .markers { width: 740px; }
+      .fretboard.vertical {
+        width: 100%;
+        grid-template-columns: 44px repeat(6, minmax(34px, 1fr));
+      }
       .note-button {
         width: 34px;
         height: 34px;
@@ -746,6 +772,7 @@
       blues: { label: "Blues", intervals: [0, 3, 5, 6, 7, 10], degrees: ["R", "b3", "4", "b5", "5", "b7"] }
     };
     const scaleState = { active: false, root: "C", type: "major" };
+    const mobileBoardQuery = window.matchMedia("(max-width: 760px)");
     const positionWindows = [
       { label: "Position 1", start: 0, end: 3 },
       { label: "Position 2", start: 3, end: 6 },
@@ -762,6 +789,7 @@
       cell.textContent = text;
       return cell;
     };
+    const isVerticalBoard = () => mobileBoardQuery.matches;
 
     const frequencyFromMidi = (midi) => 440 * (2 ** ((midi - 69) / 12));
     const noteFromMidi = (midi) => notes[((midi % 12) + 12) % 12];
@@ -879,71 +907,76 @@
       status.textContent = `Sine tone / string ${string.number} / ${string.openNote}`;
     };
 
-    const renderFretboard = () => {
-      board.innerHTML = "";
-      board.appendChild(makeCell("cell head mono", "String"));
+    const makeNoteCell = (string, fret, options = {}) => {
+      const midi = string.openMidi + fret;
+      const note = noteFromMidi(midi);
       const activeScaleNotes = scaleState.active ? getScaleNotes() : [];
+      const inScale = activeScaleNotes.includes(note);
+      const cell = document.createElement("div");
+      const button = document.createElement("button");
+
+      cell.className = `cell note-cell${fret === 0 ? " open" : ""}`;
+      button.className = "note-button";
+
+      if (options.fadeOutOfScale && scaleState.active) {
+        button.classList.add(inScale ? "scale-tone" : "out-of-scale");
+      } else if (inScale) {
+        button.classList.add("scale-tone");
+      }
+
+      if (scaleState.active && note === scaleState.root) button.classList.add("scale-root");
+
+      button.type = "button";
+      button.textContent = note;
+      button.setAttribute("aria-label", `${options.labelPrefix || ""}string ${string.number}, fret ${fret}, note ${note}`.trim());
+      button.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, button));
+      cell.appendChild(button);
+      return cell;
+    };
+
+    const renderNoteBoard = (target, options = {}) => {
+      const vertical = isVerticalBoard();
+      target.innerHTML = "";
+      target.classList.toggle("vertical", vertical);
+      target.closest(".board-wrap")?.classList.toggle("vertical-board", vertical);
+
+      if (vertical) {
+        target.appendChild(makeCell("cell head mono", "Fret"));
+        tuning.forEach((string) => {
+          target.appendChild(makeCell("cell head string mono", string.openNote));
+        });
+
+        for (let fret = 0; fret <= 12; fret += 1) {
+          target.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
+          tuning.forEach((string) => {
+            target.appendChild(makeNoteCell(string, fret, options));
+          });
+        }
+
+        return;
+      }
+
+      target.appendChild(makeCell("cell head mono", "String"));
 
       for (let fret = 0; fret <= 12; fret += 1) {
-        board.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
+        target.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
       }
 
       tuning.forEach((string) => {
-        board.appendChild(makeCell("cell string mono", string.openNote));
+        target.appendChild(makeCell("cell string mono", string.openNote));
 
         for (let fret = 0; fret <= 12; fret += 1) {
-          const midi = string.openMidi + fret;
-          const note = noteFromMidi(midi);
-          const cell = document.createElement("div");
-          const button = document.createElement("button");
-
-          cell.className = `cell note-cell${fret === 0 ? " open" : ""}`;
-          button.className = "note-button";
-          if (activeScaleNotes.includes(note)) button.classList.add("scale-tone");
-          if (scaleState.active && note === scaleState.root) button.classList.add("scale-root");
-          button.type = "button";
-          button.textContent = note;
-          button.setAttribute("aria-label", `string ${string.number}, fret ${fret}, note ${note}`);
-          button.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, button));
-          cell.appendChild(button);
-          board.appendChild(cell);
+          target.appendChild(makeNoteCell(string, fret, options));
         }
       });
     };
 
+    const renderFretboard = () => {
+      renderNoteBoard(board);
+    };
+
     const renderScaleFretboard = () => {
-      scaleBoard.innerHTML = "";
-      scaleBoard.appendChild(makeCell("cell head mono", "String"));
-      const activeScaleNotes = scaleState.active ? getScaleNotes() : [];
-
-      for (let fret = 0; fret <= 12; fret += 1) {
-        scaleBoard.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
-      }
-
-      tuning.forEach((string) => {
-        scaleBoard.appendChild(makeCell("cell string mono", string.openNote));
-
-        for (let fret = 0; fret <= 12; fret += 1) {
-          const midi = string.openMidi + fret;
-          const note = noteFromMidi(midi);
-          const inScale = activeScaleNotes.includes(note);
-          const cell = document.createElement("div");
-          const button = document.createElement("button");
-
-          cell.className = `cell note-cell${fret === 0 ? " open" : ""}`;
-          button.className = "note-button";
-          if (scaleState.active) {
-            button.classList.add(inScale ? "scale-tone" : "out-of-scale");
-            if (note === scaleState.root) button.classList.add("scale-root");
-          }
-          button.type = "button";
-          button.textContent = note;
-          button.setAttribute("aria-label", `scale map, string ${string.number}, fret ${fret}, note ${note}`);
-          button.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, button));
-          cell.appendChild(button);
-          scaleBoard.appendChild(cell);
-        }
-      });
+      renderNoteBoard(scaleBoard, { fadeOutOfScale: true, labelPrefix: "scale map, " });
     };
 
     const updateTuning = (index, note) => {
@@ -1171,6 +1204,10 @@
     scaleType.addEventListener("change", () => setScale(true));
     showScale.addEventListener("click", () => setScale(true));
     clearScale.addEventListener("click", () => setScale(false));
+    mobileBoardQuery.addEventListener("change", () => {
+      renderFretboard();
+      renderScaleFretboard();
+    });
 
     document.addEventListener("keydown", (event) => {
       if (event.code === "Space" && activeDrone) {
