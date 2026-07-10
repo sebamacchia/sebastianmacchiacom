@@ -312,12 +312,6 @@
       border-color: var(--green);
     }
 
-    .note-cell.root .note-button {
-      color: var(--blue);
-      background: var(--yellow);
-      border-color: var(--yellow);
-    }
-
     .note-cell.open .note-button {
       border-color: var(--green);
     }
@@ -335,6 +329,206 @@
       min-height: 24px;
       display: grid;
       place-items: center;
+    }
+
+    .note-button.scale-tone {
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(81, 212, 143, .16);
+    }
+
+    .note-button.scale-root {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+      box-shadow: none;
+    }
+
+    .note-button.out-of-scale {
+      opacity: .22;
+    }
+
+    .scale-lab {
+      display: grid;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 24px 0;
+      gap: 22px;
+    }
+
+    .scale-controls {
+      display: grid;
+      grid-template-columns: minmax(140px, .5fr) minmax(160px, .65fr) auto auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .scale-field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .scale-select,
+    .scale-button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--paper);
+      background: transparent;
+      font: inherit;
+    }
+
+    .scale-select {
+      width: 100%;
+      padding: 0 12px;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .scale-button {
+      min-width: 112px;
+      padding: 0 16px;
+      color: var(--yellow);
+      cursor: pointer;
+    }
+
+    .scale-button:hover,
+    .scale-button:focus-visible,
+    .scale-select:focus-visible {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+      outline: none;
+    }
+
+    .scale-output {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(248, 244, 235, .22);
+    }
+
+    .scale-notes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .scale-note {
+      min-width: 36px;
+      min-height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(248, 244, 235, .5);
+      border-radius: 50%;
+    }
+
+    .scale-note.root {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+    }
+
+    .scale-help {
+      color: var(--green);
+    }
+
+    .scale-board-wrap {
+      align-self: auto;
+      margin-top: 4px;
+    }
+
+    .position-stack {
+      display: grid;
+      gap: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(248, 244, 235, .22);
+    }
+
+    .position-row {
+      display: grid;
+      grid-template-columns: 104px minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .position-label {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      border: 1px solid var(--line);
+      color: var(--yellow);
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      text-align: center;
+    }
+
+    .position-scroll {
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+    }
+
+    .position-board {
+      position: relative;
+      min-width: 920px;
+      display: grid;
+      grid-template-columns: repeat(16, minmax(44px, 1fr));
+      grid-template-rows: repeat(6, 34px);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .position-cell {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .position-box {
+      z-index: 1;
+      grid-row: 1 / -1;
+      border: 2px solid var(--yellow);
+      pointer-events: none;
+    }
+
+    .position-dot {
+      z-index: 2;
+      place-self: center;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(248, 244, 235, .62);
+      border-radius: 50%;
+      color: var(--paper);
+      background: var(--blue);
+      font: inherit;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .position-dot.root {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+    }
+
+    .position-dot.playing {
+      color: var(--blue);
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .position-frets {
+      min-width: 920px;
+      display: grid;
+      grid-template-columns: repeat(16, minmax(44px, 1fr));
+      color: var(--yellow);
+      text-align: center;
+      padding-top: 10px;
     }
 
     .legend {
@@ -357,6 +551,19 @@
         gap: 14px;
       }
       .index-list { grid-template-columns: 1fr; }
+      .scale-controls { grid-template-columns: 1fr; }
+      .scale-button { width: 100%; }
+      .scale-output {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .scale-notes { justify-content: flex-start; }
+      .position-row { grid-template-columns: 1fr; }
+      .position-label {
+        min-height: 44px;
+        writing-mode: initial;
+        transform: none;
+      }
       .tuning-row {
         grid-template-columns: 52px 1fr;
         gap: 12px;
@@ -401,13 +608,12 @@
       <div class="index-list mono">
         <a href="#intro"><span>00</span><span>Intro</span></a>
         <a href="#fretboard-section"><span>01</span><span>Fretboard</span></a>
-        <a href="#tuning"><span>02</span><span>Tuning</span></a>
-        <a href="#body"><span>03</span><span>Body</span></a>
-        <a href="#rhythm"><span>04</span><span>Rhythm</span></a>
-        <a href="#chords"><span>05</span><span>Chords</span></a>
-        <a href="#scales"><span>06</span><span>Scales</span></a>
-        <a href="#songs"><span>07</span><span>Songs</span></a>
-        <a href="#practice"><span>08</span><span>Practice</span></a>
+        <a href="#body"><span>02</span><span>Body</span></a>
+        <a href="#rhythm"><span>03</span><span>Rhythm</span></a>
+        <a href="#chords"><span>04</span><span>Chords</span></a>
+        <a href="#scales"><span>05</span><span>Scales</span></a>
+        <a href="#songs"><span>06</span><span>Songs</span></a>
+        <a href="#practice"><span>07</span><span>Practice</span></a>
       </div>
     </section>
 
@@ -416,7 +622,7 @@
         <span class="mono">01 / First map</span>
         <div>
           <h2 id="fretboard-title">Fretboard notes.</h2>
-          <p class="note">Click any fret to hear it. Standard tuning: E A D G B E. Yellow marks every C. Fret 12 repeats the open string one octave higher.</p>
+          <p class="note">Click any fret to hear it. Change the open strings above. Fret 12 repeats the open string one octave higher.</p>
         </div>
       </div>
       <div class="tuning-panel quick-tuning" id="fret-tuning-panel" aria-label="Quick tuning controls inside fretboard section"></div>
@@ -428,55 +634,72 @@
       </div>
     </section>
 
-    <section class="section" id="tuning">
-      <div class="section-top">
-        <span class="mono">02 / Open strings</span>
-        <div>
-          <h2>Tuning.</h2>
-          <p class="note">Change any open string. Use the tone button for a clean sine reference; press the same button or Space to stop it.</p>
-        </div>
-      </div>
-      <div class="tuning-panel" id="tuning-panel" aria-label="Open string tuning controls"></div>
-    </section>
-
     <section class="section" id="body">
       <div class="section-top">
-        <span class="mono">03 / Coming next</span>
+        <span class="mono">02 / Coming next</span>
         <h2>Body.</h2>
       </div>
     </section>
 
     <section class="section" id="rhythm">
       <div class="section-top">
-        <span class="mono">04 / Coming next</span>
+        <span class="mono">03 / Coming next</span>
         <h2>Rhythm.</h2>
       </div>
     </section>
 
     <section class="section" id="chords">
       <div class="section-top">
-        <span class="mono">05 / Coming next</span>
+        <span class="mono">04 / Coming next</span>
         <h2>Chords.</h2>
       </div>
     </section>
 
     <section class="section" id="scales">
       <div class="section-top">
-        <span class="mono">06 / Coming next</span>
-        <h2>Scales.</h2>
+        <span class="mono">05 / Notes become shapes</span>
+        <div>
+          <h2>Scales.</h2>
+          <p class="note">Choose a root and a scale. Then show it on the fretboard. Now the highlights mean something.</p>
+        </div>
+      </div>
+      <div class="scale-lab" aria-label="Scale finder">
+        <div class="scale-controls">
+          <label class="scale-field mono">
+            Root
+            <select class="scale-select mono" id="scale-root"></select>
+          </label>
+          <label class="scale-field mono">
+            Scale
+            <select class="scale-select mono" id="scale-type"></select>
+          </label>
+          <button class="scale-button mono" id="show-scale" type="button">Show scale</button>
+          <button class="scale-button mono" id="clear-scale" type="button">Clear</button>
+        </div>
+        <div class="scale-output">
+          <span class="mono scale-help" id="scale-title">No scale selected</span>
+          <div class="scale-notes mono" id="scale-notes"></div>
+        </div>
+        <div class="board-wrap scale-board-wrap" aria-label="Scale fretboard map">
+          <div class="fretboard" id="scale-fretboard"></div>
+          <div class="markers mono" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span></span><span class="marker">••</span>
+          </div>
+        </div>
+        <div class="position-stack" id="scale-positions" aria-label="Scale position diagrams"></div>
       </div>
     </section>
 
     <section class="section" id="songs">
       <div class="section-top">
-        <span class="mono">07 / Coming next</span>
+        <span class="mono">06 / Coming next</span>
         <h2>Songs.</h2>
       </div>
     </section>
 
     <section class="section" id="practice">
       <div class="section-top">
-        <span class="mono">08 / Coming next</span>
+        <span class="mono">07 / Coming next</span>
         <h2>Practice.</h2>
       </div>
     </section>
@@ -505,9 +728,31 @@
     }));
 
     const board = document.getElementById("fretboard");
-    const tuningPanel = document.getElementById("tuning-panel");
+    const scaleBoard = document.getElementById("scale-fretboard");
     const fretTuningPanel = document.getElementById("fret-tuning-panel");
     const status = document.getElementById("status");
+    const scaleRoot = document.getElementById("scale-root");
+    const scaleType = document.getElementById("scale-type");
+    const showScale = document.getElementById("show-scale");
+    const clearScale = document.getElementById("clear-scale");
+    const scaleTitle = document.getElementById("scale-title");
+    const scaleNotesEl = document.getElementById("scale-notes");
+    const scalePositions = document.getElementById("scale-positions");
+    const scaleDefinitions = {
+      major: { label: "Major", intervals: [0, 2, 4, 5, 7, 9, 11], degrees: ["R", "2", "3", "4", "5", "6", "7"] },
+      naturalMinor: { label: "Natural minor", intervals: [0, 2, 3, 5, 7, 8, 10], degrees: ["R", "2", "b3", "4", "5", "b6", "b7"] },
+      majorPentatonic: { label: "Major pentatonic", intervals: [0, 2, 4, 7, 9], degrees: ["R", "2", "3", "5", "6"] },
+      minorPentatonic: { label: "Minor pentatonic", intervals: [0, 3, 5, 7, 10], degrees: ["R", "b3", "4", "5", "b7"] },
+      blues: { label: "Blues", intervals: [0, 3, 5, 6, 7, 10], degrees: ["R", "b3", "4", "b5", "5", "b7"] }
+    };
+    const scaleState = { active: false, root: "C", type: "major" };
+    const positionWindows = [
+      { label: "Position 1", start: 0, end: 3 },
+      { label: "Position 2", start: 3, end: 6 },
+      { label: "Position 3", start: 5, end: 8 },
+      { label: "Position 4", start: 7, end: 10 },
+      { label: "Position 5", start: 9, end: 12 }
+    ];
     let audioContext;
     let activeDrone = null;
 
@@ -520,6 +765,17 @@
 
     const frequencyFromMidi = (midi) => 440 * (2 ** ((midi - 69) / 12));
     const noteFromMidi = (midi) => notes[((midi % 12) + 12) % 12];
+    const getScaleNotes = () => {
+      const rootIndex = noteSemitones[scaleState.root];
+      return scaleDefinitions[scaleState.type].intervals.map((interval) => notes[(rootIndex + interval) % notes.length]);
+    };
+    const getScaleDegree = (note) => {
+      const rootIndex = noteSemitones[scaleState.root];
+      const scale = scaleDefinitions[scaleState.type];
+      const interval = (noteSemitones[note] - rootIndex + notes.length) % notes.length;
+      const degreeIndex = scale.intervals.indexOf(interval);
+      return degreeIndex === -1 ? "" : scale.degrees[degreeIndex];
+    };
 
     const closestMidiForNote = (note, baseMidi) => {
       const target = noteSemitones[note];
@@ -626,6 +882,7 @@
     const renderFretboard = () => {
       board.innerHTML = "";
       board.appendChild(makeCell("cell head mono", "String"));
+      const activeScaleNotes = scaleState.active ? getScaleNotes() : [];
 
       for (let fret = 0; fret <= 12; fret += 1) {
         board.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
@@ -640,8 +897,10 @@
           const cell = document.createElement("div");
           const button = document.createElement("button");
 
-          cell.className = `cell note-cell${note === "C" ? " root" : ""}${fret === 0 ? " open" : ""}`;
+          cell.className = `cell note-cell${fret === 0 ? " open" : ""}`;
           button.className = "note-button";
+          if (activeScaleNotes.includes(note)) button.classList.add("scale-tone");
+          if (scaleState.active && note === scaleState.root) button.classList.add("scale-root");
           button.type = "button";
           button.textContent = note;
           button.setAttribute("aria-label", `string ${string.number}, fret ${fret}, note ${note}`);
@@ -652,12 +911,49 @@
       });
     };
 
+    const renderScaleFretboard = () => {
+      scaleBoard.innerHTML = "";
+      scaleBoard.appendChild(makeCell("cell head mono", "String"));
+      const activeScaleNotes = scaleState.active ? getScaleNotes() : [];
+
+      for (let fret = 0; fret <= 12; fret += 1) {
+        scaleBoard.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
+      }
+
+      tuning.forEach((string) => {
+        scaleBoard.appendChild(makeCell("cell string mono", string.openNote));
+
+        for (let fret = 0; fret <= 12; fret += 1) {
+          const midi = string.openMidi + fret;
+          const note = noteFromMidi(midi);
+          const inScale = activeScaleNotes.includes(note);
+          const cell = document.createElement("div");
+          const button = document.createElement("button");
+
+          cell.className = `cell note-cell${fret === 0 ? " open" : ""}`;
+          button.className = "note-button";
+          if (scaleState.active) {
+            button.classList.add(inScale ? "scale-tone" : "out-of-scale");
+            if (note === scaleState.root) button.classList.add("scale-root");
+          }
+          button.type = "button";
+          button.textContent = note;
+          button.setAttribute("aria-label", `scale map, string ${string.number}, fret ${fret}, note ${note}`);
+          button.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, button));
+          cell.appendChild(button);
+          scaleBoard.appendChild(cell);
+        }
+      });
+    };
+
     const updateTuning = (index, note) => {
       if (activeDrone) stopDrone();
       tuning[index].openNote = note;
       tuning[index].openMidi = closestMidiForNote(note, tuning[index].baseMidi);
       status.textContent = `String ${tuning[index].number} open ${note}`;
       renderFretboard();
+      renderScaleFretboard();
+      renderScalePositions();
       renderTuningControls();
     };
 
@@ -708,8 +1004,173 @@
 
     const renderTuningControls = () => {
       renderTuningPanel(fretTuningPanel, "fret");
-      renderTuningPanel(tuningPanel, "section");
     };
+
+    const renderScaleOptions = () => {
+      scaleRoot.innerHTML = "";
+      notes.forEach((note) => {
+        const option = document.createElement("option");
+        option.value = note;
+        option.textContent = note;
+        option.selected = note === scaleState.root;
+        scaleRoot.appendChild(option);
+      });
+
+      scaleType.innerHTML = "";
+      Object.entries(scaleDefinitions).forEach(([key, scale]) => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = scale.label;
+        option.selected = key === scaleState.type;
+        scaleType.appendChild(option);
+      });
+    };
+
+    const renderScaleOutput = () => {
+      scaleNotesEl.innerHTML = "";
+
+      if (!scaleState.active) {
+        scaleTitle.textContent = "No scale selected";
+        return;
+      }
+
+      const scale = scaleDefinitions[scaleState.type];
+      const scaleNotes = getScaleNotes();
+      scaleTitle.textContent = `${scaleState.root} ${scale.label}`;
+
+      scaleNotes.forEach((note) => {
+        const pill = document.createElement("span");
+        pill.className = `scale-note${note === scaleState.root ? " root" : ""}`;
+        pill.textContent = note;
+        scaleNotesEl.appendChild(pill);
+      });
+    };
+
+    const getPositionAnchor = () => {
+      const rootSemi = noteSemitones[scaleState.root];
+      const candidates = [];
+
+      tuning.forEach((string) => {
+        if (string.number !== 5 && string.number !== 6) return;
+
+        for (let fret = 0; fret <= 12; fret += 1) {
+          if ((string.openMidi + fret) % notes.length === rootSemi) {
+            candidates.push(fret);
+          }
+        }
+      });
+
+      const lowCandidate = candidates.find((fret) => fret <= 5);
+      return lowCandidate ?? candidates[0] ?? 0;
+    };
+
+    const getPositionWindows = () => {
+      if (!scaleState.active) return positionWindows;
+      const anchor = getPositionAnchor();
+      const starts = [anchor, anchor + 2, anchor + 4, anchor + 6, anchor + 9];
+
+      return starts.map((start, index) => {
+        const clampedStart = Math.max(0, Math.min(start, 12));
+        return {
+          label: `Position ${index + 1}`,
+          start: clampedStart,
+          end: Math.min(clampedStart + 3, 15)
+        };
+      });
+    };
+
+    const renderScalePositions = () => {
+      scalePositions.innerHTML = "";
+
+      if (!scaleState.active) {
+        const empty = document.createElement("p");
+        empty.className = "note";
+        empty.textContent = "Show a scale to draw its position shapes.";
+        scalePositions.appendChild(empty);
+        return;
+      }
+
+      const activeScaleNotes = getScaleNotes();
+
+      getPositionWindows().forEach((position) => {
+        const row = document.createElement("div");
+        const label = document.createElement("div");
+        const scroll = document.createElement("div");
+        const boardEl = document.createElement("div");
+        const box = document.createElement("div");
+        const frets = document.createElement("div");
+
+        row.className = "position-row";
+        label.className = "position-label mono";
+        label.textContent = position.label;
+        scroll.className = "position-scroll";
+        boardEl.className = "position-board";
+        box.className = "position-box";
+        box.style.gridColumn = `${position.start + 1} / ${position.end + 2}`;
+
+        for (let rowIndex = 1; rowIndex <= 6; rowIndex += 1) {
+          for (let fret = 0; fret <= 15; fret += 1) {
+            const cell = document.createElement("span");
+            cell.className = "position-cell";
+            cell.style.gridColumn = fret + 1;
+            cell.style.gridRow = rowIndex;
+            boardEl.appendChild(cell);
+          }
+        }
+
+        boardEl.appendChild(box);
+
+        const drawStart = Math.max(0, position.start - 3);
+        const drawEnd = Math.min(15, position.end + 2);
+
+        tuning.forEach((string, stringIndex) => {
+          for (let fret = drawStart; fret <= drawEnd; fret += 1) {
+            const midi = string.openMidi + fret;
+            const note = noteFromMidi(midi);
+            if (!activeScaleNotes.includes(note)) continue;
+
+            const dot = document.createElement("button");
+            dot.className = `position-dot${note === scaleState.root ? " root" : ""}`;
+            dot.type = "button";
+            dot.textContent = getScaleDegree(note);
+            dot.style.gridColumn = fret + 1;
+            dot.style.gridRow = stringIndex + 1;
+            dot.setAttribute("aria-label", `${position.label}, string ${string.number}, fret ${fret}, ${note}, degree ${dot.textContent}`);
+            dot.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, dot));
+            boardEl.appendChild(dot);
+          }
+        });
+
+        frets.className = "position-frets mono";
+        for (let fret = 0; fret <= 15; fret += 1) {
+          const marker = document.createElement("span");
+          marker.textContent = [0, 3, 5, 7, 9, 12, 15].includes(fret) ? fret : "";
+          frets.appendChild(marker);
+        }
+
+        scroll.append(boardEl, frets);
+        row.append(label, scroll);
+        scalePositions.appendChild(row);
+      });
+    };
+
+    const setScale = (active) => {
+      scaleState.root = scaleRoot.value;
+      scaleState.type = scaleType.value;
+      scaleState.active = active;
+      renderScaleOutput();
+      renderFretboard();
+      renderScaleFretboard();
+      renderScalePositions();
+      status.textContent = active
+        ? `${scaleState.root} ${scaleDefinitions[scaleState.type].label}`
+        : "Scale cleared";
+    };
+
+    scaleRoot.addEventListener("change", () => setScale(true));
+    scaleType.addEventListener("change", () => setScale(true));
+    showScale.addEventListener("click", () => setScale(true));
+    clearScale.addEventListener("click", () => setScale(false));
 
     document.addEventListener("keydown", (event) => {
       if (event.code === "Space" && activeDrone) {
@@ -719,7 +1180,11 @@
     });
 
     renderFretboard();
+    renderScaleFretboard();
     renderTuningControls();
+    renderScaleOptions();
+    renderScaleOutput();
+    renderScalePositions();
   </script>
 </body>
 </html>
