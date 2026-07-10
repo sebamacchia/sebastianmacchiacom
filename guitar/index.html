@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GUITAR! — Sebastian Macchia</title>
+  <meta name="description" content="A minimal interactive guitar class with a playable fretboard and section index.">
+  <meta name="theme-color" content="#050505">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=DM+Mono:wght@400;500&family=Roboto+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #050505;
+      --paper: #f8f4eb;
+      --line: rgba(248, 244, 235, .45);
+      --yellow: #ffd313;
+      --green: #51d48f;
+      --string-col: clamp(48px, 7vw, 76px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: var(--blue); }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      color: var(--paper);
+      background-color: var(--blue);
+      font-family: "Roboto Condensed", Arial, sans-serif;
+      font-weight: 700;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    ::selection { color: var(--blue); background: var(--yellow); }
+
+    .mono {
+      font-family: "DM Mono", monospace;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .page {
+      min-height: 100svh;
+      padding: clamp(20px, 4vw, 58px);
+      display: grid;
+      gap: clamp(28px, 5vw, 44px);
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .status { color: var(--yellow); }
+
+    .nav a {
+      text-decoration: none;
+      opacity: .78;
+    }
+
+    .nav a:hover { opacity: 1; color: var(--yellow); }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 420px);
+      gap: 34px;
+      align-items: end;
+      min-height: clamp(360px, 62svh, 620px);
+      padding-top: clamp(20px, 6vh, 70px);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Bodoni Moda", Didot, "Times New Roman", serif;
+      font-size: clamp(4rem, 10vw, 10.5rem);
+      font-style: italic;
+      font-weight: 500;
+      line-height: .78;
+      letter-spacing: 0;
+    }
+
+    .note {
+      margin: 0;
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.75;
+      letter-spacing: .045em;
+      text-transform: uppercase;
+      opacity: .86;
+    }
+
+    .index {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 30px;
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .index-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 28px;
+    }
+
+    .index-list a {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: baseline;
+      min-height: 48px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(248, 244, 235, .22);
+      text-decoration: none;
+    }
+
+    .index-list a:hover,
+    .index-list a:focus-visible {
+      color: var(--yellow);
+      outline: none;
+    }
+
+    .section {
+      scroll-margin-top: 24px;
+      display: grid;
+      gap: 22px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-top {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 30px;
+      align-items: end;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(2.4rem, 6vw, 5.8rem);
+      line-height: .9;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .tuning-panel {
+      display: grid;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .quick-tuning {
+      margin-top: 2px;
+    }
+
+    .tuning-row {
+      display: grid;
+      grid-template-columns: 88px minmax(120px, 1fr) minmax(120px, .8fr) auto;
+      gap: 18px;
+      align-items: center;
+      min-height: 64px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(248, 244, 235, .22);
+    }
+
+    .tuning-row:last-child { border-bottom: 0; }
+
+    .quick-tuning .tuning-row {
+      grid-template-columns: 64px minmax(96px, 160px) minmax(160px, 1fr) auto;
+      min-height: 54px;
+      padding: 8px 0;
+    }
+
+    .tuning-string {
+      color: var(--yellow);
+      font-size: clamp(1.3rem, 2.3vw, 2rem);
+      line-height: 1;
+    }
+
+    .tuning-select,
+    .tone-button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--paper);
+      background: transparent;
+      font: inherit;
+    }
+
+    .tuning-select {
+      width: 100%;
+      padding: 0 12px;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .tuning-select:focus-visible,
+    .tone-button:focus-visible {
+      outline: none;
+      border-color: var(--yellow);
+    }
+
+    .tone-button {
+      min-width: 92px;
+      padding: 0 14px;
+      color: var(--yellow);
+      cursor: pointer;
+      transition: background .12s ease, color .12s ease, border-color .12s ease;
+    }
+
+    .tone-button:hover,
+    .tone-button.active {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+    }
+
+    .board-wrap {
+      align-self: center;
+      width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 24px 0;
+    }
+
+    .fretboard {
+      width: max(100%, 900px);
+      display: grid;
+      grid-template-columns: var(--string-col) repeat(13, minmax(54px, 1fr));
+      border-left: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+    }
+
+    .cell {
+      min-height: clamp(48px, 7vw, 58px);
+      display: grid;
+      place-items: center;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .head,
+    .string {
+      color: var(--yellow);
+      background: rgba(0, 0, 0, .08);
+    }
+
+    .string {
+      justify-items: start;
+      padding-left: 18px;
+    }
+
+    .note-cell {
+      position: relative;
+      padding: 0;
+      line-height: 1;
+      background:
+        linear-gradient(90deg, transparent calc(50% - 1px), rgba(248,244,235,.52) 50%, transparent calc(50% + 1px)),
+        rgba(248, 244, 235, .04);
+    }
+
+    .note-cell::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      border-top: 1px solid rgba(248, 244, 235, .52);
+    }
+
+    .note-button {
+      position: relative;
+      z-index: 1;
+      width: clamp(36px, 5vw, 42px);
+      height: clamp(36px, 5vw, 42px);
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border-radius: 50%;
+      color: var(--paper);
+      background: var(--blue);
+      border: 1px solid rgba(248, 244, 235, .5);
+      font: inherit;
+      font-size: clamp(1rem, 1.5vw, 1.35rem);
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
+    }
+
+    .note-button:hover,
+    .note-button:focus-visible {
+      transform: scale(1.08);
+      border-color: var(--yellow);
+      outline: none;
+    }
+
+    .note-button.playing {
+      transform: scale(.92);
+      color: var(--blue);
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .note-cell.root .note-button {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+    }
+
+    .note-cell.open .note-button {
+      border-color: var(--green);
+    }
+
+    .markers {
+      display: grid;
+      grid-template-columns: var(--string-col) repeat(13, minmax(54px, 1fr));
+      width: max(100%, 900px);
+      margin-top: 12px;
+      color: var(--yellow);
+      text-align: center;
+    }
+
+    .marker {
+      min-height: 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding-top: 4px;
+      border-top: 1px solid var(--line);
+      opacity: .78;
+    }
+
+    @media (max-width: 760px) {
+      :root { --string-col: 48px; }
+      .page { padding: 24px 20px 42px; gap: 34px; }
+      .nav { align-items: flex-start; }
+      .intro { grid-template-columns: 1fr; min-height: 48svh; padding-top: 4vh; }
+      .index,
+      .section-top {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .index-list { grid-template-columns: 1fr; }
+      .tuning-row {
+        grid-template-columns: 52px 1fr;
+        gap: 12px;
+      }
+      .tuning-row .note,
+      .tone-button {
+        grid-column: 2;
+      }
+      .fretboard,
+      .markers {
+        width: 820px;
+        grid-template-columns: var(--string-col) repeat(13, 1fr);
+      }
+      .legend { flex-direction: column; }
+    }
+
+    @media (max-width: 420px) {
+      .fretboard,
+      .markers { width: 740px; }
+      .note-button {
+        width: 34px;
+        height: 34px;
+        font-size: .95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav mono" aria-label="Guitar navigation">
+      <a href="../">Sebastian Macchia</a>
+      <span class="status" id="status" aria-live="polite">Click a note</span>
+    </nav>
+
+    <header class="intro" id="intro">
+      <h1>GUITAR!</h1>
+      <p class="note">From cero to master, but first: know the instrument. This will become a full class. For now, start with the map, the sound, and the sections.</p>
+    </header>
+
+    <section class="index" aria-labelledby="index-title">
+      <h2 class="mono" id="index-title">Index</h2>
+      <div class="index-list mono">
+        <a href="#intro"><span>00</span><span>Intro</span></a>
+        <a href="#fretboard-section"><span>01</span><span>Fretboard</span></a>
+        <a href="#tuning"><span>02</span><span>Tuning</span></a>
+        <a href="#body"><span>03</span><span>Body</span></a>
+        <a href="#rhythm"><span>04</span><span>Rhythm</span></a>
+        <a href="#chords"><span>05</span><span>Chords</span></a>
+        <a href="#scales"><span>06</span><span>Scales</span></a>
+        <a href="#songs"><span>07</span><span>Songs</span></a>
+        <a href="#practice"><span>08</span><span>Practice</span></a>
+      </div>
+    </section>
+
+    <section class="section" id="fretboard-section" aria-labelledby="fretboard-title">
+      <div class="section-top">
+        <span class="mono">01 / First map</span>
+        <div>
+          <h2 id="fretboard-title">Fretboard notes.</h2>
+          <p class="note">Click any fret to hear it. Standard tuning: E A D G B E. Yellow marks every C. Fret 12 repeats the open string one octave higher.</p>
+        </div>
+      </div>
+      <div class="tuning-panel quick-tuning" id="fret-tuning-panel" aria-label="Quick tuning controls inside fretboard section"></div>
+      <div class="board-wrap" aria-label="Guitar fretboard note map">
+        <div class="fretboard" id="fretboard"></div>
+        <div class="markers mono" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span></span><span class="marker">••</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tuning">
+      <div class="section-top">
+        <span class="mono">02 / Open strings</span>
+        <div>
+          <h2>Tuning.</h2>
+          <p class="note">Change any open string. Use the tone button for a clean sine reference; press the same button or Space to stop it.</p>
+        </div>
+      </div>
+      <div class="tuning-panel" id="tuning-panel" aria-label="Open string tuning controls"></div>
+    </section>
+
+    <section class="section" id="body">
+      <div class="section-top">
+        <span class="mono">03 / Coming next</span>
+        <h2>Body.</h2>
+      </div>
+    </section>
+
+    <section class="section" id="rhythm">
+      <div class="section-top">
+        <span class="mono">04 / Coming next</span>
+        <h2>Rhythm.</h2>
+      </div>
+    </section>
+
+    <section class="section" id="chords">
+      <div class="section-top">
+        <span class="mono">05 / Coming next</span>
+        <h2>Chords.</h2>
+      </div>
+    </section>
+
+    <section class="section" id="scales">
+      <div class="section-top">
+        <span class="mono">06 / Coming next</span>
+        <h2>Scales.</h2>
+      </div>
+    </section>
+
+    <section class="section" id="songs">
+      <div class="section-top">
+        <span class="mono">07 / Coming next</span>
+        <h2>Songs.</h2>
+      </div>
+    </section>
+
+    <section class="section" id="practice">
+      <div class="section-top">
+        <span class="mono">08 / Coming next</span>
+        <h2>Practice.</h2>
+      </div>
+    </section>
+
+    <footer class="legend mono">
+      <span>Read left to right: open, then frets 1 through 12.</span>
+      <span>High e is top. Low E is bottom.</span>
+    </footer>
+  </main>
+
+  <script>
+    const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const noteSemitones = Object.fromEntries(notes.map((note, index) => [note, index]));
+    const standardStrings = [
+      { number: 1, name: "high e", defaultNote: "E", baseMidi: 64 },
+      { number: 2, name: "B", defaultNote: "B", baseMidi: 59 },
+      { number: 3, name: "G", defaultNote: "G", baseMidi: 55 },
+      { number: 4, name: "D", defaultNote: "D", baseMidi: 50 },
+      { number: 5, name: "A", defaultNote: "A", baseMidi: 45 },
+      { number: 6, name: "low E", defaultNote: "E", baseMidi: 40 }
+    ];
+    const tuning = standardStrings.map((string) => ({
+      ...string,
+      openNote: string.defaultNote,
+      openMidi: string.baseMidi
+    }));
+
+    const board = document.getElementById("fretboard");
+    const tuningPanel = document.getElementById("tuning-panel");
+    const fretTuningPanel = document.getElementById("fret-tuning-panel");
+    const status = document.getElementById("status");
+    let audioContext;
+    let activeDrone = null;
+
+    const makeCell = (className, text) => {
+      const cell = document.createElement("div");
+      cell.className = className;
+      cell.textContent = text;
+      return cell;
+    };
+
+    const frequencyFromMidi = (midi) => 440 * (2 ** ((midi - 69) / 12));
+    const noteFromMidi = (midi) => notes[((midi % 12) + 12) % 12];
+
+    const closestMidiForNote = (note, baseMidi) => {
+      const target = noteSemitones[note];
+      let closest = target;
+      let smallestDistance = Infinity;
+
+      for (let octave = 0; octave <= 9; octave += 1) {
+        const midi = target + (octave * 12);
+        const distance = Math.abs(midi - baseMidi);
+        if (distance < smallestDistance) {
+          closest = midi;
+          smallestDistance = distance;
+        }
+      }
+
+      return closest;
+    };
+
+    const getAudioContext = () => {
+      audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === "suspended") audioContext.resume();
+      return audioContext;
+    };
+
+    const playNote = (midi, note, label, fret, button) => {
+      const context = getAudioContext();
+
+      const now = context.currentTime;
+      const output = context.createGain();
+      const filter = context.createBiquadFilter();
+      const frequency = frequencyFromMidi(midi);
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(2600, now);
+      filter.frequency.exponentialRampToValueAtTime(900, now + .55);
+
+      output.gain.setValueAtTime(.0001, now);
+      output.gain.exponentialRampToValueAtTime(.38, now + .012);
+      output.gain.exponentialRampToValueAtTime(.0001, now + 1.25);
+      filter.connect(output);
+      output.connect(audioContext.destination);
+
+      [
+        [1, .9],
+        [2, .24],
+        [3, .1]
+      ].forEach(([multiple, level], index) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = index === 0 ? "triangle" : "sine";
+        oscillator.frequency.setValueAtTime(frequency * multiple, now);
+        oscillator.frequency.exponentialRampToValueAtTime((frequency * multiple) * .998, now + 1.1);
+        gain.gain.setValueAtTime(level, now);
+        oscillator.connect(gain);
+        gain.connect(filter);
+        oscillator.start(now);
+        oscillator.stop(now + 1.25);
+      });
+
+      status.textContent = `${label} string / fret ${fret} / ${note}`;
+      button.classList.add("playing");
+      window.setTimeout(() => button.classList.remove("playing"), 180);
+    };
+
+    const stopDrone = () => {
+      if (!activeDrone) return;
+      const now = audioContext.currentTime;
+      activeDrone.gain.gain.cancelScheduledValues(now);
+      activeDrone.gain.gain.setValueAtTime(activeDrone.gain.gain.value || .001, now);
+      activeDrone.gain.gain.exponentialRampToValueAtTime(.0001, now + .05);
+      activeDrone.oscillator.stop(now + .06);
+      activeDrone.button.classList.remove("active");
+      activeDrone.button.textContent = "Tone";
+      activeDrone = null;
+      status.textContent = "Tone stopped";
+    };
+
+    const toggleDrone = (string, button) => {
+      if (activeDrone?.button === button) {
+        stopDrone();
+        return;
+      }
+
+      stopDrone();
+      const context = getAudioContext();
+      const now = context.currentTime;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequencyFromMidi(string.openMidi), now);
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.22, now + .03);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(now);
+
+      button.classList.add("active");
+      button.textContent = "Stop";
+      activeDrone = { oscillator, gain, button };
+      status.textContent = `Sine tone / string ${string.number} / ${string.openNote}`;
+    };
+
+    const renderFretboard = () => {
+      board.innerHTML = "";
+      board.appendChild(makeCell("cell head mono", "String"));
+
+      for (let fret = 0; fret <= 12; fret += 1) {
+        board.appendChild(makeCell("cell head mono", fret === 0 ? "Open" : fret));
+      }
+
+      tuning.forEach((string) => {
+        board.appendChild(makeCell("cell string mono", string.openNote));
+
+        for (let fret = 0; fret <= 12; fret += 1) {
+          const midi = string.openMidi + fret;
+          const note = noteFromMidi(midi);
+          const cell = document.createElement("div");
+          const button = document.createElement("button");
+
+          cell.className = `cell note-cell${note === "C" ? " root" : ""}${fret === 0 ? " open" : ""}`;
+          button.className = "note-button";
+          button.type = "button";
+          button.textContent = note;
+          button.setAttribute("aria-label", `string ${string.number}, fret ${fret}, note ${note}`);
+          button.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, button));
+          cell.appendChild(button);
+          board.appendChild(cell);
+        }
+      });
+    };
+
+    const updateTuning = (index, note) => {
+      if (activeDrone) stopDrone();
+      tuning[index].openNote = note;
+      tuning[index].openMidi = closestMidiForNote(note, tuning[index].baseMidi);
+      status.textContent = `String ${tuning[index].number} open ${note}`;
+      renderFretboard();
+      renderTuningControls();
+    };
+
+    const renderTuningPanel = (panel, prefix) => {
+      panel.innerHTML = "";
+
+      tuning.forEach((string, index) => {
+        const row = document.createElement("div");
+        const label = document.createElement("label");
+        const select = document.createElement("select");
+        const description = document.createElement("span");
+        const button = document.createElement("button");
+
+        row.className = "tuning-row";
+        label.className = "tuning-string";
+        label.setAttribute("for", `${prefix}-string-${string.number}-tuning`);
+        label.textContent = string.number;
+
+        select.className = "tuning-select mono";
+        select.id = `${prefix}-string-${string.number}-tuning`;
+        select.setAttribute("aria-label", `String ${string.number} open note`);
+
+        notes.forEach((note) => {
+          const option = document.createElement("option");
+          option.value = note;
+          option.textContent = note;
+          option.selected = note === string.openNote;
+          select.appendChild(option);
+        });
+
+        select.addEventListener("change", () => {
+          updateTuning(index, select.value);
+        });
+
+        description.className = "note";
+        description.textContent = `${string.name} / string ${string.number} / open ${string.openNote}`;
+
+        button.className = "tone-button mono";
+        button.type = "button";
+        button.textContent = "Tone";
+        button.setAttribute("aria-label", `Play sustained sine tone for string ${string.number}`);
+        button.addEventListener("click", () => toggleDrone(tuning[index], button));
+
+        row.append(label, select, description, button);
+        panel.appendChild(row);
+      });
+    };
+
+    const renderTuningControls = () => {
+      renderTuningPanel(fretTuningPanel, "fret");
+      renderTuningPanel(tuningPanel, "section");
+    };
+
+    document.addEventListener("keydown", (event) => {
+      if (event.code === "Space" && activeDrone) {
+        event.preventDefault();
+        stopDrone();
+      }
+    });
+
+    renderFretboard();
+    renderTuningControls();
+  </script>
+</body>
+</html>
