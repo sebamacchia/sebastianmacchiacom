@@ -246,8 +246,6 @@
       width: max(100%, 900px);
       display: grid;
       grid-template-columns: var(--string-col) repeat(13, minmax(54px, 1fr));
-      border-left: 1px solid var(--line);
-      border-top: 1px solid var(--line);
     }
 
     .fretboard.vertical {
@@ -259,8 +257,16 @@
       min-height: clamp(48px, 7vw, 58px);
       display: grid;
       place-items: center;
+    }
+
+    .head,
+    .note-cell {
+      border-left: 1px solid var(--line);
+    }
+
+    .head:last-child,
+    .note-cell:last-child {
       border-right: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
     }
 
     .head,
@@ -283,15 +289,13 @@
       position: relative;
       padding: 0;
       line-height: 1;
-      background:
-        linear-gradient(90deg, transparent calc(50% - 1px), rgba(248,244,235,.52) 50%, transparent calc(50% + 1px)),
-        rgba(248, 244, 235, .04);
+      background: transparent;
     }
 
     .note-cell::before {
       content: "";
       position: absolute;
-      left: 0;
+      left: -1px;
       right: 0;
       top: 50%;
       border-top: 1px solid rgba(248, 244, 235, .52);
@@ -375,7 +379,7 @@
 
     .scale-controls {
       display: grid;
-      grid-template-columns: minmax(140px, .5fr) minmax(160px, .65fr) auto auto;
+      grid-template-columns: minmax(140px, .5fr) auto auto;
       gap: 14px;
       align-items: end;
     }
@@ -549,6 +553,110 @@
       padding-top: 10px;
     }
 
+    .harmony-lab {
+      display: grid;
+      gap: 18px;
+      padding: 24px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .harmony-rule {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--green);
+    }
+
+    .harmony-mode {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .harmony-mode-button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--yellow);
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .harmony-mode-button:hover,
+    .harmony-mode-button:focus-visible,
+    .harmony-mode-button.active {
+      color: var(--blue);
+      background: var(--yellow);
+      border-color: var(--yellow);
+      outline: none;
+    }
+
+    .harmony-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(104px, 1fr));
+      border-top: 1px solid rgba(248, 244, 235, .22);
+      border-left: 1px solid rgba(248, 244, 235, .22);
+    }
+
+    .harmony-chord {
+      display: grid;
+      gap: 12px;
+      min-height: 138px;
+      padding: 14px;
+      border: 0;
+      border-right: 1px solid rgba(248, 244, 235, .22);
+      border-bottom: 1px solid rgba(248, 244, 235, .22);
+      color: var(--paper);
+      background: transparent;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .harmony-chord:hover,
+    .harmony-chord:focus-visible {
+      color: var(--blue);
+      background: var(--yellow);
+      outline: none;
+    }
+
+    .harmony-chord.selected {
+      border-color: var(--yellow);
+      box-shadow: inset 0 0 0 2px var(--yellow);
+    }
+
+    .harmony-chord.playing {
+      color: var(--blue);
+      background: var(--green);
+    }
+
+    .harmony-degree { color: var(--yellow); }
+
+    .harmony-chord:hover .harmony-degree,
+    .harmony-chord:focus-visible .harmony-degree,
+    .harmony-chord.playing .harmony-degree {
+      color: var(--blue);
+    }
+
+    .harmony-name {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      line-height: .9;
+    }
+
+    .harmony-notes { opacity: .78; }
+
+    .harmony-map-title {
+      padding-top: 6px;
+      color: var(--green);
+    }
+
+    .harmony-board-wrap {
+      padding-top: 16px;
+    }
+
     .legend {
       display: flex;
       justify-content: space-between;
@@ -576,6 +684,15 @@
         flex-direction: column;
       }
       .scale-notes { justify-content: flex-start; }
+      .harmony-rule { flex-direction: column; }
+      .harmony-mode { display: grid; grid-template-columns: 1fr 1fr; }
+      .harmony-grid { grid-template-columns: 1fr; }
+      .harmony-chord {
+        min-height: 0;
+        grid-template-columns: 52px 1fr auto;
+        align-items: center;
+      }
+      .harmony-notes { text-align: right; }
       .position-row { grid-template-columns: 1fr; }
       .position-label {
         min-height: 44px;
@@ -626,7 +743,7 @@
 
     <header class="intro" id="intro">
       <h1>GUITAR!</h1>
-      <p class="note">From cero to master, but first: know the instrument. This will become a full class. For now, start with the map, the sound, and the sections.</p>
+      <p class="note">From zero to master. First: map the neck, hear the notes, find the major scale.</p>
     </header>
 
     <section class="index" aria-labelledby="index-title">
@@ -634,12 +751,8 @@
       <div class="index-list mono">
         <a href="#intro"><span>00</span><span>Intro</span></a>
         <a href="#fretboard-section"><span>01</span><span>Fretboard</span></a>
-        <a href="#body"><span>02</span><span>Body</span></a>
-        <a href="#rhythm"><span>03</span><span>Rhythm</span></a>
-        <a href="#chords"><span>04</span><span>Chords</span></a>
-        <a href="#scales"><span>05</span><span>Scales</span></a>
-        <a href="#songs"><span>06</span><span>Songs</span></a>
-        <a href="#practice"><span>07</span><span>Practice</span></a>
+        <a href="#scales"><span>02</span><span>Scales</span></a>
+        <a href="#diatonic-harmony"><span>03</span><span>Harmony</span></a>
       </div>
     </section>
 
@@ -660,33 +773,12 @@
       </div>
     </section>
 
-    <section class="section" id="body">
-      <div class="section-top">
-        <span class="mono">02 / Coming next</span>
-        <h2>Body.</h2>
-      </div>
-    </section>
-
-    <section class="section" id="rhythm">
-      <div class="section-top">
-        <span class="mono">03 / Coming next</span>
-        <h2>Rhythm.</h2>
-      </div>
-    </section>
-
-    <section class="section" id="chords">
-      <div class="section-top">
-        <span class="mono">04 / Coming next</span>
-        <h2>Chords.</h2>
-      </div>
-    </section>
-
     <section class="section" id="scales">
       <div class="section-top">
-        <span class="mono">05 / Notes become shapes</span>
+        <span class="mono">02 / Notes become shapes</span>
         <div>
           <h2>Scales.</h2>
-          <p class="note">Choose a root and a scale. Then show it on the fretboard. Now the highlights mean something.</p>
+          <p class="note">Choose a root and show the major scale. Everything else can come later from this map.</p>
         </div>
       </div>
       <div class="scale-lab" aria-label="Scale finder">
@@ -694,10 +786,6 @@
           <label class="scale-field mono">
             Root
             <select class="scale-select mono" id="scale-root"></select>
-          </label>
-          <label class="scale-field mono">
-            Scale
-            <select class="scale-select mono" id="scale-type"></select>
           </label>
           <button class="scale-button mono" id="show-scale" type="button">Show scale</button>
           <button class="scale-button mono" id="clear-scale" type="button">Clear</button>
@@ -716,17 +804,31 @@
       </div>
     </section>
 
-    <section class="section" id="songs">
+    <section class="section" id="diatonic-harmony">
       <div class="section-top">
-        <span class="mono">06 / Coming next</span>
-        <h2>Songs.</h2>
+        <span class="mono">03 / Chords are born</span>
+        <div>
+          <h2>How chords are born.</h2>
+          <p class="note">Harmony starts when the major scale stacks itself: take one note, skip one, take the next. Keep stacking and the chord gets richer.</p>
+        </div>
       </div>
-    </section>
-
-    <section class="section" id="practice">
-      <div class="section-top">
-        <span class="mono">07 / Coming next</span>
-        <h2>Practice.</h2>
+      <div class="harmony-lab" aria-label="Diatonic harmony">
+        <div class="harmony-rule mono">
+          <span id="harmony-scale-title">C major</span>
+          <span id="harmony-formula">1 + 3 + 5 = triad</span>
+        </div>
+        <div class="harmony-mode" aria-label="Chord type">
+          <button class="harmony-mode-button mono active" id="triad-mode" type="button">Triads</button>
+          <button class="harmony-mode-button mono" id="seventh-mode" type="button">Seventh chords</button>
+        </div>
+        <div class="harmony-grid" id="harmony-chords"></div>
+        <div class="harmony-map-title mono" id="harmony-map-title">C on the fretboard</div>
+        <div class="board-wrap harmony-board-wrap" aria-label="Harmony fretboard map">
+          <div class="fretboard" id="harmony-fretboard"></div>
+          <div class="markers mono" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span class="marker">•</span><span></span><span></span><span class="marker">••</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -758,20 +860,48 @@
     const fretTuningPanel = document.getElementById("fret-tuning-panel");
     const status = document.getElementById("status");
     const scaleRoot = document.getElementById("scale-root");
-    const scaleType = document.getElementById("scale-type");
     const showScale = document.getElementById("show-scale");
     const clearScale = document.getElementById("clear-scale");
     const scaleTitle = document.getElementById("scale-title");
     const scaleNotesEl = document.getElementById("scale-notes");
     const scalePositions = document.getElementById("scale-positions");
-    const scaleDefinitions = {
-      major: { label: "Major", intervals: [0, 2, 4, 5, 7, 9, 11], degrees: ["R", "2", "3", "4", "5", "6", "7"] },
-      naturalMinor: { label: "Natural minor", intervals: [0, 2, 3, 5, 7, 8, 10], degrees: ["R", "2", "b3", "4", "5", "b6", "b7"] },
-      majorPentatonic: { label: "Major pentatonic", intervals: [0, 2, 4, 7, 9], degrees: ["R", "2", "3", "5", "6"] },
-      minorPentatonic: { label: "Minor pentatonic", intervals: [0, 3, 5, 7, 10], degrees: ["R", "b3", "4", "5", "b7"] },
-      blues: { label: "Blues", intervals: [0, 3, 5, 6, 7, 10], degrees: ["R", "b3", "4", "b5", "5", "b7"] }
+    const harmonyScaleTitle = document.getElementById("harmony-scale-title");
+    const harmonyFormula = document.getElementById("harmony-formula");
+    const harmonyChords = document.getElementById("harmony-chords");
+    const harmonyMapTitle = document.getElementById("harmony-map-title");
+    const harmonyBoard = document.getElementById("harmony-fretboard");
+    const triadMode = document.getElementById("triad-mode");
+    const seventhMode = document.getElementById("seventh-mode");
+    const majorScale = { label: "Major", intervals: [0, 2, 4, 5, 7, 9, 11], degrees: ["R", "2", "3", "4", "5", "6", "7"] };
+    const scaleState = { active: false, root: "C", harmonyMode: "triads", harmonyIndex: 0 };
+    const harmonyModes = {
+      triads: {
+        formula: "1 + 3 + 5 = triad",
+        offsets: [0, 2, 4],
+        chords: [
+          { roman: "I", suffix: "", quality: "major" },
+          { roman: "ii", suffix: "m", quality: "minor" },
+          { roman: "iii", suffix: "m", quality: "minor" },
+          { roman: "IV", suffix: "", quality: "major" },
+          { roman: "V", suffix: "", quality: "major" },
+          { roman: "vi", suffix: "m", quality: "minor" },
+          { roman: "vii°", suffix: "dim", quality: "diminished" }
+        ]
+      },
+      sevenths: {
+        formula: "1 + 3 + 5 + 7 = seventh chord",
+        offsets: [0, 2, 4, 6],
+        chords: [
+          { roman: "Imaj7", suffix: "maj7", quality: "major seventh" },
+          { roman: "ii7", suffix: "m7", quality: "minor seventh" },
+          { roman: "iii7", suffix: "m7", quality: "minor seventh" },
+          { roman: "IVmaj7", suffix: "maj7", quality: "major seventh" },
+          { roman: "V7", suffix: "7", quality: "dominant seventh" },
+          { roman: "vi7", suffix: "m7", quality: "minor seventh" },
+          { roman: "viiø7", suffix: "m7b5", quality: "half diminished" }
+        ]
+      }
     };
-    const scaleState = { active: false, root: "C", type: "major" };
     const mobileBoardQuery = window.matchMedia("(max-width: 760px)");
     const positionWindows = [
       { label: "Position 1", start: 0, end: 3 },
@@ -795,14 +925,31 @@
     const noteFromMidi = (midi) => notes[((midi % 12) + 12) % 12];
     const getScaleNotes = () => {
       const rootIndex = noteSemitones[scaleState.root];
-      return scaleDefinitions[scaleState.type].intervals.map((interval) => notes[(rootIndex + interval) % notes.length]);
+      return majorScale.intervals.map((interval) => notes[(rootIndex + interval) % notes.length]);
     };
     const getScaleDegree = (note) => {
       const rootIndex = noteSemitones[scaleState.root];
-      const scale = scaleDefinitions[scaleState.type];
       const interval = (noteSemitones[note] - rootIndex + notes.length) % notes.length;
-      const degreeIndex = scale.intervals.indexOf(interval);
-      return degreeIndex === -1 ? "" : scale.degrees[degreeIndex];
+      const degreeIndex = majorScale.intervals.indexOf(interval);
+      return degreeIndex === -1 ? "" : majorScale.degrees[degreeIndex];
+    };
+
+    const getHarmonyMode = () => harmonyModes[scaleState.harmonyMode];
+
+    const getHarmonyChord = (index) => {
+      const scaleNotes = getScaleNotes();
+      const mode = getHarmonyMode();
+      const rootNote = scaleNotes[index];
+      const chordInfo = mode.chords[index];
+      const chordNotes = mode.offsets.map((offset) => scaleNotes[(index + offset) % scaleNotes.length]);
+
+      return {
+        ...chordInfo,
+        name: `${rootNote}${chordInfo.suffix}`,
+        rootNote,
+        notes: chordNotes,
+        midis: getChordMidis(chordNotes, index)
+      };
     };
 
     const closestMidiForNote = (note, baseMidi) => {
@@ -868,6 +1015,33 @@
       window.setTimeout(() => button.classList.remove("playing"), 180);
     };
 
+    const playChord = (chord, button) => {
+      const context = getAudioContext();
+      const now = context.currentTime;
+      const output = context.createGain();
+
+      output.gain.setValueAtTime(.0001, now);
+      output.gain.exponentialRampToValueAtTime(.24, now + .018);
+      output.gain.exponentialRampToValueAtTime(.0001, now + 1.5);
+      output.connect(context.destination);
+
+      chord.midis.forEach((midi, index) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(frequencyFromMidi(midi), now + (index * .055));
+        gain.gain.setValueAtTime(index === 0 ? .55 : .36, now);
+        oscillator.connect(gain);
+        gain.connect(output);
+        oscillator.start(now + (index * .055));
+        oscillator.stop(now + 1.5);
+      });
+
+      status.textContent = `${chord.name} / ${chord.notes.join(" ")}`;
+      button.classList.add("playing");
+      window.setTimeout(() => button.classList.remove("playing"), 260);
+    };
+
     const stopDrone = () => {
       if (!activeDrone) return;
       const now = audioContext.currentTime;
@@ -911,23 +1085,31 @@
       const midi = string.openMidi + fret;
       const note = noteFromMidi(midi);
       const activeScaleNotes = scaleState.active ? getScaleNotes() : [];
+      const chordNotes = options.chordNotes || [];
       const inScale = activeScaleNotes.includes(note);
+      const inChord = chordNotes.includes(note);
       const cell = document.createElement("div");
       const button = document.createElement("button");
 
       cell.className = `cell note-cell${fret === 0 ? " open" : ""}`;
       button.className = "note-button";
 
-      if (options.fadeOutOfScale && scaleState.active) {
+      if (options.fadeOutOfChord) {
+        button.classList.add(inChord ? "scale-tone" : "out-of-scale");
+      } else if (options.fadeOutOfScale && scaleState.active) {
         button.classList.add(inScale ? "scale-tone" : "out-of-scale");
       } else if (inScale) {
         button.classList.add("scale-tone");
       }
 
-      if (scaleState.active && note === scaleState.root) button.classList.add("scale-root");
+      if (options.chordRoot && note === options.chordRoot) {
+        button.classList.add("scale-root");
+      } else if (!options.fadeOutOfChord && scaleState.active && note === scaleState.root) {
+        button.classList.add("scale-root");
+      }
 
       button.type = "button";
-      button.textContent = note;
+      button.textContent = (options.fadeOutOfScale && scaleState.active && !inScale) || (options.fadeOutOfChord && !inChord) ? "" : note;
       button.setAttribute("aria-label", `${options.labelPrefix || ""}string ${string.number}, fret ${fret}, note ${note}`.trim());
       button.addEventListener("click", () => playNote(midi, note, `string ${string.number}`, fret, button));
       cell.appendChild(button);
@@ -979,6 +1161,17 @@
       renderNoteBoard(scaleBoard, { fadeOutOfScale: true, labelPrefix: "scale map, " });
     };
 
+    const renderHarmonyFretboard = () => {
+      const chord = getHarmonyChord(scaleState.harmonyIndex);
+      harmonyMapTitle.textContent = `${chord.name} on the fretboard / ${chord.notes.join(" ")}`;
+      renderNoteBoard(harmonyBoard, {
+        chordNotes: chord.notes,
+        chordRoot: chord.rootNote,
+        fadeOutOfChord: true,
+        labelPrefix: `${chord.name} map, `
+      });
+    };
+
     const updateTuning = (index, note) => {
       if (activeDrone) stopDrone();
       tuning[index].openNote = note;
@@ -986,6 +1179,7 @@
       status.textContent = `String ${tuning[index].number} open ${note}`;
       renderFretboard();
       renderScaleFretboard();
+      renderHarmonyFretboard();
       renderScalePositions();
       renderTuningControls();
     };
@@ -1049,14 +1243,6 @@
         scaleRoot.appendChild(option);
       });
 
-      scaleType.innerHTML = "";
-      Object.entries(scaleDefinitions).forEach(([key, scale]) => {
-        const option = document.createElement("option");
-        option.value = key;
-        option.textContent = scale.label;
-        option.selected = key === scaleState.type;
-        scaleType.appendChild(option);
-      });
     };
 
     const renderScaleOutput = () => {
@@ -1067,9 +1253,8 @@
         return;
       }
 
-      const scale = scaleDefinitions[scaleState.type];
       const scaleNotes = getScaleNotes();
-      scaleTitle.textContent = `${scaleState.root} ${scale.label}`;
+      scaleTitle.textContent = `${scaleState.root} ${majorScale.label}`;
 
       scaleNotes.forEach((note) => {
         const pill = document.createElement("span");
@@ -1187,26 +1372,87 @@
       });
     };
 
+    const getChordMidis = (chordNotes, chordIndex) => {
+      const rootMidi = 48 + noteSemitones[scaleState.root] + majorScale.intervals[chordIndex];
+      return chordNotes.reduce((midis, note, index) => {
+        let midi = index === 0 ? rootMidi : 48 + noteSemitones[note];
+        while (index > 0 && midi <= midis[index - 1]) midi += 12;
+        midis.push(midi);
+        return midis;
+      }, []);
+    };
+
+    const renderHarmony = () => {
+      const scaleNotes = getScaleNotes();
+      const mode = getHarmonyMode();
+      harmonyScaleTitle.textContent = `${scaleState.root} major`;
+      harmonyFormula.textContent = mode.formula;
+      triadMode.classList.toggle("active", scaleState.harmonyMode === "triads");
+      seventhMode.classList.toggle("active", scaleState.harmonyMode === "sevenths");
+      harmonyChords.innerHTML = "";
+
+      scaleNotes.forEach((rootNote, index) => {
+        const chord = getHarmonyChord(index);
+        const button = document.createElement("button");
+        const degree = document.createElement("span");
+        const name = document.createElement("span");
+        const notesEl = document.createElement("span");
+
+        button.className = `harmony-chord${index === scaleState.harmonyIndex ? " selected" : ""}`;
+        button.type = "button";
+        button.setAttribute("aria-label", `${chord.roman}, ${chord.name}, ${chord.quality}, notes ${chord.notes.join(", ")}`);
+        button.addEventListener("click", () => {
+          scaleState.harmonyIndex = index;
+          harmonyChords.querySelectorAll(".harmony-chord").forEach((chordButton, chordIndex) => {
+            chordButton.classList.toggle("selected", chordIndex === scaleState.harmonyIndex);
+          });
+          renderHarmonyFretboard();
+          playChord(chord, button);
+        });
+
+        degree.className = "harmony-degree mono";
+        degree.textContent = chord.roman;
+        name.className = "harmony-name";
+        name.textContent = chord.name;
+        notesEl.className = "harmony-notes mono";
+        notesEl.textContent = chord.notes.join(" ");
+
+        button.append(degree, name, notesEl);
+        harmonyChords.appendChild(button);
+      });
+    };
+
     const setScale = (active) => {
       scaleState.root = scaleRoot.value;
-      scaleState.type = scaleType.value;
       scaleState.active = active;
       renderScaleOutput();
       renderFretboard();
       renderScaleFretboard();
       renderScalePositions();
+      renderHarmony();
+      renderHarmonyFretboard();
       status.textContent = active
-        ? `${scaleState.root} ${scaleDefinitions[scaleState.type].label}`
+        ? `${scaleState.root} ${majorScale.label}`
         : "Scale cleared";
     };
 
     scaleRoot.addEventListener("change", () => setScale(true));
-    scaleType.addEventListener("change", () => setScale(true));
     showScale.addEventListener("click", () => setScale(true));
     clearScale.addEventListener("click", () => setScale(false));
+    triadMode.addEventListener("click", () => {
+      scaleState.harmonyMode = "triads";
+      renderHarmony();
+      renderHarmonyFretboard();
+    });
+    seventhMode.addEventListener("click", () => {
+      scaleState.harmonyMode = "sevenths";
+      renderHarmony();
+      renderHarmonyFretboard();
+    });
     mobileBoardQuery.addEventListener("change", () => {
       renderFretboard();
       renderScaleFretboard();
+      renderHarmonyFretboard();
     });
 
     document.addEventListener("keydown", (event) => {
@@ -1222,6 +1468,8 @@
     renderScaleOptions();
     renderScaleOutput();
     renderScalePositions();
+    renderHarmony();
+    renderHarmonyFretboard();
   </script>
 </body>
 </html>
