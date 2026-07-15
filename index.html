@@ -255,7 +255,17 @@
       letter-spacing: .05em;
       text-decoration: none;
     }
-    .contact-bottom { display: flex; justify-content: space-between; align-items: end; opacity: .78; }
+    .contact-bottom { display: flex; justify-content: space-between; align-items: end; gap: 24px; opacity: .78; }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+    .footer-links a {
+      text-decoration: none;
+      border-bottom: 1px solid currentColor;
+      transition: color .2s ease, opacity .2s ease;
+    }
+    .footer-links a:hover {
+      color: var(--yellow);
+      opacity: 1;
+    }
 
     .reveal { opacity: 0; transform: translateY(25px); transition: opacity .7s ease, transform .7s ease; }
     .reveal.visible { opacity: 1; transform: none; }
@@ -285,7 +295,8 @@
       .about-layout { grid-template-columns: 1fr; gap: 58px; align-content: center; }
       .facts { grid-template-columns: 1fr; }
       .fact { padding: 14px 0; border-bottom: 1px solid rgba(248,244,235,.25); }
-      .contact-bottom { font-size: 8px; }
+      .contact-bottom { flex-direction: column; align-items: flex-start; font-size: 8px; }
+      .footer-links { justify-content: flex-start; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -423,6 +434,10 @@
     </div>
     <div class="contact-bottom mono">
       <span>Miami · Florida</span>
+      <div class="footer-links" aria-label="Music pages">
+        <a href="guitar/">Guitar Lab</a>
+        <a href="repertoire/">Repertoire</a>
+      </div>
       <span>© <span class="year"></span> Sebastian Macchia</span>
     </div>
   </section>
