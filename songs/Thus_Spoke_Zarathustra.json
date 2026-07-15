@@ -1,0 +1,178 @@
+{
+  "title": "Thus Spoke Zarathustra",
+  "author": "Richard Strauss, 1896, Munich, Germany",
+  "key": "C",
+  "tuning": [
+    "e",
+    "B",
+    "G",
+    "D",
+    "A",
+    "E"
+  ],
+  "measures": [
+    {
+      "chordLanes": [
+        {
+          "chords": [
+            "C",
+            "",
+            "",
+            "G",
+            "",
+            "",
+            "C",
+            ""
+          ],
+          "diagrams": [
+            [
+              {
+                "si": 4,
+                "fi": 3
+              },
+              {
+                "si": 3,
+                "fi": 5
+              },
+              {
+                "si": 2,
+                "fi": 5
+              }
+            ]
+          ]
+        }
+      ],
+      "melodyRows": [
+        [
+          "C",
+          "",
+          "G",
+          "",
+          "C",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "melodyDiagrams": [
+        {
+          "notes": [
+            {
+              "si": 5,
+              "fi": 8
+            },
+            {
+              "si": 3,
+              "fi": 5
+            },
+            {
+              "si": 2,
+              "fi": 5
+            }
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "chordLanes": [
+        {
+          "chords": [
+            "C",
+            "",
+            "",
+            "G",
+            "",
+            "",
+            "C",
+            ""
+          ],
+          "diagrams": []
+        }
+      ],
+      "melodyRows": [
+        [
+          "C",
+          "",
+          "G",
+          "",
+          "C",
+          "",
+          "hold",
+          ""
+        ]
+      ],
+      "melodyDiagrams": [
+        {
+          "notes": [
+            {
+              "si": 4,
+              "fi": 3
+            },
+            {
+              "si": 3,
+              "fi": 5
+            },
+            {
+              "si": 2,
+              "fi": 5
+            }
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "chordLanes": [
+        {
+          "chords": [
+            "C",
+            "",
+            "G",
+            "",
+            "C",
+            "",
+            "",
+            ""
+          ],
+          "diagrams": []
+        }
+      ],
+      "melodyRows": [
+        [
+          "sunrise",
+          "",
+          "let ring",
+          "",
+          "big C",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "melodyDiagrams": [
+        {
+          "notes": [
+            {
+              "si": 5,
+              "fi": 8
+            },
+            {
+              "si": 4,
+              "fi": 3
+            },
+            {
+              "si": 3,
+              "fi": 5
+            },
+            {
+              "si": 2,
+              "fi": 5
+            }
+          ],
+          "rows": []
+        }
+      ]
+    }
+  ]
+}

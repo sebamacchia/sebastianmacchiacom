@@ -635,7 +635,8 @@ function migrateSong(loaded){
 
 async function loadOnlineSong(filename, label){
   try{
-    const res=await fetch(SONGS_RAW+filename+'?t='+Date.now());
+    let res=await fetch('../songs/'+filename+'?t='+Date.now());
+    if(!res.ok) res=await fetch(SONGS_RAW+filename+'?t='+Date.now());
     if(!res.ok) throw new Error('Could not load song');
     const loaded=migrateSong(await res.json());
     Object.assign(state,loaded);
@@ -659,6 +660,11 @@ state.measures.forEach((_,i)=>{
   const card=document.createElement('div'); card.className='measure'; card.id=`m${i}`;
   grid.appendChild(card); renderMeasure(i);
 });
+
+const autoSong=new URLSearchParams(window.location.search).get('song');
+if(autoSong && /^[\w.-]+\.json$/i.test(autoSong)){
+  loadOnlineSong(autoSong,autoSong.replace(/\.json$/i,'').replace(/_/g,' '));
+}
 </script>
 </body>
 </html>

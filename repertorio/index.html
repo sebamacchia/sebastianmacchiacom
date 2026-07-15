@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Repertoire — Sebastian Macchia</title>
+  <meta name="description" content="A live repertoire and working songbook for Sebastian Macchia’s guitar performance practice.">
+  <meta name="theme-color" content="#050505">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&amp;family=DM+Mono:wght@400;500&amp;family=Roboto+Condensed:wght@600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../archive.css">
+  <style>
+    :root {
+      --blue: #050505;
+      --white: #f8f4eb;
+      --grid: rgba(248, 244, 235, .045);
+      --line: rgba(248, 244, 235, .28);
+      --yellow: #ffb7d5;
+      --green: #51d48f;
+    }
+
+    body {
+      background-image: none;
+    }
+
+    .page {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav {
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero {
+      min-height: 52svh;
+      padding: 10vh 0 7vh;
+    }
+
+    .repertoire-title {
+      font-size: clamp(5.6rem, 16vw, 16rem);
+      line-height: .76;
+    }
+
+    .small-note {
+      display: block;
+      width: min(540px, 100%);
+      margin: 44px 0 0 auto;
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.8;
+      opacity: .74;
+    }
+
+    .song-count {
+      margin-top: 18px;
+      color: var(--yellow);
+    }
+
+    .songs {
+      margin-top: auto;
+      border-top: 1px solid var(--line);
+    }
+
+    .song {
+      display: grid;
+      grid-template-columns: 70px minmax(240px, 1fr) minmax(170px, .34fr) minmax(120px, .2fr) auto;
+      gap: 24px;
+      align-items: start;
+      min-height: 104px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+      transition: color .2s ease, padding-left .2s ease;
+    }
+
+    .song:hover {
+      color: var(--yellow);
+      padding-left: 10px;
+    }
+
+    .song-number,
+    .song-status,
+    .song-key {
+      opacity: .68;
+    }
+
+    .song-title {
+      font-size: clamp(2rem, 5vw, 5.4rem);
+      line-height: .88;
+      letter-spacing: -.04em;
+      text-transform: uppercase;
+    }
+
+    .song-info {
+      grid-column: 2 / 5;
+      max-width: 760px;
+      margin-top: -10px;
+      font-family: "DM Mono", monospace;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.65;
+      opacity: .64;
+    }
+
+    .song-title em {
+      color: var(--yellow);
+      font-family: "Bodoni Moda", Didot, serif;
+      font-weight: 500;
+      text-transform: none;
+    }
+
+    .song-arrow {
+      grid-column: 5;
+      grid-row: 1;
+      justify-self: end;
+      font-size: 24px;
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        min-height: 46svh;
+        padding: 8vh 0 6vh;
+      }
+
+      .small-note {
+        margin-left: 0;
+      }
+
+      .song {
+        grid-template-columns: 38px 1fr auto;
+        gap: 14px;
+        min-height: 108px;
+      }
+
+      .song-status,
+      .song-key {
+        grid-column: 2 / -1;
+      }
+
+      .song-info {
+        grid-column: 2 / -1;
+        margin-top: 0;
+      }
+
+      .song-arrow {
+        grid-column: 3;
+        grid-row: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav" aria-label="Repertoire navigation">
+      <a class="nav-back mono" href="../">← Sebastian Macchia</a>
+      <div class="nav-links mono">
+        <a href="../guitar/">Guitar Lab</a>
+        <a href="../fretmap/">Charts</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="eyebrow mono">Live music / Songs I’m playing</div>
+      <h1 class="repertoire-title">repertoire</h1>
+      <p class="small-note">Songs I’m playing live. Click a title to open the chart.</p>
+      <div class="song-count mono">4 songs · guitar · live set</div>
+    </header>
+
+    <section class="songs" aria-label="Current repertoire">
+      <a class="song" href="../fretmap/?song=Canon_in_D.json">
+        <span class="song-number mono">01</span>
+        <span class="song-title">Canon <em>in D</em></span>
+        <span class="song-status mono">Building</span>
+        <span class="song-key mono">D · Drop D</span>
+        <span class="song-info">Johann Pachelbel · Germany. Baroque canon, mostly quiet for centuries, later turned into one of the most recognizable wedding/processional pieces.</span>
+        <span class="song-arrow">→</span>
+      </a>
+      <a class="song" href="../fretmap/?song=Blu_Danube.json">
+        <span class="song-number mono">02</span>
+        <span class="song-title">Blu <em>Danube</em></span>
+        <span class="song-status mono">Sketching</span>
+        <span class="song-key mono">TBD · Standard</span>
+        <span class="song-info">Johann Strauss II · Austria. A Viennese waltz from 1867; basically Austria’s unofficial anthem, graceful and impossible not to sway with.</span>
+        <span class="song-arrow">→</span>
+      </a>
+      <a class="song" href="../fretmap/?song=Thus_Spoke_Zarathustra.json">
+        <span class="song-number mono">03</span>
+        <span class="song-title">Thus Spoke <em>Zarathustra</em></span>
+        <span class="song-status mono">New</span>
+        <span class="song-key mono">C · Standard</span>
+        <span class="song-info">Richard Strauss · Germany. Tone poem from 1896, inspired by Nietzsche; the “sunrise” opening became iconic through <em>2001: A Space Odyssey</em>.</span>
+        <span class="song-arrow">→</span>
+      </a>
+      <a class="song" href="../fretmap/?song=Gymnopedie_No_1.json">
+        <span class="song-number mono">04</span>
+        <span class="song-title">Gymnopédie <em>No. 1</em></span>
+        <span class="song-status mono">New</span>
+        <span class="song-key mono">D · Standard</span>
+        <span class="song-info">Erik Satie · France. Piano miniature from 1888, marked “slow and painful”; its sparse, floating harmony feels like an ancestor of ambient music.</span>
+        <span class="song-arrow">→</span>
+      </a>
+    </section>
+
+    <footer class="footer mono">
+      <span>Live repertoire</span>
+      <a href="mailto:sebastianmacchia@gmail.com">sebastianmacchia@gmail.com ↗</a>
+      <span>© <span id="year"></span> Sebastian Macchia</span>
+    </footer>
+  </main>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+{
+  "title": "Gymnopédie No. 1",
+  "author": "Erik Satie, 1888, Paris, France",
+  "key": "D",
+  "tuning": [
+    "e",
+    "B",
+    "G",
+    "D",
+    "A",
+    "E"
+  ],
+  "measures": [
+    {
+      "chordLanes": [
+        {
+          "chords": [
+            "Gmaj7",
+            "",
+            "",
+            "",
+            "Dmaj7",
+            "",
+            "",
+            ""
+          ],
+          "diagrams": [
+            [
+              {
+                "si": 5,
+                "fi": 3
+              },
+              {
+                "si": 4,
+                "fi": 2
+              },
+              {
+                "si": 3,
+                "fi": 4
+              },
+              {
+                "si": 2,
+                "fi": 4
+              }
+            ]
+          ]
+        }
+      ],
+      "melodyRows": [
+        [
+          "D",
+          "",
+          "F#",
+          "",
+          "A",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "melodyDiagrams": [
+        {
+          "notes": [
+            {
+              "si": 1,
+              "fi": 3
+            },
+            {
+              "si": 0,
+              "fi": 2
+            },
+            {
+              "si": 0,
+              "fi": 5
+            }
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "chordLanes": [
+        {
+          "chords": [
+            "Gmaj7",
+            "",
+            "",
+            "",
+            "Dmaj7",
+            "",
+            "",
+            ""
+          ],
+          "diagrams": []
+        }
+      ],
+      "melodyRows": [
+        [
+          "G",
+          "",
+          "F#",
+          "",
+          "E",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "melodyDiagrams": [
+        {
+          "notes": [
+            {
+              "si": 0,
+              "fi": 3
+            },
+            {
+              "si": 0,
+              "fi": 2
+            },
+            {
+              "si": 0,
+              "fi": 0
+            }
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "chordLanes": [
+        {
+          "chords": [
+            "Gmaj7",
+            "",
+            "",
+            "",
+            "Dmaj7",
+            "",
+            "",
+            ""
+          ],
+          "diagrams": []
+        }
+      ],
+      "melodyRows": [
+        [
+          "slow",
+          "",
+          "let ring",
+          "",
+          "very soft",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "melodyDiagrams": [
+        {
+          "notes": [
+            {
+              "si": 5,
+              "fi": 3
+            },
+            {
+              "si": 4,
+              "fi": 5
+            },
+            {
+              "si": 3,
+              "fi": 4
+            },
+            {
+              "si": 2,
+              "fi": 4
+            }
+          ],
+          "rows": []
+        }
+      ]
+    }
+  ]
+}
