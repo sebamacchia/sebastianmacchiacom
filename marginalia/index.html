@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marginalia - Sebastian Macchia</title>
+  <meta name="description" content="A loose notebook of phrases, notes, ideas and small unfinished things by Sebastian Macchia.">
+  <meta name="theme-color" content="#fbf7ee">
+  <meta property="og:title" content="Marginalia - Sebastian Macchia">
+  <meta property="og:description" content="Phrases, notes, ideas and small unfinished things.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sebastianmacchia.com/marginalia/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Mono:wght@400;500&family=Reenie+Beanie&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #fbf7ee;
+      --paper-deep: #f0e5d4;
+      --ink: #191714;
+      --soft-ink: rgba(25, 23, 20, .64);
+      --ghost-ink: rgba(25, 23, 20, .13);
+      --blue: #1455d9;
+      --red: #d93d2b;
+      --yellow: #f1c232;
+      --green: #28835f;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--paper);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      background:
+        radial-gradient(circle, rgba(25, 23, 20, .055) .8px, transparent 1px),
+        linear-gradient(120deg, rgba(241, 194, 50, .13), transparent 36rem),
+        linear-gradient(300deg, rgba(20, 85, 217, .09), transparent 32rem),
+        var(--paper);
+      background-size: 7px 7px, 100% 100%, 100% 100%, auto;
+      font-family: "Caveat", "Bradley Hand", "Segoe Print", cursive;
+      font-size: 1.45rem;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    ::selection { color: var(--paper); background: var(--ink); }
+
+    .mono {
+      font-family: "DM Mono", monospace;
+      font-size: .68rem;
+      line-height: 1.6;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .notebook {
+      position: relative;
+      min-height: 100svh;
+      overflow: hidden;
+    }
+
+    .notebook::before {
+      content: "";
+      position: fixed;
+      top: 6.4rem;
+      bottom: 2rem;
+      left: 2.2rem;
+      width: 1.1rem;
+      background: radial-gradient(circle, rgba(25, 23, 20, .34) 0 2px, transparent 3px) center / 1rem 3.6rem repeat-y;
+      pointer-events: none;
+      opacity: .55;
+      z-index: 0;
+    }
+
+    .nav {
+      position: fixed;
+      z-index: 10;
+      top: 1.4rem;
+      left: 2rem;
+      right: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.2rem;
+      color: var(--soft-ink);
+    }
+
+    .nav a {
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+
+    .nav a:hover { color: var(--red); }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    .sheet {
+      position: relative;
+      z-index: 1;
+      min-height: 100svh;
+      display: grid;
+      align-items: center;
+      padding: 7.5rem 8rem 6rem;
+      isolation: isolate;
+    }
+
+    .opening {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      gap: 4rem;
+    }
+
+    .kicker {
+      margin: 0 0 2.4rem;
+      color: var(--blue);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Reenie Beanie", "Caveat", cursive;
+      font-size: 10rem;
+      font-weight: 400;
+      line-height: .82;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 43rem;
+      margin: 2.2rem 0 0 7rem;
+      color: var(--soft-ink);
+      font-size: 2.25rem;
+      line-height: 1.05;
+    }
+
+    .tiny-stack {
+      align-self: end;
+      display: grid;
+      gap: 1.15rem;
+      color: var(--soft-ink);
+      transform: rotate(2deg);
+    }
+
+    .tiny-stack span {
+      display: inline-block;
+      width: fit-content;
+      padding: .2rem .35rem;
+      border: 1.5px solid currentColor;
+      border-radius: .35rem .18rem .42rem .2rem;
+      background: rgba(251, 247, 238, .55);
+    }
+
+    .tiny-stack span:nth-child(2) {
+      color: var(--red);
+      transform: translateX(2.5rem) rotate(-5deg);
+    }
+
+    .tiny-stack span:nth-child(3) {
+      color: var(--green);
+      transform: translateX(.8rem) rotate(4deg);
+    }
+
+    .entry {
+      grid-template-columns: 8rem minmax(0, 56rem) minmax(10rem, 1fr);
+      gap: 3rem;
+    }
+
+    .entry-number {
+      align-self: start;
+      color: var(--blue);
+      font-family: "Reenie Beanie", "Caveat", cursive;
+      font-size: 5rem;
+      line-height: 1;
+      transform: rotate(-8deg);
+    }
+
+    .entry-body {
+      align-self: center;
+      transform: rotate(-.7deg);
+    }
+
+    .entry:nth-of-type(3) .entry-body { transform: rotate(.8deg); }
+    .entry:nth-of-type(4) .entry-body { transform: rotate(-1deg); }
+
+    .label {
+      margin: 0 0 1.3rem;
+      color: var(--red);
+    }
+
+    blockquote {
+      margin: 0;
+      font-size: 4.9rem;
+      font-weight: 600;
+      line-height: .94;
+      letter-spacing: 0;
+    }
+
+    blockquote strong {
+      display: block;
+      font-size: 6.1rem;
+      font-weight: 700;
+      line-height: .82;
+    }
+
+    .afterthought {
+      max-width: 30rem;
+      margin: 2.2rem 0 0 12rem;
+      color: var(--soft-ink);
+      font-size: 1.9rem;
+      line-height: 1.05;
+      transform: rotate(2deg);
+    }
+
+    .margin-note {
+      align-self: center;
+      justify-self: center;
+      max-width: 13rem;
+      color: var(--soft-ink);
+      font-size: 2rem;
+      line-height: .98;
+      transform: rotate(8deg);
+    }
+
+    .margin-note::before {
+      content: "* ";
+      color: var(--yellow);
+      font-family: "DM Mono", monospace;
+      font-size: 1.3rem;
+    }
+
+    .quiet-page {
+      grid-template-columns: minmax(0, 43rem) minmax(13rem, 1fr);
+      gap: 5rem;
+    }
+
+    .quiet-page h2 {
+      margin: 0;
+      font-size: 5.7rem;
+      line-height: .86;
+      letter-spacing: 0;
+    }
+
+    .quiet-page p {
+      max-width: 33rem;
+      margin: 2rem 0 0;
+      color: var(--soft-ink);
+      font-size: 2.05rem;
+      line-height: 1.02;
+    }
+
+    .loose-list {
+      display: grid;
+      gap: 1.5rem;
+      color: var(--soft-ink);
+      font-size: 2.3rem;
+      line-height: .9;
+      transform: rotate(2.5deg);
+    }
+
+    .loose-list span:nth-child(2) {
+      color: var(--blue);
+      transform: translateX(2rem) rotate(-4deg);
+    }
+
+    .loose-list span:nth-child(3) {
+      color: var(--red);
+      transform: translateX(-1rem) rotate(3deg);
+    }
+
+    .loose-list span:nth-child(4) {
+      color: var(--green);
+      transform: translateX(1.2rem) rotate(-2deg);
+    }
+
+    .doodle {
+      position: absolute;
+      z-index: -1;
+      color: var(--ghost-ink);
+      font-family: "Reenie Beanie", "Caveat", cursive;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .doodle.big {
+      right: 9rem;
+      bottom: 5.5rem;
+      color: rgba(20, 85, 217, .16);
+      font-size: 11rem;
+      transform: rotate(-17deg);
+    }
+
+    .doodle.loop {
+      top: 18%;
+      right: 12%;
+      width: 8.8rem;
+      height: 5.2rem;
+      border: 2px solid rgba(217, 61, 43, .28);
+      border-radius: 48% 52% 45% 55%;
+      transform: rotate(16deg);
+    }
+
+    .doodle.words {
+      left: 11%;
+      bottom: 12%;
+      color: rgba(40, 131, 95, .22);
+      font-size: 2.8rem;
+      transform: rotate(-10deg);
+    }
+
+    .footer {
+      min-height: 42svh;
+      padding: 5rem 8rem 4rem;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 2rem;
+      color: var(--soft-ink);
+    }
+
+    .footer a {
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .footer a:hover { color: var(--red); }
+
+    @media (max-width: 980px) {
+      .notebook::before { left: 1rem; }
+      .nav {
+        left: 1.1rem;
+        right: 1.1rem;
+      }
+      .sheet {
+        padding: 7rem 2rem 5rem 3rem;
+      }
+      .opening,
+      .entry,
+      .quiet-page {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      h1 { font-size: 6.7rem; }
+      .lead {
+        margin-left: 0;
+        font-size: 1.95rem;
+      }
+      .tiny-stack {
+        justify-self: start;
+        transform: rotate(0);
+      }
+      .entry-number {
+        font-size: 3.6rem;
+      }
+      blockquote { font-size: 3.7rem; }
+      blockquote strong { font-size: 4.35rem; }
+      .afterthought {
+        margin-left: 2rem;
+        font-size: 1.65rem;
+      }
+      .margin-note {
+        justify-self: start;
+        max-width: 22rem;
+        transform: rotate(-3deg);
+      }
+      .quiet-page h2 { font-size: 4.1rem; }
+      .footer {
+        min-height: 34svh;
+        padding: 4rem 2rem 3rem 3rem;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body { font-size: 1.25rem; }
+      .nav {
+        position: absolute;
+        align-items: flex-start;
+      }
+      .nav-links {
+        max-width: 9rem;
+        gap: .55rem;
+      }
+      .notebook::before { opacity: .26; }
+      .sheet {
+        min-height: 92svh;
+        padding: 7rem 1.3rem 4.2rem 2.2rem;
+      }
+      h1 { font-size: 5.1rem; }
+      .lead { font-size: 1.7rem; }
+      blockquote { font-size: 2.95rem; }
+      blockquote strong { font-size: 3.4rem; }
+      .afterthought {
+        margin-left: 0;
+        font-size: 1.45rem;
+      }
+      .quiet-page h2 { font-size: 3.25rem; }
+      .quiet-page p,
+      .margin-note,
+      .loose-list {
+        font-size: 1.55rem;
+      }
+      .doodle.big { font-size: 6rem; right: 1rem; }
+      .doodle.loop { right: 8%; width: 5rem; height: 3.2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="notebook">
+    <nav class="nav mono" aria-label="Marginalia navigation">
+      <a href="../">Sebastian Macchia</a>
+      <div class="nav-links">
+        <a href="../apps/">Apps</a>
+        <a href="../aifilm/">AI Film</a>
+        <a href="../awards/">Recognition</a>
+      </div>
+    </nav>
+
+    <section class="sheet opening" aria-labelledby="marginalia-title">
+      <div>
+        <p class="kicker mono">Frases / notes / ideas / small shit</p>
+        <h1 id="marginalia-title">Marginalia</h1>
+        <p class="lead">A loose notebook for things that do not need a full project yet: phrases, annotations, half-ideas, questions and little scraps worth keeping.</p>
+      </div>
+      <div class="tiny-stack mono" aria-label="Notebook contents">
+        <span>quotes</span>
+        <span>side thoughts</span>
+        <span>unfinished</span>
+      </div>
+      <span class="doodle big" aria-hidden="true">m</span>
+      <span class="doodle loop" aria-hidden="true"></span>
+    </section>
+
+    <section class="sheet entry" aria-labelledby="entry-001">
+      <div class="entry-number" aria-hidden="true">001</div>
+      <article class="entry-body">
+        <p class="label mono" id="entry-001">Copied line / silence</p>
+        <blockquote><strong>Stay silent.</strong> Not everything needs to be said.</blockquote>
+        <p class="afterthought">for when words start behaving like noise.</p>
+      </article>
+      <aside class="margin-note">keep this one near the top.</aside>
+      <span class="doodle words" aria-hidden="true">less drama</span>
+    </section>
+
+    <section class="sheet entry" aria-labelledby="entry-002">
+      <div class="entry-number" aria-hidden="true">002</div>
+      <article class="entry-body">
+        <p class="label mono" id="entry-002">Copied line / drama</p>
+        <blockquote><strong>Silence</strong> is better than unnecessary drama.</blockquote>
+        <p class="afterthought">simple enough to be useful.</p>
+      </article>
+      <aside class="margin-note">not every thought has to become a performance.</aside>
+      <span class="doodle loop" aria-hidden="true"></span>
+    </section>
+
+    <section class="sheet quiet-page" aria-labelledby="what-goes-here">
+      <div>
+        <p class="kicker mono">What lives here</p>
+        <h2 id="what-goes-here">Stuff from the edge of the page.</h2>
+        <p>No blog rhythm. No perfect archive. Just the scraps that keep asking to be saved.</p>
+      </div>
+      <div class="loose-list" aria-label="Types of marginalia">
+        <span>frases</span>
+        <span>questions</span>
+        <span>notes to self</span>
+        <span>bad ideas with potential</span>
+      </div>
+      <span class="doodle big" aria-hidden="true">?</span>
+    </section>
+
+    <footer class="footer mono">
+      <span>Miami / Florida</span>
+      <a href="../">Back to portfolio</a>
+      <span>&copy; <span id="year"></span> Sebastian Macchia</span>
+    </footer>
+  </main>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
