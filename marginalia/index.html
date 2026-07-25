@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Marginalia - Sebastian Macchia</title>
-  <meta name="description" content="A loose notebook of phrases, notes, ideas and small unfinished things by Sebastian Macchia.">
+  <meta name="description" content="Handwritten notes on minimalism by Sebastian Macchia.">
   <meta name="theme-color" content="#fbf7ee">
   <meta property="og:title" content="Marginalia - Sebastian Macchia">
-  <meta property="og:description" content="Phrases, notes, ideas and small unfinished things.">
+  <meta property="og:description" content="Handwritten notes on minimalism.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://sebastianmacchia.com/marginalia/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Mono:wght@400;500&family=Reenie+Beanie&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Gloria+Hallelujah&family=Patrick+Hand&family=Reenie+Beanie&family=Schoolbell&display=swap" rel="stylesheet">
   <style>
     :root {
       --paper: #fbf7ee;
@@ -39,11 +39,10 @@
       min-height: 100%;
       color: var(--ink);
       background:
-        radial-gradient(circle, rgba(25, 23, 20, .055) .8px, transparent 1px),
         linear-gradient(120deg, rgba(241, 194, 50, .13), transparent 36rem),
         linear-gradient(300deg, rgba(20, 85, 217, .09), transparent 32rem),
         var(--paper);
-      background-size: 7px 7px, 100% 100%, 100% 100%, auto;
+      background-size: 100% 100%, 100% 100%, auto;
       font-family: "Caveat", "Bradley Hand", "Segoe Print", cursive;
       font-size: 1.45rem;
       font-weight: 400;
@@ -54,30 +53,17 @@
     ::selection { color: var(--paper); background: var(--ink); }
 
     .mono {
-      font-family: "DM Mono", monospace;
-      font-size: .68rem;
-      line-height: 1.6;
+      font-family: "Patrick Hand", "Schoolbell", cursive;
+      font-size: 1.05rem;
+      line-height: 1.25;
       letter-spacing: 0;
-      text-transform: uppercase;
+      text-transform: none;
     }
 
     .notebook {
       position: relative;
       min-height: 100svh;
       overflow: hidden;
-    }
-
-    .notebook::before {
-      content: "";
-      position: fixed;
-      top: 6.4rem;
-      bottom: 2rem;
-      left: 2.2rem;
-      width: 1.1rem;
-      background: radial-gradient(circle, rgba(25, 23, 20, .34) 0 2px, transparent 3px) center / 1rem 3.6rem repeat-y;
-      pointer-events: none;
-      opacity: .55;
-      z-index: 0;
     }
 
     .nav {
@@ -91,6 +77,7 @@
       justify-content: space-between;
       gap: 1.2rem;
       color: var(--soft-ink);
+      font-size: 1.1rem;
     }
 
     .nav a {
@@ -110,7 +97,7 @@
     .sheet {
       position: relative;
       z-index: 1;
-      min-height: 100svh;
+      min-height: auto;
       display: grid;
       align-items: center;
       padding: 7.5rem 8rem 6rem;
@@ -118,13 +105,18 @@
     }
 
     .opening {
-      grid-template-columns: minmax(0, 1fr) 18rem;
+      min-height: 52svh;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 360px);
       gap: 4rem;
+      padding-bottom: 2rem;
     }
 
     .kicker {
       margin: 0 0 2.4rem;
       color: var(--blue);
+      font-family: "Schoolbell", "Patrick Hand", cursive;
+      font-size: 1.4rem;
+      transform: rotate(-1.2deg);
     }
 
     h1 {
@@ -136,19 +128,12 @@
       letter-spacing: 0;
     }
 
-    .lead {
-      max-width: 43rem;
-      margin: 2.2rem 0 0 7rem;
-      color: var(--soft-ink);
-      font-size: 2.25rem;
-      line-height: 1.05;
-    }
-
     .tiny-stack {
       align-self: end;
       display: grid;
       gap: 1.15rem;
       color: var(--soft-ink);
+      font-family: "Schoolbell", "Patrick Hand", cursive;
       transform: rotate(2deg);
     }
 
@@ -171,116 +156,183 @@
       transform: translateX(.8rem) rotate(4deg);
     }
 
-    .entry {
-      grid-template-columns: 8rem minmax(0, 56rem) minmax(10rem, 1fr);
-      gap: 3rem;
+    .opening-side {
+      align-self: end;
+      display: grid;
+      gap: 1.3rem;
+      justify-items: start;
     }
 
-    .entry-number {
-      align-self: start;
-      color: var(--blue);
-      font-family: "Reenie Beanie", "Caveat", cursive;
-      font-size: 5rem;
-      line-height: 1;
-      transform: rotate(-8deg);
-    }
-
-    .entry-body {
-      align-self: center;
-      transform: rotate(-.7deg);
-    }
-
-    .entry:nth-of-type(3) .entry-body { transform: rotate(.8deg); }
-    .entry:nth-of-type(4) .entry-body { transform: rotate(-1deg); }
-
-    .label {
-      margin: 0 0 1.3rem;
-      color: var(--red);
-    }
-
-    blockquote {
+    .found-photo {
+      width: min(340px, 100%);
       margin: 0;
-      font-size: 4.9rem;
-      font-weight: 600;
-      line-height: .94;
+      padding: .7rem .7rem 1rem;
+      background: rgba(255, 253, 247, .82);
+      box-shadow: 0 1rem 2.8rem rgba(25, 23, 20, .12);
+      transform: rotate(2.4deg);
+    }
+
+    .found-photo img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / 1.05;
+      object-fit: cover;
+      filter: saturate(.78) contrast(.96);
+    }
+
+    .found-photo figcaption {
+      margin-top: .55rem;
+      color: var(--soft-ink);
+      font-family: "Schoolbell", "Patrick Hand", cursive;
+      font-size: 1.2rem;
+      line-height: 1;
+      transform: rotate(-1.5deg);
+    }
+
+    .notes-page,
+    .minimalism-page {
+      display: block;
+      padding-top: 1rem;
+      padding-bottom: 7rem;
+    }
+
+    .minimalism-page {
+      padding-top: 4rem;
+    }
+
+    .art-page {
+      display: block;
+      padding-top: 2rem;
+      padding-bottom: 4rem;
+    }
+
+    .note-cluster {
+      position: relative;
+      width: min(920px, 100%);
+      margin: 0 auto;
+    }
+
+    .minimalism-cluster {
+      display: grid;
+      grid-template-columns: minmax(240px, 360px) minmax(0, 1fr);
+      gap: clamp(2rem, 6vw, 5rem);
+      align-items: start;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+    }
+
+    .minimalism-notes {
+      position: relative;
+      padding-top: 1.5rem;
+    }
+
+    .art-note {
+      position: relative;
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 2.2rem 0;
+      text-align: center;
+      transform: rotate(-.6deg);
+    }
+
+    .art-note blockquote {
+      margin: 0;
+      font-family: "Patrick Hand", "Caveat", cursive;
+      font-size: clamp(2.6rem, 5vw, 5.3rem);
+      font-weight: 400;
+      line-height: .98;
       letter-spacing: 0;
     }
 
-    blockquote strong {
-      display: block;
-      font-size: 6.1rem;
-      font-weight: 700;
-      line-height: .82;
+    .art-note cite {
+      display: inline-block;
+      margin-top: 1.4rem;
+      color: var(--soft-ink);
+      font-family: "Schoolbell", "Patrick Hand", cursive;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      font-style: normal;
+      transform: rotate(.9deg);
     }
 
-    .afterthought {
-      max-width: 30rem;
-      margin: 2.2rem 0 0 12rem;
-      color: var(--soft-ink);
-      font-size: 1.9rem;
-      line-height: 1.05;
-      transform: rotate(2deg);
+    .art-note::before {
+      content: "";
+      position: absolute;
+      left: 13%;
+      right: 16%;
+      bottom: 1.3rem;
+      height: .26rem;
+      background: rgba(217, 61, 43, .2);
+      border-radius: 999px;
+      transform: rotate(-1deg);
     }
 
-    .margin-note {
-      align-self: center;
-      justify-self: center;
-      max-width: 13rem;
-      color: var(--soft-ink);
-      font-size: 2rem;
+    .note-line,
+    .note-list,
+    .note-bridge {
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0;
+    }
+
+    .note-line {
+      margin: 0 0 1.9rem;
+      font-size: clamp(2.15rem, 4vw, 4.25rem);
       line-height: .98;
-      transform: rotate(8deg);
     }
 
-    .margin-note::before {
+    .note-line strong,
+    .note-list strong {
+      font-weight: 700;
+    }
+
+    .note-list {
+      list-style: none;
+      margin: -.4rem 0 1.8rem 1.6rem;
+      padding: 0;
+      color: var(--ink);
+      font-family: "Patrick Hand", "Caveat", cursive;
+      font-size: clamp(2rem, 3.7vw, 3.7rem);
+      line-height: .98;
+    }
+
+    .note-list li {
+      margin: .15rem 0;
+    }
+
+    .note-list li::before {
+      content: "- ";
+      color: var(--red);
+    }
+
+    .note-bridge {
+      margin: .15rem 0 1.1rem;
+      color: var(--soft-ink);
+      font-size: clamp(1.9rem, 3.2vw, 3.15rem);
+      line-height: 1;
+    }
+
+    .tilt-a { transform: rotate(-.5deg); }
+    .tilt-b { transform: rotate(.7deg); margin-left: 3rem; }
+    .tilt-c { transform: rotate(-1.1deg); margin-left: 7rem; }
+    .tilt-d { transform: rotate(1deg); margin-left: 1.2rem; }
+    .tilt-e { transform: rotate(-.4deg); margin-left: 4.8rem; }
+    .tilt-f { transform: rotate(.45deg); margin-left: 2.1rem; }
+
+    .quiet-note {
+      position: absolute;
+      right: -5.5rem;
+      top: 9rem;
+      max-width: 9rem;
+      color: var(--soft-ink);
+      font-family: "Schoolbell", "Patrick Hand", cursive;
+      font-size: 1.6rem;
+      line-height: .95;
+      transform: rotate(7deg);
+    }
+
+    .quiet-note::before {
       content: "* ";
       color: var(--yellow);
-      font-family: "DM Mono", monospace;
-      font-size: 1.3rem;
-    }
-
-    .quiet-page {
-      grid-template-columns: minmax(0, 43rem) minmax(13rem, 1fr);
-      gap: 5rem;
-    }
-
-    .quiet-page h2 {
-      margin: 0;
-      font-size: 5.7rem;
-      line-height: .86;
-      letter-spacing: 0;
-    }
-
-    .quiet-page p {
-      max-width: 33rem;
-      margin: 2rem 0 0;
-      color: var(--soft-ink);
-      font-size: 2.05rem;
-      line-height: 1.02;
-    }
-
-    .loose-list {
-      display: grid;
-      gap: 1.5rem;
-      color: var(--soft-ink);
-      font-size: 2.3rem;
-      line-height: .9;
-      transform: rotate(2.5deg);
-    }
-
-    .loose-list span:nth-child(2) {
-      color: var(--blue);
-      transform: translateX(2rem) rotate(-4deg);
-    }
-
-    .loose-list span:nth-child(3) {
-      color: var(--red);
-      transform: translateX(-1rem) rotate(3deg);
-    }
-
-    .loose-list span:nth-child(4) {
-      color: var(--green);
-      transform: translateX(1.2rem) rotate(-2deg);
     }
 
     .doodle {
@@ -319,6 +371,67 @@
       transform: rotate(-10deg);
     }
 
+    .doodle.arrow {
+      width: 7.4rem;
+      height: 2rem;
+      border-top: 2px solid rgba(25, 23, 20, .18);
+      border-radius: 58% 42% 50% 50%;
+      transform: rotate(-12deg);
+    }
+
+    .doodle.arrow::after {
+      content: "";
+      position: absolute;
+      right: -.2rem;
+      top: -.55rem;
+      width: .95rem;
+      height: .95rem;
+      border-top: 2px solid rgba(25, 23, 20, .18);
+      border-right: 2px solid rgba(25, 23, 20, .18);
+      transform: rotate(45deg);
+    }
+
+    .doodle.spark {
+      width: 4.4rem;
+      height: 4.4rem;
+      transform: rotate(9deg);
+    }
+
+    .doodle.spark::before,
+    .doodle.spark::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 3.8rem;
+      border-top: 2px solid rgba(217, 61, 43, .18);
+      transform: translate(-50%, -50%) rotate(22deg);
+    }
+
+    .doodle.spark::after {
+      transform: translate(-50%, -50%) rotate(102deg);
+    }
+
+    .doodle.squiggle {
+      width: 7rem;
+      height: 2.6rem;
+      border-top: 2px solid rgba(20, 85, 217, .18);
+      border-radius: 50%;
+      transform: rotate(18deg);
+    }
+
+    .doodle.squiggle::after {
+      content: "";
+      position: absolute;
+      left: 1.8rem;
+      top: .8rem;
+      width: 5.2rem;
+      height: 1.8rem;
+      border-top: 2px solid rgba(20, 85, 217, .16);
+      border-radius: 50%;
+      transform: rotate(-8deg);
+    }
+
     .footer {
       min-height: 42svh;
       padding: 5rem 8rem 4rem;
@@ -337,7 +450,6 @@
     .footer a:hover { color: var(--red); }
 
     @media (max-width: 980px) {
-      .notebook::before { left: 1rem; }
       .nav {
         left: 1.1rem;
         right: 1.1rem;
@@ -346,35 +458,22 @@
         padding: 7rem 2rem 5rem 3rem;
       }
       .opening,
-      .entry,
-      .quiet-page {
+      .minimalism-cluster {
         grid-template-columns: 1fr;
         gap: 2.5rem;
       }
       h1 { font-size: 6.7rem; }
-      .lead {
-        margin-left: 0;
-        font-size: 1.95rem;
-      }
       .tiny-stack {
         justify-self: start;
         transform: rotate(0);
       }
-      .entry-number {
-        font-size: 3.6rem;
-      }
-      blockquote { font-size: 3.7rem; }
-      blockquote strong { font-size: 4.35rem; }
-      .afterthought {
-        margin-left: 2rem;
-        font-size: 1.65rem;
-      }
-      .margin-note {
-        justify-self: start;
-        max-width: 22rem;
-        transform: rotate(-3deg);
-      }
-      .quiet-page h2 { font-size: 4.1rem; }
+      .opening-side { align-self: start; }
+      .quiet-note { display: none; }
+      .tilt-b,
+      .tilt-c,
+      .tilt-d,
+      .tilt-e,
+      .tilt-f { margin-left: 0; }
       .footer {
         min-height: 34svh;
         padding: 4rem 2rem 3rem 3rem;
@@ -393,23 +492,19 @@
         max-width: 9rem;
         gap: .55rem;
       }
-      .notebook::before { opacity: .26; }
       .sheet {
-        min-height: 92svh;
         padding: 7rem 1.3rem 4.2rem 2.2rem;
       }
+      .opening { min-height: 48svh; }
+      .found-photo { width: min(260px, 84vw); }
+      .minimalism-page { padding-top: 2rem; }
       h1 { font-size: 5.1rem; }
-      .lead { font-size: 1.7rem; }
-      blockquote { font-size: 2.95rem; }
-      blockquote strong { font-size: 3.4rem; }
-      .afterthought {
-        margin-left: 0;
-        font-size: 1.45rem;
+      .note-line { margin-bottom: 1.35rem; }
+      .note-list {
+        margin-left: .7rem;
+        margin-bottom: 1.35rem;
       }
-      .quiet-page h2 { font-size: 3.25rem; }
-      .quiet-page p,
-      .margin-note,
-      .loose-list {
+      .note-bridge {
         font-size: 1.55rem;
       }
       .doodle.big { font-size: 6rem; right: 1rem; }
@@ -435,54 +530,92 @@
 
     <section class="sheet opening" aria-labelledby="marginalia-title">
       <div>
-        <p class="kicker mono">Frases / notes / ideas / small shit</p>
+        <p class="kicker mono">Phrases / notes / ideas</p>
         <h1 id="marginalia-title">Marginalia</h1>
-        <p class="lead">A loose notebook for things that do not need a full project yet: phrases, annotations, half-ideas, questions and little scraps worth keeping.</p>
       </div>
-      <div class="tiny-stack mono" aria-label="Notebook contents">
-        <span>quotes</span>
-        <span>side thoughts</span>
-        <span>unfinished</span>
+      <div class="opening-side">
+        <div class="tiny-stack mono" aria-label="Notebook contents">
+          <span>quotes</span>
+          <span>questions</span>
+          <span>scraps</span>
+        </div>
       </div>
       <span class="doodle big" aria-hidden="true">m</span>
       <span class="doodle loop" aria-hidden="true"></span>
     </section>
 
-    <section class="sheet entry" aria-labelledby="entry-001">
-      <div class="entry-number" aria-hidden="true">001</div>
-      <article class="entry-body">
-        <p class="label mono" id="entry-001">Copied line / silence</p>
-        <blockquote><strong>Stay silent.</strong> Not everything needs to be said.</blockquote>
-        <p class="afterthought">for when words start behaving like noise.</p>
-      </article>
-      <aside class="margin-note">keep this one near the top.</aside>
-      <span class="doodle words" aria-hidden="true">less drama</span>
+    <section class="sheet notes-page" aria-label="Notebook notes">
+      <div class="note-cluster">
+        <p class="note-line tilt-a"><strong>Stay silent.</strong> Not everything needs to be said.</p>
+        <p class="note-line tilt-b"><strong>Silence</strong> is better than unnecessary drama.</p>
+        <p class="note-line tilt-c">If you find someone <strong>smarter than you</strong>, work with them, <strong>don't compete.</strong> Competition is a weakness.</p>
+        <p class="note-line tilt-d">The <strong>family you create</strong> is more important than the family you come from.</p>
+        <p class="note-line tilt-e">Your <strong>current job doesn't care</strong> about you. They only pay you enough to <strong>kill your dreams.</strong></p>
+        <p class="note-line tilt-f">Free yourself from <strong>society's advice</strong>, most of them <strong>have no idea</strong> of what they're doing.</p>
+        <p class="note-line tilt-a"><strong>Influence:</strong> most people drift through life. They have no purpose, no direction, and zero intent. <strong>Learn their needs. Lead them.</strong></p>
+
+        <p class="note-line tilt-b">It's better to have one friend who's:</p>
+        <ul class="note-list tilt-c">
+          <li><strong>happy for you</strong></li>
+          <li><strong>supports your win</strong></li>
+          <li><strong>encourages your dreams</strong></li>
+        </ul>
+        <p class="note-bridge tilt-d">than a bunch of acquaintances who are</p>
+        <ul class="note-list tilt-e">
+          <li><strong>lazy</strong></li>
+          <li><strong>self-centered</strong></li>
+          <li><strong>jealous of your success</strong></li>
+        </ul>
+
+        <p class="note-line tilt-f">You'll be <strong>10x happier</strong> if you forgive your parents and stop blaming them.</p>
+        <p class="note-line tilt-a">No one will ever come save you. Your life is <strong>100% your responsibility.</strong></p>
+        <p class="note-line tilt-b">Your inner circle should be more focused on <strong>money, success,</strong> and <strong>starting a family.</strong></p>
+        <p class="note-line tilt-c">You don't need <strong>100 self-help books.</strong> All you need is actions and self-discipline.</p>
+
+        <aside class="quiet-note">same page, same mood.</aside>
+        <span class="doodle arrow" style="left: -8%; top: 8%;" aria-hidden="true"></span>
+        <span class="doodle words" style="right: -7%; top: 38%;" aria-hidden="true">less drama</span>
+        <span class="doodle spark" style="right: 6%; bottom: 8%;" aria-hidden="true"></span>
+        <span class="doodle squiggle" style="left: 10%; bottom: 22%;" aria-hidden="true"></span>
+      </div>
     </section>
 
-    <section class="sheet entry" aria-labelledby="entry-002">
-      <div class="entry-number" aria-hidden="true">002</div>
-      <article class="entry-body">
-        <p class="label mono" id="entry-002">Copied line / drama</p>
-        <blockquote><strong>Silence</strong> is better than unnecessary drama.</blockquote>
-        <p class="afterthought">simple enough to be useful.</p>
-      </article>
-      <aside class="margin-note">not every thought has to become a performance.</aside>
-      <span class="doodle loop" aria-hidden="true"></span>
+    <section class="sheet art-page" aria-label="Art note">
+      <div class="art-note">
+        <blockquote>Works of art make rules; rules do not make works of art.</blockquote>
+        <cite>Claude Debussy</cite>
+        <span class="doodle spark" style="left: 9%; top: 5%;" aria-hidden="true"></span>
+        <span class="doodle arrow" style="right: 4%; bottom: 7%;" aria-hidden="true"></span>
+      </div>
     </section>
 
-    <section class="sheet quiet-page" aria-labelledby="what-goes-here">
-      <div>
-        <p class="kicker mono">What lives here</p>
-        <h2 id="what-goes-here">Stuff from the edge of the page.</h2>
-        <p>No blog rhythm. No perfect archive. Just the scraps that keep asking to be saved.</p>
+    <section class="sheet minimalism-page" aria-label="Notes on minimalism">
+      <div class="minimalism-cluster">
+        <figure class="found-photo">
+          <img src="minimalism-room.png" alt="A sparse room with a mattress, a television, a camera and open floor space.">
+          <figcaption>minimalism / room / enough</figcaption>
+        </figure>
+
+        <div class="minimalism-notes">
+          <p class="kicker mono">Notes on minimalism</p>
+          <p class="note-line tilt-a"><strong>Minimalism is not empty.</strong> It is edited.</p>
+          <p class="note-line tilt-b">Keep the room quiet enough to hear what you actually want.</p>
+          <p class="note-line tilt-c">If you use it every day, it earns the space.</p>
+          <p class="note-line tilt-d">The floor is a tool. Leave some of it visible.</p>
+          <p class="note-line tilt-e">Buy slowly. Remove quickly.</p>
+          <p class="note-line tilt-f">A mattress, a camera, a screen: <strong>enough can still make things.</strong></p>
+          <p class="note-line tilt-a">Do not decorate anxiety.</p>
+          <p class="note-line tilt-b">Every object should either work, rest, or mean something.</p>
+          <p class="note-line tilt-c"><strong>Less is not a performance.</strong> It is maintenance.</p>
+          <p class="note-line tilt-d">The more you own, the more future you owe.</p>
+          <p class="note-line tilt-e">Keep the setup light enough to move.</p>
+          <p class="note-line tilt-f">Empty space is not missing content.</p>
+
+          <aside class="quiet-note">space is doing work too.</aside>
+          <span class="doodle words" style="right: 0; top: 18%;" aria-hidden="true">less, better</span>
+          <span class="doodle squiggle" style="left: 18%; bottom: 4%;" aria-hidden="true"></span>
+        </div>
       </div>
-      <div class="loose-list" aria-label="Types of marginalia">
-        <span>frases</span>
-        <span>questions</span>
-        <span>notes to self</span>
-        <span>bad ideas with potential</span>
-      </div>
-      <span class="doodle big" aria-hidden="true">?</span>
     </section>
 
     <footer class="footer mono">

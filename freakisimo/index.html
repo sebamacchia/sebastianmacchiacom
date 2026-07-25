@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Freakisimo - Sebastian Macchia</title>
+  <meta name="description" content="Freakisimo is a strange little fashion house by Sebastian Macchia.">
+  <meta name="theme-color" content="#d58d98">
+  <meta property="og:title" content="Freakisimo">
+  <meta property="og:description" content="A strange little fashion house.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sebastianmacchia.com/freakisimo/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Caveat:wght@500;700&family=DM+Mono:wght@400;500&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #d58d98;
+      --pink-light: #ebb2bb;
+      --cream: #fff8ec;
+      --ink: #21161a;
+      --wine: #6f172a;
+      --gold: #d7a82e;
+      --blue: #2842bd;
+      --green: #315c42;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--pink);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255, 248, 236, .28), transparent 18rem),
+        radial-gradient(circle at 78% 68%, rgba(111, 23, 42, .16), transparent 20rem),
+        linear-gradient(135deg, rgba(235, 178, 187, .72), rgba(213, 141, 152, .96)),
+        var(--pink);
+      font-family: "Amarante", Georgia, serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    ::selection { color: var(--cream); background: var(--wine); }
+
+    .mono {
+      font-family: "DM Mono", monospace;
+      font-size: .72rem;
+      line-height: 1.45;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .page {
+      position: relative;
+      min-height: 100svh;
+      padding: 1.4rem 2rem 3rem;
+      isolation: isolate;
+    }
+
+    .page::before {
+      content: "";
+      position: fixed;
+      inset: 1rem;
+      z-index: -2;
+      border: 1px solid rgba(255, 248, 236, .4);
+      pointer-events: none;
+    }
+
+    .page::after {
+      content: "freakisimo";
+      position: fixed;
+      right: -5rem;
+      bottom: 1rem;
+      z-index: -1;
+      color: rgba(255, 248, 236, .14);
+      font-family: "UnifrakturMaguntia", "Amarante", serif;
+      font-size: clamp(5rem, 17vw, 15rem);
+      line-height: 1;
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+
+    .nav {
+      position: relative;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.2rem;
+      color: rgba(33, 22, 26, .7);
+    }
+
+    .nav a {
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+
+    .nav a:hover { color: var(--cream); }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    .hero {
+      min-height: calc(100svh - 3.5rem);
+      display: grid;
+      grid-template-columns: minmax(0, .88fr) minmax(320px, 620px) minmax(0, .9fr);
+      align-items: center;
+      gap: clamp(1.2rem, 4vw, 4rem);
+      padding: 4rem 0 2rem;
+    }
+
+    .brand-block {
+      align-self: end;
+      padding-bottom: 10vh;
+    }
+
+    .kicker {
+      margin: 0 0 1.4rem;
+      color: var(--wine);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "UnifrakturMaguntia", "Amarante", serif;
+      font-size: clamp(4.6rem, 11vw, 11rem);
+      font-weight: 400;
+      line-height: .72;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      width: min(27rem, 100%);
+      margin: 2rem 0 0;
+      color: rgba(33, 22, 26, .72);
+      font-family: "Caveat", cursive;
+      font-size: clamp(1.9rem, 3.2vw, 3.2rem);
+      line-height: .95;
+      transform: rotate(-2deg);
+    }
+
+    .object-wrap {
+      position: relative;
+      justify-self: center;
+      width: min(620px, 100%);
+    }
+
+    .plate-card {
+      position: relative;
+      margin: 0;
+      padding: clamp(.7rem, 1.2vw, 1rem);
+      background: rgba(255, 248, 236, .18);
+      border: 1px solid rgba(255, 248, 236, .32);
+      box-shadow: 0 2.4rem 5rem rgba(73, 20, 32, .22);
+      transform: rotate(-1.2deg);
+    }
+
+    .plate-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / .995;
+      object-fit: cover;
+      filter: saturate(.92) contrast(1.03);
+    }
+
+    .plate-card figcaption {
+      margin-top: .65rem;
+      color: rgba(33, 22, 26, .72);
+      font-family: "Caveat", cursive;
+      font-size: 1.45rem;
+      line-height: 1;
+      transform: rotate(1deg);
+    }
+
+    .note {
+      position: absolute;
+      z-index: 3;
+      max-width: 13rem;
+      color: var(--ink);
+      font-family: "Caveat", cursive;
+      font-size: clamp(1.3rem, 2.2vw, 2.25rem);
+      line-height: .9;
+    }
+
+    .note small {
+      display: block;
+      margin-top: .3rem;
+      color: rgba(33, 22, 26, .58);
+      font-family: "DM Mono", monospace;
+      font-size: .62rem;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    .n1 {
+      left: -5rem;
+      top: 11%;
+      color: var(--wine);
+      transform: rotate(-9deg);
+    }
+
+    .n2 {
+      right: -4.5rem;
+      top: 22%;
+      color: var(--blue);
+      transform: rotate(7deg);
+    }
+
+    .n3 {
+      left: -4rem;
+      bottom: 11%;
+      color: var(--green);
+      transform: rotate(5deg);
+    }
+
+    .side-notes {
+      align-self: center;
+      display: grid;
+      gap: 1.4rem;
+      color: rgba(33, 22, 26, .72);
+      font-family: "Caveat", cursive;
+      font-size: clamp(1.7rem, 2.4vw, 2.8rem);
+      line-height: .88;
+    }
+
+    .side-notes p {
+      margin: 0;
+      width: fit-content;
+    }
+
+    .side-notes p:nth-child(1) {
+      color: var(--wine);
+      transform: rotate(2deg);
+    }
+
+    .side-notes p:nth-child(2) {
+      margin-left: 2.6rem;
+      transform: rotate(-4deg);
+    }
+
+    .side-notes p:nth-child(3) {
+      color: var(--blue);
+      transform: rotate(3deg);
+    }
+
+    .idea-wall {
+      position: relative;
+      width: min(1180px, 100%);
+      margin: 1rem auto 0;
+      padding: clamp(2.5rem, 6vw, 5.5rem) 0 2.5rem;
+      display: grid;
+      grid-template-columns: minmax(10rem, .72fr) minmax(320px, 690px) minmax(10rem, .58fr);
+      align-items: center;
+      gap: clamp(1.4rem, 4vw, 3.5rem);
+    }
+
+    .idea-wall::before {
+      content: "";
+      position: absolute;
+      left: 7%;
+      right: 10%;
+      top: 1rem;
+      border-top: 2px solid rgba(33, 22, 26, .18);
+      transform: rotate(-.8deg);
+    }
+
+    .idea-intro {
+      align-self: start;
+      padding-top: 1.3rem;
+    }
+
+    .idea-intro h2 {
+      margin: .5rem 0 0;
+      font-family: "Caveat", cursive;
+      font-size: clamp(3rem, 6vw, 6.5rem);
+      line-height: .78;
+      font-weight: 700;
+      transform: rotate(-3deg);
+    }
+
+    .idea-intro p:last-child {
+      width: min(16rem, 100%);
+      margin: 1.4rem 0 0;
+      color: rgba(33, 22, 26, .66);
+      font-family: "DM Mono", monospace;
+      font-size: .68rem;
+      line-height: 1.55;
+      text-transform: uppercase;
+    }
+
+    .fabric-card {
+      position: relative;
+      margin: 0;
+      padding: .55rem;
+      background: rgba(255, 248, 236, .14);
+      border: 1px solid rgba(33, 22, 26, .2);
+      box-shadow: 0 2rem 4.5rem rgba(73, 20, 32, .18);
+      transform: rotate(.7deg);
+    }
+
+    .fabric-card::before,
+    .fabric-card::after {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      top: -.9rem;
+      width: 6.8rem;
+      height: 1.8rem;
+      background: rgba(255, 248, 236, .58);
+      border: 1px solid rgba(33, 22, 26, .08);
+      box-shadow: 0 .3rem .8rem rgba(73, 20, 32, .08);
+    }
+
+    .fabric-card::before {
+      left: 12%;
+      transform: rotate(-8deg);
+    }
+
+    .fabric-card::after {
+      right: 10%;
+      transform: rotate(6deg);
+    }
+
+    .fabric-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1318 / 1112;
+      object-fit: cover;
+      filter: grayscale(.08) contrast(1.05);
+    }
+
+    .fabric-card figcaption {
+      margin-top: .65rem;
+      color: rgba(33, 22, 26, .74);
+      font-family: "Caveat", cursive;
+      font-size: clamp(1.45rem, 2.2vw, 2.25rem);
+      line-height: .9;
+      transform: rotate(-1.5deg);
+    }
+
+    .idea-notes {
+      display: grid;
+      gap: 1.25rem;
+      font-family: "Caveat", cursive;
+      font-size: clamp(1.75rem, 2.5vw, 3rem);
+      line-height: .86;
+    }
+
+    .idea-notes p {
+      position: relative;
+      margin: 0;
+    }
+
+    .idea-notes p::before {
+      content: "";
+      position: absolute;
+      left: -.9rem;
+      top: .55rem;
+      width: .45rem;
+      border-top: 2px solid currentColor;
+      transform: rotate(-16deg);
+      opacity: .6;
+    }
+
+    .idea-notes p:nth-child(1) {
+      color: var(--wine);
+      transform: rotate(3deg);
+    }
+
+    .idea-notes p:nth-child(2) {
+      color: var(--green);
+      transform: rotate(-4deg);
+    }
+
+    .idea-notes p:nth-child(3) {
+      color: var(--blue);
+      transform: rotate(2deg);
+    }
+
+    .capsule {
+      margin-top: 3rem;
+      padding: 5rem 0 2rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid rgba(33, 22, 26, .24);
+      gap: 1px;
+    }
+
+    .capsule-item {
+      min-height: 14rem;
+      padding: 1.2rem;
+      border-right: 1px solid rgba(33, 22, 26, .24);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: rgba(255, 248, 236, .12);
+    }
+
+    .capsule-item:last-child { border-right: 0; }
+
+    .capsule-item h2 {
+      margin: 0;
+      font-family: "Caveat", cursive;
+      font-size: clamp(2.1rem, 3vw, 3.7rem);
+      line-height: .82;
+      font-weight: 700;
+    }
+
+    .capsule-item p {
+      margin: 2rem 0 0;
+      color: rgba(33, 22, 26, .68);
+      font-family: "DM Mono", monospace;
+      font-size: .68rem;
+      line-height: 1.55;
+      text-transform: uppercase;
+    }
+
+    .doodle {
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+      opacity: .6;
+    }
+
+    .doodle.loop {
+      width: 10rem;
+      height: 6rem;
+      border: 2px solid rgba(255, 248, 236, .42);
+      border-radius: 47% 53% 45% 55%;
+      transform: rotate(18deg);
+    }
+
+    .doodle.star {
+      width: 5rem;
+      height: 5rem;
+    }
+
+    .doodle.star::before,
+    .doodle.star::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4.5rem;
+      border-top: 2px solid rgba(111, 23, 42, .28);
+      transform: translate(-50%, -50%) rotate(18deg);
+    }
+
+    .doodle.star::after {
+      transform: translate(-50%, -50%) rotate(100deg);
+    }
+
+    @media (max-width: 980px) {
+      .page { padding: 1.1rem 1.2rem 2rem; }
+      .hero {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        padding-top: 4rem;
+      }
+      .brand-block {
+        padding-bottom: 0;
+      }
+      .object-wrap {
+        width: min(560px, 100%);
+      }
+      .note {
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        margin-top: 1rem;
+      }
+      .side-notes {
+        grid-template-columns: 1fr 1fr;
+      }
+      .idea-wall {
+        grid-template-columns: 1fr;
+        padding-top: 3.5rem;
+      }
+      .idea-intro {
+        padding-top: 0;
+      }
+      .idea-intro p:last-child {
+        width: min(26rem, 100%);
+      }
+      .idea-notes {
+        grid-template-columns: 1fr 1fr 1fr;
+        align-items: start;
+      }
+      .capsule {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .nav {
+        align-items: flex-start;
+      }
+      .nav-links {
+        max-width: 9rem;
+      }
+      h1 { font-size: 4.7rem; }
+      .side-notes,
+      .idea-notes,
+      .capsule {
+        grid-template-columns: 1fr;
+      }
+      .fabric-card::before,
+      .fabric-card::after {
+        width: 4.6rem;
+      }
+      .capsule-item {
+        min-height: 10rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(33, 22, 26, .24);
+      }
+      .capsule-item:last-child { border-bottom: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav mono" aria-label="Freakisimo navigation">
+      <a href="../">Sebastian Macchia</a>
+      <div class="nav-links">
+        <a href="../marginalia/">Marginalia</a>
+        <a href="mailto:sebastianmacchia@gmail.com">Contact</a>
+      </div>
+    </nav>
+
+    <section class="hero" aria-labelledby="freakisimo-title">
+      <div class="brand-block">
+        <p class="kicker mono">strange little fashion house / miami-ish</p>
+        <h1 id="freakisimo-title">Freakisimo</h1>
+        <p class="subtitle">clothes and objects for people who overdress emotionally.</p>
+      </div>
+
+      <div class="object-wrap">
+        <figure class="plate-card">
+          <img src="freakisimo-plate.png" alt="Decorative plate on a pink background with a printed rude household motto.">
+          <figcaption>house plate / mood sample / not polite</figcaption>
+        </figure>
+        <p class="note n1">too fancy to behave<small>ceramic energy</small></p>
+        <p class="note n2">pink background stays<small>brand field</small></p>
+        <p class="note n3">rude little heirloom<small>drop idea</small></p>
+        <span class="doodle loop" style="left: -7%; top: -5%;" aria-hidden="true"></span>
+        <span class="doodle star" style="right: -5%; bottom: -7%;" aria-hidden="true"></span>
+      </div>
+
+      <div class="side-notes" aria-label="Freakisimo notes">
+        <p>vintage manners, bad attitude.</p>
+        <p>gold trim, cheap trouble.</p>
+        <p>fashion for leaving the room first.</p>
+      </div>
+    </section>
+
+    <section class="idea-wall" aria-label="Freakisimo ideas">
+      <div class="idea-intro">
+        <p class="mono">ideas / fabric</p>
+        <h2>Not a collection yet.</h2>
+        <p>just things that smell like Freakisimo.</p>
+      </div>
+
+      <figure class="fabric-card">
+        <img src="freakisimo-fabric-ideas.png" alt="Fabric reference collage with black embroidered figures, cats, and strange domestic scenes.">
+        <figcaption>stitched weirdness / little black drawings / maybe clothes</figcaption>
+      </figure>
+
+      <div class="idea-notes" aria-label="Fabric idea notes">
+        <p>make it feel sewn, not printed.</p>
+        <p>cute, occult, domestic.</p>
+        <p>tiny scenes with bad manners.</p>
+      </div>
+    </section>
+
+    <section class="capsule" aria-label="Freakisimo capsule notes">
+      <article class="capsule-item">
+        <span class="mono">clothes /</span>
+        <h2>Domestic drama uniform</h2>
+        <p>aprons, slips, jackets, little ceremonial things.</p>
+      </article>
+      <article class="capsule-item">
+        <span class="mono">objects /</span>
+        <h2>Decorative threats</h2>
+        <p>plates, tags, packaging, home goods with nerve.</p>
+      </article>
+      <article class="capsule-item">
+        <span class="mono">tone /</span>
+        <h2>Pretty but hostile</h2>
+        <p>sweet colors, weird copy, ornamental disrespect.</p>
+      </article>
+      <article class="capsule-item">
+        <span class="mono">note /</span>
+        <h2>Never too clean</h2>
+        <p>annotated, handled, a little cursed, still elegant.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
