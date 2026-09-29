@@ -343,29 +343,6 @@
     @media (prefers-reduced-motion: reduce) { .doc.active .movie-link { transition: none; } }
 
 
-    /* ABOUT portrait — floats in 3D, tilts toward the pointer, and now and then slips in the projector gate */
-    .portrait { display: none; }
-    #about.has-portrait { grid-template-columns: 1fr; padding-right: 41cqw; }
-    #about.has-portrait .bio-text { columns: 1; }
-    #about.has-portrait .portrait { display: block; position: absolute; right: 2cqw; top: 6cqh; bottom: 0; width: 40cqw; perspective: 900px; pointer-events: none; }
-    .portrait .tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); transition: transform .9s cubic-bezier(.2,.7,.2,1); }
-    .portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-    #about.has-portrait .portrait { -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 82%, transparent), linear-gradient(180deg, transparent 4%, #000 26%, #000 74%, transparent); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 22%, #000 82%, transparent), linear-gradient(180deg, transparent 4%, #000 26%, #000 74%, transparent); mask-composite: intersect; }
-    .portrait .ph { transform: translateZ(40px); filter: contrast(1.05) brightness(.95); opacity: 0; }
-    #about.active .portrait .ph { animation: fade 1.6s ease 1.2s forwards; }
-    .portrait .ghost { transform: translateZ(0); opacity: 0; mix-blend-mode: screen; filter: blur(1px) brightness(1.4); }
-    /* the slip: the frame jumps up in the gate, doubles, flickers, and settles */
-    .portrait.slip .ph { animation: slip .34s steps(1) both !important; opacity: 1; }
-    .portrait.slip .ghost { animation: ghost .34s steps(1) both; }
-    @keyframes slip { 0% { transform: translateZ(40px) translateY(-9%); filter: brightness(1.5) contrast(1.2); } 25% { transform: translateZ(40px) translateY(4%); filter: brightness(.7); }
-      50% { transform: translateZ(40px) translate(1.5%, -2%); filter: brightness(1.25); } 75% { transform: translateZ(40px) translateY(1%); filter: brightness(.9); } 100% { transform: translateZ(40px); filter: contrast(1.05) brightness(.95); } }
-    @keyframes ghost { 0% { opacity: .55; transform: translateY(12%); } 50% { opacity: .35; transform: translate(-2%, -5%); } 100% { opacity: 0; transform: none; } }
-    @container (max-aspect-ratio: 1/1) {
-      #about.has-portrait { padding-right: 6cqw; }
-      #about.has-portrait .portrait { top: 3cqh; bottom: auto; right: 0; width: 40cqw; height: 17cqh; }
-      #about.has-portrait .bio-title { width: 55%; }
-    }
-    @media (prefers-reduced-motion: reduce) { #about.active .portrait .ph { animation: none; opacity: 1; } .portrait .tilt { transform: none !important; } }
 
     /* Last frame: talk */
     .talk-frame { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #050505; }
@@ -469,7 +446,6 @@
         </section>
 
         <section class="frame bio-frame" id="about" data-short="about" data-title="about">
-          <div class="portrait" aria-hidden="true"><div class="tilt"><img class="ph" src="assets/sebastian.jpeg" alt=""><img class="ghost" src="assets/sebastian.jpeg" alt=""></div></div>
           <div class="bio-title" aria-hidden="true"><span>about</span></div>
           <div class="bio-text">
             <p class="typed lead">first and foremost, sebastian is curious.</p>
@@ -769,28 +745,6 @@
       const advance = dir => { if (!stepShot(dir)) go(at + dir); };
 
 
-
-      // ABOUT portrait: shows only if assets/sebastian.jpeg exists; tilts toward the pointer; slips in the gate now and then
-      {
-        const about = document.getElementById('about'), pt = about.querySelector('.portrait'), ph = pt.querySelector('.ph'), tilt = pt.querySelector('.tilt');
-        const on = () => about.classList.add('has-portrait');
-        if (ph.complete && ph.naturalWidth) on(); else ph.addEventListener('load', on, { once: true });
-        addEventListener('pointermove', e => {
-          if (!about.classList.contains('active')) return;
-          const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
-          tilt.style.setProperty('--ry', `${x * 16}deg`); tilt.style.setProperty('--rx', `${-y * 10}deg`);
-        });
-        let drift = 0;                                     // touch screens: a slow drift instead of the pointer
-        if (matchMedia('(hover: none)').matches && !still) setInterval(() => { drift += .06; tilt.style.setProperty('--ry', `${Math.sin(drift) * 7}deg`); tilt.style.setProperty('--rx', `${Math.cos(drift * .7) * 4}deg`); }, 900);
-        const slip = () => {
-          if (about.classList.contains('active') && about.classList.contains('has-portrait') && !still) {
-            pt.classList.remove('slip'); void pt.offsetWidth; pt.classList.add('slip');
-            setTimeout(() => pt.classList.remove('slip'), 360);
-          }
-          setTimeout(slip, 3500 + Math.random() * 4500);
-        };
-        setTimeout(slip, 4200);
-      }
 
       // Documentary chapter: cold open ("who?" typed on black), then the photo, the hand-drawn note, the subtitle.
       // `cut` = a crossfade to the next shot inside the chapter (no cold open).
