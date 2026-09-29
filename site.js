@@ -159,11 +159,15 @@ window.typeOn = (el, delay = 0, rate = .065) => {
   return delay + text.length * rate;
 };
 
-// Film burn at the cut: a few frames of light flaring through the gate (assets/film-burn.*), screened over the screen
+// Film burn at some cuts: a few frames of light flaring through the gate (assets/film-burn.*), screened over the screen
 window.filmBurn = (() => {
-  let v = null;
-  return (host, delay = 0) => {
+  let v = null, last = false;
+  // only now and then: about one cut in three, and never two cuts in a row
+  return (host, delay = 0, chance = .33) => {
     if (reduceMotion || !host) return;
+    const fire = !last && Math.random() < chance;
+    last = fire;
+    if (!fire) return;
     if (!v) {
       v = document.createElement('video');
       v.className = 'burn'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.setAttribute('aria-hidden', 'true');
