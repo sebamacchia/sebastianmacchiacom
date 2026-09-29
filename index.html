@@ -104,8 +104,8 @@
     /* Sebastian's own photos and footage keep their original colour */
     .frame .media img.color, .frame .media video.color { filter: brightness(.92); }
     /* Several shots inside one scene: they crossfade, no dip to black */
-    .frame .media img.shot { position: absolute; inset: 0; opacity: 0; transition: opacity 1.8s ease, transform 14s cubic-bezier(.2,.4,.3,1) .85s; }
-    .frame .media img.shot.on { opacity: 1; }
+    .frame .media .shot { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 1.8s ease, visibility 0s linear 1.8s, transform 14s cubic-bezier(.2,.4,.3,1) .85s; }
+    .frame .media .shot.on { opacity: 1; visibility: visible; transition: opacity 1.8s ease, visibility 0s, transform 14s cubic-bezier(.2,.4,.3,1) .85s; }
     .shots { display: flex; gap: 6px; margin-top: 14px; }
     .shots i { width: 18px; height: 2px; background: rgba(236,235,232,.3); transition: background .4s; }
     .shots i.on { background: #ecebe8; }
@@ -319,6 +319,50 @@
     }
     @media (prefers-reduced-motion: reduce) { .bio-title span, .bio-text .pills { opacity: 1; transform: none; animation: none !important; } }
 
+
+    /* BIO roadmap — the road so far, drawn like a travel map, ending at the full movie */
+    .roadmap { margin: 0; background-color: #0a0a0a; background-image: radial-gradient(rgba(236,235,232,.07) 1px, transparent 1.2px); background-size: 22px 22px; }
+    .roadmap .route { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    .roadmap .route .road { fill: none; stroke: #ecebe8; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 9; }
+    .roadmap .route .cover { fill: none; stroke: #0a0a0a; stroke-width: 8; stroke-linecap: butt; stroke-dasharray: var(--len) var(--len); stroke-dashoffset: 0; }
+    @keyframes uncover { to { stroke-dashoffset: calc(-1 * var(--len)); } }
+    @keyframes drawLen { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+    .roadmap.on .route .cover { animation: uncover 4.2s linear calc(var(--rd, 0s) + 1.3s) forwards; }
+    .roadmap .route .arrow { fill: none; stroke: #f4f2ec; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .roadmap .route .shaft { stroke-dasharray: var(--len) var(--len); stroke-dashoffset: var(--len); }
+    .roadmap .route .arrowhead { opacity: 0; }
+    .roadmap.on .route .shaft { animation: drawLen .7s cubic-bezier(.5,0,.3,1) calc(var(--rd, 0s) + 5.6s) forwards; }
+    .roadmap.on .route .arrowhead { animation: pop .15s ease-out calc(var(--rd, 0s) + 6.25s) forwards; }
+    .doc .shade { transition: opacity 1.2s ease; } .doc:has(.roadmap.on) .shade { opacity: 0; }   /* the map needs no photo shade */
+    .roadmap .stops { margin: 0; padding: 0; list-style: none; }
+    .roadmap .stop { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; opacity: 0; transform: scale(.6); }
+    .roadmap.on .stop { animation: stopIn .5s cubic-bezier(.2,1.4,.4,1) var(--d) forwards; }
+    @keyframes stopIn { to { opacity: 1; transform: none; } }
+    .roadmap .pin { position: absolute; left: 0; top: 0; width: var(--pin); height: var(--pin); margin: calc(var(--pin) / -2) 0 0 calc(var(--pin) / -2); display: grid; place-items: center; color: #ecebe8; }
+    .roadmap .pin.stamp, .roadmap .pin.icon { border-radius: 50%; background: #0a0a0a; border: 1.5px solid #ecebe8; box-shadow: 0 0 0 4px #0a0a0a, 0 0 0 5px rgba(236,235,232,.35); }
+    .roadmap .pin.stamp { font-family: "Oswald", sans-serif; font-weight: 500; font-size: calc(var(--pin) * .3); letter-spacing: .06em; text-transform: uppercase; }
+    .roadmap .pin.icon svg { width: 62%; height: 62%; }
+    .roadmap .pin.photo { width: calc(var(--pin) * 1.25); height: calc(var(--pin) * 1.4); margin: calc(var(--pin) * -.7) 0 0 calc(var(--pin) * -.625); padding: 5px 5px 16px; background: #f1ede4; transform: rotate(var(--r)); box-shadow: 0 8px 22px rgba(0,0,0,.6); }
+    .roadmap .pin.photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transform: none !important; transition: none !important; filter: brightness(.95) !important; }
+    .roadmap .lbl { position: absolute; left: 0; width: 17ch; text-align: center; transform: translateX(-50%); line-height: 1.15; }
+    .roadmap .lbl.above { bottom: calc(var(--pin) * .5 + 12px); } .roadmap .lbl.below { top: calc(var(--pin) * .5 + 12px); }
+    .roadmap .stop:has(.photo) .lbl.above { bottom: calc(var(--pin) * .7 + 12px); } .roadmap .stop:has(.photo) .lbl.below { top: calc(var(--pin) * .7 + 12px); }
+    .roadmap .lbl.side { left: calc(var(--pin) * .5 + 12px); top: 0; width: max-content; max-width: 60cqw; text-align: left; transform: translateY(-50%); }
+    .roadmap .lbl.side b { font-size: 17px; } .roadmap .lbl.side span { font-size: 9.5px; margin-top: .1em; }
+    .roadmap .stop:has(.photo) .lbl.side { left: calc(var(--pin) * .625 + 14px); }
+    .roadmap .lbl b { display: block; font-family: "Caveat", cursive; font-weight: 600; font-size: clamp(16px, 2.05cqw, 32px); color: #f4f2ec; text-transform: none; }
+    .roadmap .lbl span { display: block; margin-top: .25em; font-family: "Courier Prime", monospace; font-size: clamp(9px, .92cqw, 13px); color: #a9a7a3; }
+    .roadmap .cta { position: absolute; left: var(--cx); top: var(--cy); width: 13ch; font-family: "Caveat", cursive; font-weight: 600; font-size: clamp(20px, 2.7cqw, 42px); line-height: 1.05; color: #fff; text-transform: none;
+      transform: translate(-50%, -50%) rotate(-4deg); opacity: 0; clip-path: inset(-20% 100% -20% 0); text-shadow: 0 0 18px rgba(236,235,232,.35); }
+    .roadmap.on .cta { animation: fade .01s linear calc(var(--rd, 0s) + 6.3s) forwards, write 1.1s steps(20) calc(var(--rd, 0s) + 6.3s) forwards; }
+    .roadmap .cta:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+    @media (prefers-reduced-motion: reduce) {
+      .roadmap .stop, .roadmap .cta { opacity: 1; transform: none; clip-path: none; animation: none !important; }
+      .roadmap .cta { transform: translate(-50%, -50%) rotate(-4deg); }
+      .roadmap .route .cover { display: none; } .roadmap .route .shaft { stroke-dashoffset: 0; animation: none !important; }
+      .roadmap .route .arrowhead { opacity: 1; }
+    }
+
     /* Last frame: talk */
     .talk-frame { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #050505; }
     .talk-frame h2 { margin: 0; font-family: "Oswald", sans-serif; font-weight: 300; text-transform: uppercase; font-size: clamp(40px, 11cqw, 200px); line-height: .9; color: #ecebe8; }
@@ -453,17 +497,31 @@
         </section>
 
         <section class="frame doc" id="bio" data-short="bio" data-title="bio">
-          <a class="media" href="bio/" tabindex="-1">
+          <div class="media">
             <img class="color shot on" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy" loading="lazy" style="object-position: 50% 30%"
               data-point="0.525,0.175" data-note="this is sebastian."
               data-sub="sebastian as a kid, a toy in his hands, looking closely at how it was made.">
             <img class="color shot" src="images/who-park.jpg" alt="Three children sitting on the grass in a park" loading="lazy" style="object-position: 50% 62%"
               data-sub="sweaters, dry grass, and the whole afternoon ahead.">
-          </a>
+            <div class="shot roadmap" aria-label="the road so far: a map of sebastian's life">
+              <svg class="route" aria-hidden="true"></svg>
+              <ol class="stops">
+                <li class="stop" data-kind="stamp" data-mark="MDZ"><b>1975</b><span>born at the hospital español, mendoza, argentina</span></li>
+                <li class="stop" data-kind="photo"><img class="color" src="images/who-childhood.jpg" alt="Sebastian as a child with a toy" loading="lazy"><b>mendoza</b><span>growing up</span></li>
+                <li class="stop" data-kind="icon" data-icon="flute"><b>flute</b><span>first lessons in music</span></li>
+                <li class="stop" data-kind="icon" data-icon="masks"><b>theater</b><span>on stage</span></li>
+                <li class="stop" data-kind="photo"><img class="color" src="images/who-park.jpg" alt="Three children in a park" loading="lazy"><b>the park</b><span>childhood</span></li>
+                <li class="stop" data-kind="icon" data-icon="scope"><b>engineering</b><span>electronics &amp; telecommunications</span></li>
+                <li class="stop" data-kind="icon" data-icon="reel"><b>film</b><span>learning to tell stories</span></li>
+                <li class="stop" data-kind="stamp" data-mark="BCN"><b>barcelona</b><span>master’s in image &amp; sound engineering</span></li>
+                <li class="stop" data-kind="stamp" data-mark="MIA"><b>miami</b><span>now: ai × film × sound</span></li>
+              </ol>
+              <a class="cta" href="bio/">click here to watch the full movie</a>
+            </div>
+          </div>
           <div class="shade soft"></div>
           <p class="slate"><span class="typed" data-text="the movie of his life · reel 1"></span></p>
           <p class="sub" aria-live="polite"></p>
-          <a class="doc-link" href="bio/">watch the movie of his life&nbsp;→</a>
           <div class="cold-open" aria-hidden="true"><span class="typed big" data-text="who the f%^&amp;k is seba?"></span></div>
         </section>
 
@@ -700,7 +758,7 @@
 
       // Advance the film to frame i
       // Scenes with several shots (e.g. who?): scrolling crossfades to the next shot; the chapter stays the same
-      const shotsOf = f => [...f.querySelectorAll('.media img.shot')];
+      const shotsOf = f => [...f.querySelectorAll('.media .shot')];
       const markShots = f => {
         const sh = shotsOf(f), bar = f.querySelector('.shots');
         if (bar) [...bar.children].forEach((d, k) => d.classList.toggle('on', sh[k] && sh[k].classList.contains('on')));
@@ -725,11 +783,76 @@
       }
       const advance = dir => { if (!stepShot(dir)) go(at + dir); };
 
+
+      // ── BIO roadmap: stops along a hand-drawn route, from Mendoza 1975 to the full movie ──
+      const ICONS = {
+        flute: '<svg viewBox="0 0 48 48"><g transform="rotate(-32 24 24)"><rect x="3" y="21" width="42" height="6" rx="3" fill="currentColor"/><g fill="#0a0a0a"><circle cx="9" cy="24" r="1.6"/><circle cx="20" cy="24" r="1.3"/><circle cx="25" cy="24" r="1.3"/><circle cx="30" cy="24" r="1.3"/><circle cx="35" cy="24" r="1.3"/></g></g></svg>',
+        masks: '<svg viewBox="0 0 48 48"><path d="M5 9c6-3 13-3 19 0 0 10-4 17-9.5 19C9 26 5 19 5 9z" fill="currentColor"/><ellipse cx="11" cy="14" rx="2.4" ry="1.6" fill="#0a0a0a"/><ellipse cx="18" cy="14" rx="2.4" ry="1.6" fill="#0a0a0a"/><path d="M10 19c2 3 7 3 9 0" stroke="#0a0a0a" stroke-width="2" fill="none"/><path d="M24 19c6-3 13-3 19 0 0 10-4 17-9.5 19C28 36 24 29 24 19z" fill="currentColor" opacity=".72"/><ellipse cx="30" cy="24" rx="2.4" ry="1.6" fill="#0a0a0a"/><ellipse cx="37" cy="24" rx="2.4" ry="1.6" fill="#0a0a0a"/><path d="M29.5 32c2-3 7-3 9 0" stroke="#0a0a0a" stroke-width="2" fill="none"/></svg>',
+        scope: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="38" height="30" rx="3"/><path d="M10 24q3.5-10 7 0t7 0t7 0t7 0"/></svg>',
+        reel: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="currentColor"/><g fill="#0a0a0a"><circle cx="24" cy="24" r="3.2"/><circle cx="24" cy="13" r="4.6"/><circle cx="34.5" cy="20.6" r="4.6"/><circle cx="30.5" cy="32.9" r="4.6"/><circle cx="17.5" cy="32.9" r="4.6"/><circle cx="13.5" cy="20.6" r="4.6"/></g></svg>',
+      };
+      document.querySelectorAll('.roadmap .stop').forEach((li, i) => {
+        const kind = li.dataset.kind, pin = document.createElement('div'), lbl = document.createElement('div');
+        pin.className = `pin ${kind}`; pin.setAttribute('aria-hidden', 'true');
+        if (kind === 'photo') { pin.appendChild(li.querySelector('img')); pin.style.setProperty('--r', `${i % 2 ? 4 : -5}deg`); }
+        else if (kind === 'stamp') pin.textContent = li.dataset.mark;
+        else pin.innerHTML = ICONS[li.dataset.icon];
+        lbl.className = 'lbl'; lbl.append(...li.querySelectorAll(':scope > b, :scope > span'));
+        li.append(pin, lbl);
+      });
+      function layoutRoadmap(rm) {
+        const W = rm.clientWidth, H = rm.clientHeight;
+        if (!W) return;
+        const stops = [...rm.querySelectorAll('.stop')], N = stops.length, portrait = W < H, rd = parseFloat(rm.style.getPropertyValue('--rd')) || 0;
+        const pin = portrait ? Math.min(W * .1, H * .052, 42) : Math.min(H * .12, W * .066, 92);
+        rm.style.setProperty('--pin', `${pin}px`);
+        // a winding road: left to right, up and down on a computer; top to bottom on a phone
+        const pts = stops.map((_, i) => portrait ? [W * (i % 2 ? .21 : .12), H * (.17 + i * .62 / (N - 1))] : [W * (.07 + i * .7 / (N - 1)), H * (i % 2 ? .66 : .36)]);
+        stops.forEach((li, i) => {
+          li.style.setProperty('--x', `${pts[i][0]}px`); li.style.setProperty('--y', `${pts[i][1]}px`);
+          li.style.setProperty('--d', `${(rd + 1.3 + 4.2 * i / (N - 1)).toFixed(2)}s`);
+          li.querySelector('.lbl').className = `lbl ${portrait ? 'side' : i % 2 ? 'below' : 'above'}`;
+        });
+        const smooth = pts.reduce((d, p, i, a) => {
+          if (!i) return `M${p}`;
+          const p0 = a[i - 2] || a[i - 1], p1 = a[i - 1], p3 = a[i + 1] || p;
+          return `${d} C${p1[0] + (p[0] - p0[0]) / 6},${p1[1] + (p[1] - p0[1]) / 6} ${p[0] - (p3[0] - p1[0]) / 6},${p[1] - (p3[1] - p1[1]) / 6} ${p}`;
+        }, '');
+        // the last stretch: an arrow from Miami to "click here to watch the full movie"
+        const last = pts[N - 1], cx = portrait ? W * .62 : W * .9, cy = portrait ? H * .91 : H * .63;
+        rm.style.setProperty('--cx', `${cx}px`); rm.style.setProperty('--cy', `${cy}px`);
+        const S = portrait ? [last[0], last[1] + pin * .75] : [last[0] + pin * .7, last[1] + pin * .2];
+        const E = portrait ? [cx - W * .3, cy - H * .01] : [cx - W * .098, cy - H * .07], C = portrait ? [S[0], E[1]] : [S[0] + W * .005, E[1] + H * .02];
+        let ux = E[0] - C[0], uy = E[1] - C[1]; const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+        const h = Math.max(10, pin * .2), a = .5, head = sg => [E[0] - h * (ux * Math.cos(a) - sg * uy * Math.sin(a)), E[1] - h * (uy * Math.cos(a) + sg * ux * Math.sin(a))];
+        const svg = rm.querySelector('.route');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        // the dotted road is always there; a black cover slides off it along the route, so it seems to draw itself
+        svg.innerHTML = `<path class="road" d="${smooth}"/><path class="cover" d="${smooth}"/>
+          <path class="arrow shaft" d="M${S} Q${C} ${E}"/><path class="arrow arrowhead" d="M${head(1)} L${E} L${head(-1)}"/>`;
+        // dash lengths in real pixels (pathLength scaling isn't reliable here)
+        svg.querySelectorAll(".cover, .shaft").forEach(el => el.style.setProperty('--len', `${Math.ceil(el.getTotalLength()) + 2}px`));
+      }
+      function playRoadmap(rm, afterColdOpen) {
+        rm.classList.remove('on');
+        rm.style.setProperty('--rd', afterColdOpen ? '4.4s' : '0s');
+        layoutRoadmap(rm);
+        void rm.offsetWidth; rm.classList.add('on');
+      }
+      addEventListener('resize', () => document.querySelectorAll('.roadmap.on').forEach(layoutRoadmap));
+
       // Documentary chapter: cold open ("who?" typed on black), then the photo, the hand-drawn note, the subtitle.
       // `cut` = a crossfade to the next shot inside the chapter (no cold open).
       function playDoc(f, cut) {
         const img = shotsOf(f).find(x => x.classList.contains('on')) || f.querySelector('.media img');
         const sub = f.querySelector('.sub');
+        f.querySelectorAll('.roadmap').forEach(rm => { if (rm !== img) rm.classList.remove('on'); });
+        if (img.classList.contains('roadmap')) {
+          window.clearNotes(f); subtitle(sub, '');
+          playRoadmap(img, !cut);
+          if (!cut) { typeOn(f.querySelector('.cold-open .typed'), 1.9, .06); typeOn(f.querySelector('.slate .typed'), 5.2, .03); }
+          return;
+        }
         if (cut) { annotate(img, 1.2); subtitle(sub, img.dataset.sub, img.dataset.point ? 3.2 : 1.2); return; }
         typeOn(f.querySelector('.cold-open .typed'), 1.9, .06);
         typeOn(f.querySelector('.slate .typed'), 5.2, .03);
