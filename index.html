@@ -152,14 +152,14 @@
     /* Documentary chapter (who?): cold open on black, typed title, then the photo with a hand-drawn note and subtitles */
     .doc .shade.soft { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%), linear-gradient(0deg, rgba(0,0,0,.6) 0%, transparent 30%); }
     .doc .cold-open { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: #000; pointer-events: none; opacity: 0; visibility: hidden; }
-    .doc.active .cold-open { animation: coldOpen 4.2s ease forwards; }
+    .doc.active .cold-open { animation: coldOpen 5.2s ease forwards; }
     @keyframes coldOpen { 0%, 76% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
-    .doc .cold-open .big { font-family: "Courier Prime", monospace; font-size: clamp(40px, 8cqw, 130px); color: #ecebe8; letter-spacing: .02em; }
+    .doc .cold-open .big { max-width: 86%; text-align: center; font-family: "Courier Prime", monospace; font-size: clamp(26px, 5.2cqw, 96px); line-height: 1.2; color: #ecebe8; letter-spacing: .02em; }
     .doc .slate { position: absolute; left: 4cqw; top: 4cqh; z-index: 3; margin: 0; font-family: "Courier Prime", monospace; font-size: clamp(11px, 1.1cqw, 15px); color: #e4e2dd; text-shadow: 0 1px 2px #000; letter-spacing: .04em; }
     .doc .slate .shots { margin-top: 10px; }
     .doc .doc-link { position: absolute; right: 4cqw; top: 4cqh; z-index: 3; font-family: "Courier Prime", monospace; font-size: clamp(11px, 1.1cqw, 15px); color: #e4e2dd; text-shadow: 0 1px 2px #000;
       border-bottom: 1px solid rgba(236,235,232,.4); padding-bottom: 2px; opacity: 0; transition: opacity .4s; }
-    .doc.active .doc-link { opacity: 1; transition: opacity 1s ease 7s; }
+    .doc.active .doc-link { opacity: 1; transition: opacity 1s ease 8s; }
     .doc .doc-link:hover { border-color: #ecebe8; }
     @container (max-aspect-ratio: 1/1) { .doc .doc-link { top: auto; right: auto; bottom: 3.5cqh; left: 50%; transform: translateX(-50%); white-space: nowrap; } .doc .sub { bottom: 10cqh; } }
     @media (prefers-reduced-motion: reduce) { .doc .cold-open { display: none; } .doc.active .doc-link { transition: none; } }
@@ -435,7 +435,7 @@
           <a class="media" href="work/unsupervised-live/" tabindex="-1"><img src="images/unsupervised-live.jpg" alt="" loading="lazy"></a>
           <div class="shade"></div>
           <div class="copy">
-            <span class="k">what i do</span>
+            <span class="k">what he does</span>
             <h2>Skills</h2>
             <dl class="sheet">
               <div><dt>sound &amp; image</dt><dd>electronics &amp; telecommunications engineer · master’s in image &amp; sound engineering, barcelona</dd></div>
@@ -456,15 +456,15 @@
           <a class="media" href="bio/" tabindex="-1">
             <img class="color shot on" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy" loading="lazy" style="object-position: 50% 30%"
               data-point="0.525,0.175" data-note="this is sebastian."
-              data-sub="me as a kid, a toy in my hands, looking closely at how it was made.">
+              data-sub="sebastian as a kid, a toy in his hands, looking closely at how it was made.">
             <img class="color shot" src="images/who-park.jpg" alt="Three children sitting on the grass in a park" loading="lazy" style="object-position: 50% 62%"
               data-sub="sweaters, dry grass, and the whole afternoon ahead.">
           </a>
           <div class="shade soft"></div>
-          <p class="slate"><span class="typed" data-text="the movie of my life · reel 1"></span></p>
+          <p class="slate"><span class="typed" data-text="the movie of his life · reel 1"></span></p>
           <p class="sub" aria-live="polite"></p>
-          <a class="doc-link" href="bio/">watch the movie of my life&nbsp;→</a>
-          <div class="cold-open" aria-hidden="true"><span class="typed big" data-text="bio"></span></div>
+          <a class="doc-link" href="bio/">watch the movie of his life&nbsp;→</a>
+          <div class="cold-open" aria-hidden="true"><span class="typed big" data-text="who the f%^&amp;k is seba?"></span></div>
         </section>
 
         <section data-chapter="films" class="frame" id="manifesto-for-future-ais" data-bass="words" data-words="a|manifesto|for future|ais" data-short="manifesto" data-title="manifesto for future ais">
@@ -500,7 +500,7 @@
           <div class="copy">
             <span class="k">studio · channel · since 2020</span>
             <h2>Nobody And The Computer</h2>
-            <p>my lab for ai-generated film and music. 56k+ on youtube.</p>
+            <p>his lab for ai-generated film and music. 56k+ on youtube.</p>
             <div class="pills">
               <a class="pill" href="https://youtube.com/@nobodyandthecomputer" target="_blank" rel="noopener">youtube channel</a>
               <a class="pill" href="work/nobody-and-the-computer/">about the lab</a>
@@ -530,7 +530,7 @@
           <div class="copy">
             <span class="k">music · tools</span>
             <h2>Guitar Lab</h2>
-            <p>a playable fretboard, scale explorer and harmony map. and the songbook i play live.</p>
+            <p>a playable fretboard, scale explorer and harmony map. and the songbook he plays live.</p>
             <div class="pills">
               <a class="pill" href="guitar/">play guitar lab</a>
               <a class="pill" href="repertoire/">live repertoire</a>
@@ -731,10 +731,10 @@
         const img = shotsOf(f).find(x => x.classList.contains('on')) || f.querySelector('.media img');
         const sub = f.querySelector('.sub');
         if (cut) { annotate(img, 1.2); subtitle(sub, img.dataset.sub, img.dataset.point ? 3.2 : 1.2); return; }
-        typeOn(f.querySelector('.cold-open .typed'), 1.9, .12);
-        typeOn(f.querySelector('.slate .typed'), 4.2, .03);
-        annotate(img, 4.3);
-        subtitle(sub, img.dataset.sub, img.dataset.point ? 6.4 : 4.4);
+        typeOn(f.querySelector('.cold-open .typed'), 1.9, .06);
+        typeOn(f.querySelector('.slate .typed'), 5.2, .03);
+        annotate(img, 5.3);
+        subtitle(sub, img.dataset.sub, img.dataset.point ? 7.4 : 5.4);
       }
 
       function go(i, first) {
