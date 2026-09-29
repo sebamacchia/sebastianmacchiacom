@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Oswald:wght@300;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css?v=13">
+  <link rel="stylesheet" href="/site.css?v=14">
   <style>
     body { height: 100svh; overflow: hidden; overscroll-behavior: none; }
     .room { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse 70% 60% at 50% 45%, #0b0b0b 0%, #000 70%); }
@@ -123,7 +123,7 @@
     <span class="t">bio</span>
   </footer>
 
-  <script src="/site.js?v=12"></script>
+  <script src="/site.js?v=13"></script>
   <script>
     (() => {
       const scenes = [...document.querySelectorAll('.scene')];
@@ -134,6 +134,7 @@
         i = Math.max(0, Math.min(scenes.length - 1, i));
         if (i === at || moving) return;
         at = i; moving = true; setTimeout(() => { moving = false; }, 1500);
+        filmBurn(document.querySelector('.screen'), .55);
         scenes.forEach((s, k) => { s.classList.toggle('active', k === i); s.inert = k !== i; });
         n.textContent = `${pad(i + 1)} / ${pad(scenes.length)}`;
         const reel = scenes[i].dataset.reel, group = scenes.filter(x => x.dataset.reel === reel);

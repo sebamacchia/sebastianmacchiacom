@@ -137,3 +137,7 @@ html.js .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .note .shaft, .note .head, .note .label, .sub span, .typed i { animation-duration: 0s !important; animation-delay: 0s !important; }
 }
+
+/* Film burn between scenes (site.js filmBurn) */
+.burn { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 4; pointer-events: none; mix-blend-mode: screen; opacity: 0; }
+.burn.on { opacity: 1; }

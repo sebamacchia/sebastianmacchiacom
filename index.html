@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Caveat:wght@600&family=Libre+Baskerville:ital,wght@0,700;1,400&family=Courier+Prime&family=Instrument+Sans:wght@400;500&family=Oswald:wght@300;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=13">
+  <link rel="stylesheet" href="site.css?v=14">
 
   <script type="application/ld+json">
   {
@@ -597,7 +597,7 @@
   </div>
   <div id="intro" aria-hidden="true"><canvas></canvas><button class="skip" type="button">skip to the film</button></div>
   <script type="module" src="intro.js?v=21"></script>
-  <script src="site.js?v=12"></script>
+  <script src="site.js?v=13"></script>
   <script>
     (() => {
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -761,6 +761,7 @@
         frames.forEach((f, k) => f.classList.toggle('active', k === i));
         { const sh = shotsOf(frames[i]); if (sh.length > 1) { const last = !first && i < from; sh.forEach((x, k) => x.classList.toggle('on', last ? k === sh.length - 1 : k === 0)); markShots(frames[i]); } }
         if (!first && !still) {
+          filmBurn(document.querySelector('.screen'), .55);    // light flares through the gate at the cut
           moving = true;
           setTimeout(() => { moving = false; }, 1500);            // let the dissolve finish before the next cut
         }

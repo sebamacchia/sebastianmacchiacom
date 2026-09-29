@@ -158,3 +158,21 @@ window.typeOn = (el, delay = 0, rate = .065) => {
   el.innerHTML = [...text].map((ch, i) => `<i aria-hidden="true" style="animation-delay:${reduceMotion ? 0 : (delay + i * rate).toFixed(3)}s">${esc(ch)}</i>`).join('');
   return delay + text.length * rate;
 };
+
+// Film burn at the cut: a few frames of light flaring through the gate (assets/film-burn.*), screened over the screen
+window.filmBurn = (() => {
+  let v = null;
+  return (host, delay = 0) => {
+    if (reduceMotion || !host) return;
+    if (!v) {
+      v = document.createElement('video');
+      v.className = 'burn'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.setAttribute('aria-hidden', 'true');
+      const base = document.querySelector('script[src*="site.js"]').src.replace(/site\.js.*$/, '');
+      v.innerHTML = `<source src="${base}assets/film-burn.webm" type="video/webm"><source src="${base}assets/film-burn.mp4" type="video/mp4">`;
+      host.appendChild(v);
+    }
+    clearTimeout(v.t);
+    v.t = setTimeout(() => { v.currentTime = 0; v.playbackRate = .55; v.classList.add('on'); v.play().catch(() => {}); }, delay * 1000);
+    v.onended = () => v.classList.remove('on');
+  };
+})();
