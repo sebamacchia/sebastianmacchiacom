@@ -77,10 +77,13 @@ const SVG = 'http://www.w3.org/2000/svg';
 window.clearNotes = root => root.querySelectorAll('.note').forEach(n => { n.stop(); n.remove(); });
 window.annotate = (img, delay = 0) => {
   window.clearNotes(img.parentElement);
-  if (!img.dataset.point) return;
+  // notes: data-notes='[{"at":[x,y],"text":"…"}, {"to":".selector","text":"…"}]' (at = fraction of the photo, to = an element to point at)
+  // or the single-note shorthand data-point="x,y" data-note="…"; notes appear one after another, `gap` seconds apart
+  const notes = img.dataset.notes ? JSON.parse(img.dataset.notes) : img.dataset.point ? [{ at: img.dataset.point.split(',').map(Number), text: img.dataset.note }] : [];
+  if (!notes.length) return;
+  const gap = parseFloat(img.dataset.gap) || 2.1;
   const note = document.createElement('div');
   note.className = 'note'; note.setAttribute('aria-hidden', 'true');
-  note.style.setProperty('--d', `${reduceMotion ? 0 : delay}s`);
   img.after(note);
   let raf, alive = true;
   const follow = () => { if (!alive) return; note.style.transform = getComputedStyle(img).transform; raf = requestAnimationFrame(follow); };
@@ -91,30 +94,46 @@ window.annotate = (img, delay = 0) => {
     if (!W || !nw) return;
     const s = Math.max(W / nw, H / nh);
     const [ox, oy] = getComputedStyle(img).objectPosition.split(' ').map(v => parseFloat(v) / 100);
-    const [px, py] = img.dataset.point.split(',').map(Number);
-    const tx = (W - nw * s) * ox + px * nw * s, ty = (H - nh * s) * oy + py * nh * s;
+    const box = img.getBoundingClientRect(), k = box.width / W || 1;       // undo the push-in scale when measuring page elements
     note.innerHTML = '';
-    const fs = Math.max(22, Math.min(W * .034, 48));
-    const label = document.createElement('span');
-    label.className = 'label'; label.textContent = img.dataset.note; label.style.fontSize = `${fs}px`;
-    note.appendChild(label);
-    const lw = label.offsetWidth, dx = Math.max(W * .15, fs * 2.6), dy = Math.max(H * .16, fs * 2.2);
-    // Write the note to the left of the target, or to the right when there's no room
-    const left = tx - dx - lw > W * .04;
-    const ax = left ? tx - dx : tx + dx, ly = Math.min(ty + dy, H * .8);
-    label.style.left = `${left ? ax - lw : ax}px`; label.style.top = `${ly - fs * .62}px`;
-    // Arrow from the end of the note, curving up into the target, stopping just short of it
-    const S = [ax + (left ? 6 : -6), ly - fs * .55];
-    const C = [S[0] + (tx - S[0]) * .1, ty + (S[1] - ty) * .05];
-    let ux = tx - C[0], uy = ty - C[1]; const ul = Math.hypot(ux, uy); ux /= ul; uy /= ul;
-    const E = [tx - ux * fs * .3, ty - uy * fs * .3], h = fs * .42, a = .5;
-    const head = sgn => [E[0] - h * (ux * Math.cos(a) - sgn * uy * Math.sin(a)), E[1] - h * (uy * Math.cos(a) + sgn * ux * Math.sin(a))];
-    const [h1, h2] = [head(1), head(-1)];
-    const svg = document.createElementNS(SVG, 'svg');
-    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('width', W); svg.setAttribute('height', H);
-    svg.innerHTML = `<path class="shaft" pathLength="1" d="M${S} Q${C} ${E}"/><path class="head" d="M${h1} L${E} L${h2}"/>`;
-    svg.style.strokeWidth = Math.max(2, fs * .075);
-    note.appendChild(svg);
+    notes.forEach((n, i) => {
+      if (n.portrait && W < H) n = { ...n, ...n.portrait };             // a different placement on tall (phone) screens
+      let tx, ty;
+      if (n.to) {                                                          // point at an element (e.g. a link): its left edge, or its top with edge:'top'
+        const el = img.closest('.frame, .scene, body').querySelector(n.to); if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (n.edge === 'top') { tx = (r.left + r.width / 2 - box.left) / k; ty = (r.top - box.top) / k - 8; }
+        else { tx = (r.left - box.left) / k - 8; ty = (r.top + r.height / 2 - box.top) / k; }
+      } else { tx = (W - nw * s) * ox + n.at[0] * nw * s; ty = (H - nh * s) * oy + n.at[1] * nh * s; }
+      const one = document.createElement('div');
+      one.className = 'one'; one.style.setProperty('--d', `${reduceMotion ? 0 : delay + i * gap}s`);
+      const fs = Math.max(20, Math.min(W * .034, 48)) * (n.size || 1);
+      const label = document.createElement('span');
+      label.className = 'label'; label.textContent = n.text; label.style.fontSize = `${fs}px`;
+      one.appendChild(label); note.appendChild(one);
+      const dx = Math.max(W * (n.dx ?? .15), fs * 2.6), dy = H * (n.dy ?? .16);
+      // Write the note to the left of the target, or to the right when there's no room; wrap long notes
+      const room = side => side ? tx - dx - W * .04 : W * .96 - (tx + dx);
+      label.style.maxWidth = `${Math.max(fs * 5, Math.min(fs * (n.wrap || 30), Math.max(room(true), room(false))))}px`;
+      let lw = label.offsetWidth;
+      const left = n.side ? n.side === 'left' : room(true) >= lw;
+      label.style.maxWidth = `${Math.max(fs * 5, Math.min(fs * (n.wrap || 30), room(left)))}px`; lw = label.offsetWidth;
+      const lh = label.offsetHeight, ax = left ? tx - dx : tx + dx;
+      const top = Math.max(H * .04, Math.min(ty + dy - fs * .62, H * .94 - lh));
+      label.style.left = `${left ? ax - lw : ax}px`; label.style.top = `${top}px`;
+      // Arrow from the end of the note's first line, curving into the target, stopping just short of it
+      const S = [ax + (left ? 6 : -6), top + (dy < 0 ? lh - fs * .35 : fs * .1)];
+      const C = [S[0] + (tx - S[0]) * .1, ty + (S[1] - ty) * .05];
+      let ux = tx - C[0], uy = ty - C[1]; const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+      const E = [tx - ux * fs * .3, ty - uy * fs * .3], h = fs * .42, a = .5;
+      const head = sgn => [E[0] - h * (ux * Math.cos(a) - sgn * uy * Math.sin(a)), E[1] - h * (uy * Math.cos(a) + sgn * ux * Math.sin(a))];
+      const svg = document.createElementNS(SVG, 'svg');
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('width', W); svg.setAttribute('height', H);
+      svg.innerHTML = `<path class="shaft" d="M${S} Q${C} ${E}"/><path class="head" d="M${head(1)} L${E} L${head(-1)}"/>`;
+      svg.style.strokeWidth = Math.max(2, fs * .075);
+      one.appendChild(svg);
+      const shaft = svg.querySelector('.shaft'); shaft.style.setProperty('--len', `${Math.ceil(shaft.getTotalLength()) + 2}px`);
+    });
   }
   const start = () => { if (!alive) return; build(); follow(); addEventListener('resize', onResize); };
   if (img.complete && img.naturalWidth) start(); else img.addEventListener('load', start, { once: true });
