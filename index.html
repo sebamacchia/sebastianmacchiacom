@@ -297,8 +297,21 @@
     .bio-text { max-width: 62ch; }
     .bio-text p { margin: 0 0 1.1em; font-family: "Courier Prime", monospace; font-size: clamp(12px, 1.42cqw, 20px); line-height: 1.55; color: #dcdbd9; }
     .bio-text p:nth-of-type(3) { color: #fff; }
+    #about { grid-template-columns: 1fr; align-content: center; gap: 3.5cqh; }
+    #about .bio-title span { font-size: clamp(48px, 9cqw, 170px); }
+    #about .bio-text { max-width: none; columns: 2; column-gap: 4cqw; }
+    #about .bio-text p { font-size: clamp(11px, 1.22cqw, 18px); color: #dcdbd9; break-inside: avoid; }
+    #about .bio-text .lead { font-size: clamp(15px, 1.9cqw, 28px); color: #fff; }
+    #about .bio-text .pills { break-inside: avoid; }
+    @container (max-aspect-ratio: 1/1) {
+      #about .bio-text { columns: 1; }
+      #about .bio-title span { font-size: 17cqw; }
+      #about .bio-text p { font-size: 11px; line-height: 1.45; margin-bottom: .8em; }
+      #about .bio-text .lead { font-size: 15px; }
+    }
     .bio-text .pills { justify-content: flex-start; opacity: 0; }
     .bio-frame.active .bio-text .pills { animation: fade 1s ease 7.5s forwards; }
+    #about.active .bio-text .pills { animation-delay: 9s; }
     @container (max-aspect-ratio: 1/1) {
       .bio-frame { grid-template-columns: 1fr; align-content: center; gap: 3cqh; padding: 0 6cqw; }
       .bio-title span { font-size: 24cqw; }
@@ -407,19 +420,15 @@
           </div>
         </section>
 
-        <section class="frame doc" id="who" data-short="who?" data-title="who?">
-          <a class="media" href="who/" tabindex="-1">
-            <img class="color shot on" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy" loading="lazy" style="object-position: 50% 30%"
-              data-point="0.525,0.175" data-note="this is sebastian."
-              data-sub="me as a kid, a toy in my hands, looking closely at how it was made.">
-            <img class="color shot" src="images/who-park.jpg" alt="Three children sitting on the grass in a park" loading="lazy" style="object-position: 50% 62%"
-              data-sub="sweaters, dry grass, and the whole afternoon ahead.">
-          </a>
-          <div class="shade soft"></div>
-          <p class="slate"><span class="typed" data-text="the movie of my life · reel 1"></span></p>
-          <p class="sub" aria-live="polite"></p>
-          <a class="doc-link" href="who/">watch the movie of my life&nbsp;→</a>
-          <div class="cold-open" aria-hidden="true"><span class="typed big" data-text="who?"></span></div>
+        <section class="frame bio-frame" id="about" data-short="about" data-title="about">
+          <div class="bio-title" aria-hidden="true"><span>about</span></div>
+          <div class="bio-text">
+            <p class="typed lead">first and foremost, i'm curious.</p>
+            <p class="typed">from a young age, i was captivated by audiovisual recording. my father, an amateur filmmaker, taught me the now extinct noble art of slicing super 8 films and synchronizing audio tapes. this early curiosity about audiovisual technology set the stage for my academic and professional pursuits.</p>
+            <p class="typed">i graduated with a bachelor’s degree in electronics engineering and telecommunications, and later received a scholarship to pursue a master’s degree in image &amp; sound engineering in barcelona, spain.</p>
+            <p class="typed">now based in miami, usa, i am focused on integrating artificial intelligence with audiovisual content creation. my mission is to pioneer transformative ai applications that enhance filmmaking, pushing the boundaries of how we create, perceive, and experience film and sound. i am eager to lead the charge in this exciting new era, believing firmly that ai will reshape our creative landscapes and redefine the art of storytelling.</p>
+            <div class="pills"><a class="pill" href="bio/">the movie of my life</a><a class="pill" href="llms.txt">plain-text version for ai agents</a></div>
+          </div>
         </section>
 
         <section class="frame skills-frame" id="skills" data-bass="bars" data-short="skills" data-title="skills">
@@ -429,7 +438,7 @@
             <span class="k">what i do</span>
             <h2>Skills</h2>
             <dl class="sheet">
-              <div><dt>sound &amp; image</dt><dd>electronics &amp; telecommunications engineer, audiovisual engineering</dd></div>
+              <div><dt>sound &amp; image</dt><dd>electronics &amp; telecommunications engineer · master’s in image &amp; sound engineering, barcelona</dd></div>
               <div><dt>generative ai</dt><dd>building with it since 2020 — tools, workflows, prototypes</dd></div>
               <div><dt>ai systems &amp; agents</dt><dd><a href="work/unsupervised-live/">unsupervised live</a>: a late-night show run by five ai systems, live, on one mac</dd></div>
               <div><dt>ai filmmaking</dt><dd>generative cinema, mockumentaries, experiments</dd></div>
@@ -443,14 +452,19 @@
           </div>
         </section>
 
-        <section class="frame bio-frame" id="bio" data-short="bio" data-title="bio">
-          <div class="bio-title" aria-hidden="true"><span>bio</span></div>
-          <div class="bio-text">
-            <p class="typed">sebastian macchia is an audiovisual engineer and ai creative technologist based in miami. trained as an electronics and telecommunications engineer specialized in sound and image — with film studies and music along the way — he has been building with generative ai since 2020.</p>
-            <p class="typed">he founded nobody and the computer, a lab for ai-generated film and music followed by more than 56,000 people on youtube, and created unsupervised live, a late-night show hosted entirely by ai. his film manifesto for future ais screened in the in silico competition at the message to man international film festival, and he teaches ai filmmaking.</p>
-            <p class="typed">first and foremost, curious.</p>
-            <div class="pills"><a class="pill" href="who/">the whole story</a><a class="pill" href="llms.txt">plain-text bio for ai agents</a></div>
-          </div>
+        <section class="frame doc" id="bio" data-short="bio" data-title="bio">
+          <a class="media" href="bio/" tabindex="-1">
+            <img class="color shot on" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy" loading="lazy" style="object-position: 50% 30%"
+              data-point="0.525,0.175" data-note="this is sebastian."
+              data-sub="me as a kid, a toy in my hands, looking closely at how it was made.">
+            <img class="color shot" src="images/who-park.jpg" alt="Three children sitting on the grass in a park" loading="lazy" style="object-position: 50% 62%"
+              data-sub="sweaters, dry grass, and the whole afternoon ahead.">
+          </a>
+          <div class="shade soft"></div>
+          <p class="slate"><span class="typed" data-text="the movie of my life · reel 1"></span></p>
+          <p class="sub" aria-live="polite"></p>
+          <a class="doc-link" href="bio/">watch the movie of my life&nbsp;→</a>
+          <div class="cold-open" aria-hidden="true"><span class="typed big" data-text="bio"></span></div>
         </section>
 
         <section data-chapter="films" class="frame" id="manifesto-for-future-ais" data-bass="words" data-words="a|manifesto|for future|ais" data-short="manifesto" data-title="manifesto for future ais">
