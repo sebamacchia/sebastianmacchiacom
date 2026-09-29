@@ -307,6 +307,7 @@ async function start() {
   // Auto-walk: after the countdown the camera drifts toward the screen on its own (~6.5s street → screen).
   // Scrolling down keeps it going; scrolling up (rewinding) pauses it until the visitor scrolls forward again.
   const AUTO_SECONDS = 6.5;
+  const HOLD_SECONDS = 3;                                               // hold on the street before the camera starts walking in
   let auto = false, autoSince = 0, lastUser = 0, lastNow = performance.now();
   const hint = overlay.querySelector('.hint');
   const clamp01 = v => Math.min(1, Math.max(0, v));
@@ -315,12 +316,13 @@ async function start() {
   // Public handle used by the film controller in index.html
   window.__intro = {
     get inFilm() { return inFilm; },
+    get progress() { return u; },
     scrub(delta) {
       target = clamp01(target + delta); if (target < 1) inFilm = false; dirty = true;
       lastUser = performance.now();
       if (delta < 0) auto = false; else if (delta > 0 && !auto && !inFilm) { auto = true; autoSince = lastUser; }
     },
-    play() { if (!inFilm) { auto = true; autoSince = performance.now(); } },
+    play() { if (!inFilm) { auto = true; autoSince = performance.now() + HOLD_SECONDS * 1000; } },
     enterFromFilm() { inFilm = false; auto = false; target = 0.97; u = Math.max(u, 0.995); dirty = true; },
     skip() { target = 1; dirty = true; },
   };
@@ -343,7 +345,7 @@ async function start() {
     try {
       const dt = Math.min(0.05, (now - lastNow) / 1000); lastNow = now;
       if (auto && !inFilm && fixedU === null && now - lastUser > 900) {
-        const ramp = Math.min(1, (now - autoSince) / 1500);             // ease into the walk
+        const ramp = Math.max(0, Math.min(1, (now - autoSince) / 1500));   // ease into the walk (0 while holding)
         target = clamp01(target + dt / AUTO_SECONDS * ramp);
       }
       if (fixedU === null) u += (target - u) * 0.075;                    // eased follow: smooth, cinematic
