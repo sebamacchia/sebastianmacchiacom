@@ -14,7 +14,7 @@ if (overlay && document.documentElement.classList.contains('intro')) start();
 
 async function start() {
   window.__introStarted = true;
-  try { await document.fonts.load('500 120px "Oswald"'); } catch (e) {}
+  try { await Promise.all([document.fonts.load('500 120px "Oswald"'), document.fonts.load('400 120px "Alfa Slab One"')]); } catch (e) {}
 
   const canvas = overlay.querySelector('canvas');
   const mobile = innerWidth < 760;
@@ -105,12 +105,24 @@ async function start() {
 
   // ---------- marquee ----------
   const marqueeTex = (() => {
-    const c = document.createElement('canvas'); c.width = 2048; c.height = 256; const g = c.getContext('2d');
-    g.fillStyle = '#f4efe6'; g.fillRect(0, 0, 2048, 256);
-    g.strokeStyle = '#bdb6aa'; g.lineWidth = 2; for (let x = 0; x < 2048; x += 128) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 256); g.stroke(); }
+    // NOW SHOWING / the name in poster slab letters / the title of the picture
+    const W = 2048, H = 236;
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    g.fillStyle = '#f4efe6'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#c9c2b6'; g.lineWidth = 2; for (let x = 0; x < W; x += 128) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
     g.fillStyle = '#141414'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.font = '500 170px "Oswald", "Arial Narrow", sans-serif';
-    g.fillText('SEBASTIAN   MACCHIA', 1024, 136);
+    const spaced = (text, y, font, gap) => {                         // letter-spaced line, centred
+      g.font = font; const chars = [...text], w = chars.reduce((a, ch) => a + g.measureText(ch).width + gap, -gap);
+      let x = W / 2 - w / 2; g.textAlign = 'left';
+      chars.forEach(ch => { g.fillText(ch, x, y); x += g.measureText(ch).width + gap; });
+      g.textAlign = 'center';
+    };
+    spaced('★  NOW SHOWING  ★', 33, '500 50px "Oswald", "Arial Narrow", sans-serif', 14);
+    g.fillRect(540, 64, 968, 3);
+    g.font = '400 112px "Alfa Slab One", "Rockwell", Georgia, serif';
+    g.fillText('SEBASTIAN MACCHIA', W / 2, 123);
+    g.fillRect(540, 180, 968, 3);
+    spaced('THE MOVIE-WEBSITE', 211, '500 48px "Oswald", "Arial Narrow", sans-serif', 16);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
   })();
   const marquee = new THREE.Group(); marquee.position.set(0, 4.9, 1.2); scene.add(marquee);
