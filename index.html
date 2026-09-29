@@ -274,9 +274,21 @@
 
 
     /* SKILLS — a credits sheet over the picture */
-    .skills-frame .shade { background: linear-gradient(0deg, rgba(0,0,0,.93) 0%, rgba(0,0,0,.75) 55%, rgba(0,0,0,.35) 100%); }
+    /* TOOLKIT: a red title-card background — blurred glow, heavy grain, dark edges (no photo) */
+    .frame .media.redfield { background: radial-gradient(ellipse 75% 70% at 38% 46%, #b3160f 0%, #7e0b07 38%, #420403 72%, #160101 100%); }
+    .redfield .glow { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; }
+    .redfield .glow.a { left: 14%; top: 18%; width: 46%; height: 62%; background: radial-gradient(circle, rgba(255,86,48,.55), rgba(255,40,20,0) 70%); }
+    .redfield .glow.b { right: 6%; bottom: -12%; width: 40%; height: 55%; background: radial-gradient(circle, rgba(214,28,18,.45), rgba(214,28,18,0) 70%); }
+    .redfield .grain { position: absolute; inset: 0; opacity: .5; mix-blend-mode: overlay; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); background-size: 240px 240px; }
+    .skills-frame .shade { background: radial-gradient(ellipse at 45% 45%, transparent 50%, rgba(0,0,0,.55) 100%); }
+    .skills-frame .copy .k { color: rgba(255,255,255,.78); }
+    .skills-frame .copy h2 { color: #fff; }
+    .skills-frame .sheet dt { color: rgba(255,255,255,.72); }
+    .skills-frame .sheet dd, .skills-frame .pill { color: #fff; }
+    .skills-frame .sheet dd a, .skills-frame .pill { border-color: rgba(255,255,255,.6); }
     .skills-frame .copy { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
-    .skills-frame .copy h2 { font-size: clamp(30px, 5.4cqw, 110px); }
+    .skills-frame .copy h2 { font-size: clamp(30px, 5.4cqw, 110px); text-shadow: 0 0 .35em rgba(255,120,90,.45); }
     .sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqh 4cqw; max-width: 88cqw; margin: 1.4cqh 0 0; }
     .sheet dt { font-family: "Courier Prime", monospace; font-size: clamp(10px, 1cqw, 14px); letter-spacing: .12em; text-transform: uppercase; color: #a9a7a3; }
     .sheet dd { margin: .35em 0 0; font-size: clamp(13px, 1.45cqw, 20px); line-height: 1.35; color: #ecebe8; }
@@ -450,7 +462,7 @@
         </section>
 
         <section class="frame skills-frame" id="toolkit" data-bass="bars" data-short="toolkit" data-title="toolkit">
-          <a class="media" href="work/unsupervised-live/" tabindex="-1"><img src="images/unsupervised-live.jpg" alt="" loading="lazy"></a>
+          <div class="media redfield" aria-hidden="true"><i class="glow a"></i><i class="glow b"></i><i class="grain"></i></div>
           <div class="shade"></div>
           <div class="copy">
             <span class="k">what he knows, what he studied, what he can do</span>
