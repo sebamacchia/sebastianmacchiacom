@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Caveat:wght@600&family=Libre+Baskerville:ital,wght@0,700;1,400&family=Courier+Prime&family=Instrument+Sans:wght@400;500&family=Oswald:wght@300;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=14">
+  <link rel="stylesheet" href="site.css?v=15">
 
   <script type="application/ld+json">
   {
@@ -132,7 +132,7 @@
     /* pinstriped letters with a hard outline and a faint glow, after Frenzy and the Hitchcock title cards */
     .title .word .slice { color: transparent; -webkit-text-stroke: .014em #ecebe8;
       background: repeating-linear-gradient(90deg, #ecebe8 0 .052em, transparent .052em .088em); -webkit-background-clip: text; background-clip: text; }
-    .title h1 { filter: blur(.6px) drop-shadow(.04em .04em 0 #000) drop-shadow(0 0 .05em rgba(236,235,232,.6)) drop-shadow(0 0 .3em rgba(236,235,232,.28)); }
+    .title h1 { filter: var(--slab-blur, blur(.6px)) drop-shadow(.04em .04em 0 #000) drop-shadow(0 0 .05em rgba(236,235,232,.6)) drop-shadow(0 0 .3em rgba(236,235,232,.28)); }
     .title .pre, .title .post, .titles .based { margin: 0; opacity: 0; text-transform: none; }
     .title .pre { margin-bottom: 2.6cqh; font-family: "Libre Baskerville", serif; font-style: italic; font-size: clamp(14px, 2.2cqw, 34px); color: #dcdbd9; letter-spacing: .02em; }
     .title .post { margin-top: 2.2cqh; font-family: "Alfa Slab One", serif; font-size: clamp(18px, 3.4cqw, 60px); color: #ecebe8; letter-spacing: .14em; text-transform: uppercase; }
@@ -296,7 +296,7 @@
     .bio-frame { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 5cqw; padding: 0 7cqw; background: #050505; }
     .bio-title span { display: block; font-family: "Alfa Slab One", serif; font-size: clamp(60px, 17cqw, 300px); line-height: .9; text-transform: uppercase; color: transparent; -webkit-text-stroke: .014em #ecebe8;
       background: repeating-linear-gradient(90deg, #ecebe8 0 .052em, transparent .052em .088em); -webkit-background-clip: text; background-clip: text;
-      filter: blur(.6px) drop-shadow(.04em .04em 0 #000) drop-shadow(0 0 .05em rgba(236,235,232,.6)) drop-shadow(0 0 .3em rgba(236,235,232,.25)); opacity: 0; transform: translateX(-12cqw); }
+      filter: var(--slab-blur, blur(.6px)) drop-shadow(.04em .04em 0 #000) drop-shadow(0 0 .05em rgba(236,235,232,.6)) drop-shadow(0 0 .3em rgba(236,235,232,.25)); opacity: 0; transform: translateX(-12cqw); }
     .bio-frame.active .bio-title span { animation: bioIn .9s cubic-bezier(.16,1,.3,1) 1s forwards; }
     @keyframes bioIn { to { opacity: 1; transform: none; } }
     .bio-text { max-width: 62ch; }
@@ -310,9 +310,9 @@
     #about .bio-text .pills { break-inside: avoid; }
     @container (max-aspect-ratio: 1/1) {
       #about .bio-text { columns: 1; }
-      #about .bio-title span { font-size: 17cqw; }
-      #about .bio-text p { font-size: 11px; line-height: 1.45; margin-bottom: .8em; }
-      #about .bio-text .lead { font-size: 15px; }
+      #about .bio-title span { font-size: min(17cqw, 7.5cqh); }
+      #about .bio-text p { font-size: clamp(9px, 1.62cqh, 11px); line-height: 1.4; margin-bottom: .7em; }
+      #about .bio-text .lead { font-size: clamp(12px, 2.2cqh, 15px); }
     }
     .bio-text .pills { justify-content: flex-start; opacity: 0; }
     .bio-frame.active .bio-text .pills { animation: fade 1s ease 7.5s forwards; }
@@ -329,7 +329,7 @@
     .title .pre, .title .post, .titles .based, .copy h2, .copy .k, .talk-frame h2, .talk-frame .roll, .doc .cold-open .big, .doc .slate,
     [data-bass=words] .bass span, .sheet dt { filter: var(--halo); }
     .copy p, .talk-frame > p, .sheet dd, .bio-text, .sub, .frame .pill, .talk-frame .credits-line { filter: var(--halo-soft); }
-    .note { filter: blur(.35px) drop-shadow(0 1px 1px rgba(0,0,0,.9)) drop-shadow(0 0 14px rgba(0,0,0,.55)) drop-shadow(0 0 3px rgba(244,242,236,.35)); }
+    .note { filter: var(--slab-blur, blur(.35px)) drop-shadow(0 1px 1px rgba(0,0,0,.9)) drop-shadow(0 0 14px rgba(0,0,0,.55)) drop-shadow(0 0 3px rgba(244,242,236,.35)); }
 
 
     /* BIO: the link to the full movie, pointed at by the third note */
