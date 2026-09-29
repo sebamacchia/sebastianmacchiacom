@@ -174,13 +174,6 @@
     @keyframes gone { to { opacity: 0; } }
     @keyframes drop { to { transform: none; } }                /* shared: a piece unrolls into place */
 
-    /* toolkit — an iris opens on black, with a warm light leak spilling over the print */
-    .frame.active[data-bass=iris] .media { animation: irisIn 1.6s cubic-bezier(.6,0,.2,1) .95s both; }
-    @keyframes irisIn { 0% { clip-path: circle(0% at 42% 46%); } 35% { clip-path: circle(9% at 42% 46%); } 100% { clip-path: circle(110% at 42% 46%); } }
-    [data-bass=iris] .bass .leak { inset: -20%; background: radial-gradient(ellipse 45% 55% at 30% 45%, rgba(255,170,110,.95), rgba(255,90,40,.55) 35%, rgba(255,60,20,0) 70%); mix-blend-mode: screen; opacity: 0; }
-    .frame.active[data-bass=iris] .bass .leak { animation: leak 1.9s ease-out 1.35s forwards; }
-    @keyframes leak { 0% { opacity: 0; transform: translateX(-8%); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateX(6%); } }
-
     /* manifesto — paper strips carry the words in from alternating sides, then pull away */
     [data-bass=words] .bass { background: #000; }
     [data-bass=words] .bass span { left: 0; right: 0; top: calc(var(--k) * 100% / var(--n)); height: calc(100% / var(--n) + 1px); display: flex; align-items: center; justify-content: center;
@@ -281,6 +274,7 @@
     .redfield .grain { position: absolute; inset: 0; opacity: .5; mix-blend-mode: overlay; pointer-events: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); background-size: 240px 240px; }
     .skills-frame .shade { display: none; }
+    .skills-frame { --after: 1.8s; }
     .skills-frame .copy .k { color: rgba(255,255,255,.78); }
     .skills-frame .copy h2 { color: #fff; }
     .skills-frame .sheet dt { color: rgba(255,255,255,.72); }
@@ -460,7 +454,7 @@
           </div>
         </section>
 
-        <section class="frame skills-frame" id="toolkit" data-bass="iris" data-short="toolkit" data-title="toolkit">
+        <section class="frame skills-frame" id="toolkit" data-short="toolkit" data-title="toolkit">
           <div class="media redfield" aria-hidden="true"><i class="glow a"></i><i class="glow b"></i><i class="grain"></i></div>
           <div class="shade"></div>
           <div class="copy">
@@ -663,7 +657,6 @@
         return el;
       };
       const BASS = {
-        iris: o => o.append(piece('leak')),
         words: (o, f) => { const w = f.dataset.words.split('|'); w.forEach((t, k) => o.append(piece('', { '--k': k, '--n': w.length, '--s': k % 2 ? -1 : 1 }, t))); },
         beam: o => o.append(piece('ray'), piece('disc')),
         grid: o => { for (let k = 1; k < 7; k++) o.append(piece('h', { '--k': k })); for (let k = 1; k < 12; k++) o.append(piece('v', { '--k': k })); },
