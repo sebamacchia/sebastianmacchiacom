@@ -27,12 +27,10 @@ His strengths include translating technical possibilities into understandable pr
 ## Selected work
 
 - **Unsupervised Live** — A fully AI-hosted live late-night show with five coordinated systems for reasoning, voice, facial animation and lip-sync, web research, and show direction. It reads live chat, researches questions and cites sources, generates long-form thematic segments, and runs locally on a Mac without humans on air. A private moderator console allows hidden human puppeteering when desired: https://www.youtube.com/@unsupervisedlive/streams
-- **Apps & AI Systems** — Autonomous agents, live experiences, and working prototypes: https://sebastianmacchia.com/apps/
 - **Manifesto for Future AIs** — An experimental AI film screened in the In Silico Experimental Short Film Competition at the Message to Man International Film Festival
 - **I Was Abducted Wearing Meta Glasses** — An experimental mockumentary
 - **Nobody And The Computer** — An ongoing channel and laboratory for AI-generated moving-image work
-- **AI Film Archive** — A curated collection of experimental films, mockumentaries, and generative moving-image work: https://sebastianmacchia.com/aifilm/
-- **Awards & Recognition** — Festival screenings, official selections, invited teaching, and recognition: https://sebastianmacchia.com/awards/
+- **AI Films** — Experimental films, mockumentaries, and generative moving-image work (Punk Sinatra, Where Is My Sock and more): https://youtube.com/@nobodyandthecomputer
 
 ## Point of view
 
