@@ -3,466 +3,862 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sebastian Macchia — Audiovisual Engineer & AI Creative Technologist</title>
-  <meta name="description" content="Miami-based audiovisual engineer and AI creative technologist building intelligent tools, audiovisual experiences and creative workflows.">
-  <meta name="theme-color" content="#0b4bd3">
-  <meta property="og:title" content="Sebastian Macchia">
-  <meta property="og:description" content="Creative AI systems, audiovisual experiences, intelligent tools and rapid prototypes.">
+  <title>sebastian macchia</title>
+  <meta name="description" content="Sebastian Macchia — engineer of sound and image. Films, AI systems and music. Creator of Unsupervised Live and founder of Nobody And The Computer. Miami.">
+  <meta name="theme-color" content="#000000">
+  <link rel="canonical" href="https://sebastianmacchia.com/">
+  <meta property="og:title" content="sebastian macchia">
+  <meta property="og:description" content="Films, AI systems and music. Creator of Unsupervised Live and founder of Nobody And The Computer.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://sebastianmacchia.com">
+  <meta property="og:url" content="https://sebastianmacchia.com/">
+  <meta property="og:image" content="https://sebastianmacchia.com/videos/natc.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM-readable summary">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=DM+Mono:wght@400;500&family=Roboto+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Caveat:wght@600&family=Libre+Baskerville:ital,wght@0,700;1,400&family=Courier+Prime&family=Instrument+Sans:wght@400;500&family=Oswald:wght@300;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="site.css?v=10">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Sebastian Macchia",
+    "url": "https://sebastianmacchia.com",
+    "email": "mailto:sebastianmacchia@gmail.com",
+    "jobTitle": "Electronics & Telecommunications Engineer — Sound & Image; AI Creative Technologist",
+    "description": "Engineer of sound and image making films, AI systems and music. Building with generative AI since 2020. Founder of Nobody And The Computer and creator of Unsupervised Live, a fully AI-hosted late-night show. Open to creative-technology and AI roles, commissions and collaborations.",
+    "address": { "@type": "PostalAddress", "addressLocality": "Miami", "addressRegion": "FL", "addressCountry": "US" },
+    "knowsAbout": ["Audiovisual engineering", "Generative AI", "AI filmmaking", "AI agents", "Creative technology", "Music", "Guitar"],
+    "sameAs": [
+      "https://www.linkedin.com/in/sebastianmacchia/",
+      "https://youtube.com/@nobodyandthecomputer",
+      "https://www.youtube.com/@unsupervisedlive"
+    ]
+  }
+  </script>
+
   <style>
-    :root {
-      --blue: #0b4bd3;
-      --white: #f8f4eb;
-      --grid: rgba(248, 244, 235, .105);
-      --yellow: #ffd313;
-    }
+    /* The room */
+    body.theater { height: 100svh; overflow: hidden; overscroll-behavior: none; }
+    .room { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse 70% 60% at 50% 45%, #0b0b0b 0%, #000 70%); }
+    .topbar, .bottombar { position: fixed; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 var(--pad); height: 64px; font-size: 13px; color: var(--muted); }
+    .topbar { top: 0; }
+    .bottombar { bottom: 0; }
+    .topbar .name { color: var(--fg); font-size: 16px; }
+    .counter { display: flex; gap: 14px; align-items: baseline; }
+    .counter b { color: var(--fg); font-weight: 400; font-variant-numeric: tabular-nums; }
+    .counter .t { display: none; }
+    /* Corner indicator: scroll to rewind / fast-forward */
+    .scrub { display: inline-flex; align-items: center; gap: 8px; margin-left: 22px; color: var(--muted); font-size: 12px; }
+    .scrub .wheel { width: 12px; height: 19px; border: 1.2px solid #8a8883; border-radius: 7px; position: relative; }
+    .scrub .wheel::after { content: ""; position: absolute; left: 50%; top: 4px; width: 2px; height: 4px; margin-left: -1px; border-radius: 1px; background: #bdbbb7; animation: wheelTick 1.8s ease-in-out infinite; }
+    @keyframes wheelTick { 0%, 100% { transform: translateY(-1px); opacity: .3; } 45% { transform: translateY(5px); opacity: 1; } }
+    .scrub button { padding: 4px 2px; border: 0; background: none; color: inherit; font: 12px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; transition: color .25s; }
+    .scrub button:hover { color: var(--fg); }
+    .scrub button:focus { outline: none; } .scrub button:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+    .scrub .sep { opacity: .5; }
+    html.touch .scrub .wheel { display: none; }
+    /* Chapter index along the bottom */
+    .chapters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 4px; margin: 0; padding: 0; list-style: none; }
+    .chapters button { padding: 6px 8px; border: 0; background: none; color: var(--muted); font: 13px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; transition: color .3s; }
+    .chapters button:hover { color: #c9c7c2; }
+    .chapters button[aria-current="true"] { color: var(--fg); }
+    .chapters button:focus { outline: none; }
+    .chapters button:focus-visible, .index-toggle:focus-visible { outline: none; text-decoration: underline; text-underline-offset: 5px; }
+    .index-toggle { display: none; padding: 6px 2px; border: 0; background: none; color: var(--fg); font: 13px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; }
 
-    *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; background: var(--blue); }
-    body {
-      margin: 0;
-      color: var(--white);
-      background-color: var(--blue);
-      background-image:
-        linear-gradient(var(--grid) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-      background-size: 72px 72px;
-      font-family: "Roboto Condensed", Arial, sans-serif;
-      font-weight: 600;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: inherit; }
-    ::selection { color: var(--blue); background: var(--white); }
-
+    /* The screen: as large as the window allows */
     .screen {
-      position: relative;
-      min-height: 100svh;
-      padding: 34px 58px;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      border-bottom: 1px solid var(--grid);
-      overflow: hidden;
+      --gap: 7%;
+      position: relative; overflow: hidden; overflow: clip; background: #000; container-type: size;
+      width: min(calc(100vw - 2 * var(--pad)), calc((100svh - 140px) * 16 / 9));
+      aspect-ratio: 16 / 9;
+      box-shadow: 0 0 0 1px rgba(236,235,232,.05), 0 0 120px rgba(236,235,232,.06), 0 60px 160px rgba(236,235,232,.04);
+    }
+    @media (max-aspect-ratio: 1/1) {
+      .screen { width: calc(100vw - 2 * var(--pad)); aspect-ratio: auto; height: calc(100svh - 140px); }
     }
 
-    .mono {
-      font-family: "DM Mono", monospace;
-      font-size: 11px;
-      line-height: 1.5;
-      letter-spacing: .13em;
-      text-transform: uppercase;
-    }
+    /* The film strip: frames stacked with a black frame line between them */
+    .strip { position: absolute; inset: 0; background: #000; }
+    /* Scene changes are a dip to black: the old shot fades out, a beat of darkness, the new shot fades in */
+    .frame { position: absolute; inset: 0; overflow: hidden; background: #070707; opacity: 0; visibility: hidden; transition: opacity .7s ease-in, visibility 0s linear .7s; }
+    .frame.active { opacity: 1; visibility: visible; transition: opacity 1s ease-out .85s, visibility 0s; }
+    /* A slow push on the image while the shot is on screen */
+    .frame .media img, .frame .media video { transform: scale(1.07); }
+    .frame.active .media img, .frame.active .media video { transform: scale(1); transition: transform 14s cubic-bezier(.2,.4,.3,1) .85s; }
+    /* Text arrives after the picture, line by line, like a title card */
+    .frame .copy > *, .talk-frame > h2, .talk-frame > p, .talk-frame > .pills { opacity: 0; transform: translateY(10px); transition: opacity .4s, transform .4s; }
+    .frame.active .copy > *, .talk-frame.active > h2, .talk-frame.active > p, .talk-frame.active > .pills { opacity: 1; transform: none; transition: opacity .9s ease, transform 1.1s cubic-bezier(.2,.7,.2,1); }
+    /* --after: when the chapter's title sequence is over and the words may come in */
+    .frame { --after: 1.5s; }
+    .frame[data-bass] { --after: 3.2s; }
+    .talk-frame { --after: 6.4s; }
+    .frame.active .copy > :nth-child(1), .talk-frame.active > h2 { transition-delay: var(--after); }
+    .frame.active .copy > :nth-child(2), .talk-frame.active > p { transition-delay: calc(var(--after) + .45s); }
+    .frame.active .copy > :nth-child(3), .talk-frame.active > .pills { transition-delay: calc(var(--after) + .8s); }
+    .frame.active .copy > :nth-child(4) { transition-delay: calc(var(--after) + 1.05s); }
+    .frame .media { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; background: #070707; }
+    .frame .media img, .frame .media video { filter: grayscale(1) contrast(1.12) brightness(.8); }
+    /* Sebastian's own photos and footage keep their original colour */
+    .frame .media img.color, .frame .media video.color { filter: brightness(.92); }
+    /* Several shots inside one scene: they crossfade, no dip to black */
+    .frame .media img.shot { position: absolute; inset: 0; opacity: 0; transition: opacity 1.8s ease, transform 14s cubic-bezier(.2,.4,.3,1) .85s; }
+    .frame .media img.shot.on { opacity: 1; }
+    .shots { display: flex; gap: 6px; margin-top: 14px; }
+    .shots i { width: 18px; height: 2px; background: rgba(236,235,232,.3); transition: background .4s; }
+    .shots i.on { background: #ecebe8; }
+    .frame .shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.35) 45%, rgba(0,0,0,.1) 100%); pointer-events: none; }
+    .copy { position: absolute; left: 5cqw; right: 5cqw; bottom: 6cqh; z-index: 2; }
+    .copy .k { color: #a9a7a3; font-size: clamp(11px, 1.15cqw, 15px); letter-spacing: .02em; }
+    .copy h2 { margin: .35em 0 .3em; font-family: "Oswald", sans-serif; font-weight: 500; text-transform: uppercase; font-size: clamp(30px, 6.4cqw, 128px); line-height: .92; letter-spacing: .01em; color: #ecebe8; }
+    .copy p { max-width: 54ch; margin: 0; color: #bdbbb7; font-size: clamp(13px, 1.35cqw, 19px); line-height: 1.5; }
+    .copy .pills { justify-content: flex-start; }
+    .copy .pill { margin-top: clamp(14px, 2.4cqh, 26px); padding: .7em 1.5em; font-size: clamp(12px, 1.1cqw, 15px); }
 
-    .nav {
-      position: relative;
-      z-index: 20;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 30px;
-    }
-    .nav-brand { text-decoration: none; opacity: .76; }
-    .nav-links { display: flex; align-items: center; gap: clamp(28px, 4vw, 66px); }
-    .nav-links a {
-      position: relative;
-      color: var(--white);
-      font-size: 16px;
-      letter-spacing: .025em;
-      text-transform: uppercase;
-      text-decoration: none;
-    }
-    .nav-links a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 100%;
-      bottom: -5px;
-      height: 2px;
-      background: var(--yellow);
-      transition: right .25s ease;
-    }
-    .nav-links a:hover::after { right: 0; }
-    .socials { justify-self: end; display: flex; gap: 18px; }
-    .socials a { text-decoration: none; opacity: .78; transition: opacity .2s; }
-    .socials a:hover { opacity: 1; }
+    /* Frame 1: the title sequence */
+    .titles { display: grid; place-items: center; background: #000; }
+    .titles canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+    .titles.play canvas { animation: fade 2.5s ease 2.4s forwards; }
+    .titles .lines { position: absolute; inset: 0; pointer-events: none; }
+    .titles .lines i { position: absolute; left: 0; width: 100%; height: var(--h); top: var(--y); background: #ecebe8; transform: scaleX(0); }
+    .titles.play .lines i { animation: sweep var(--d) cubic-bezier(.7,0,.2,1) var(--t) forwards; }
+    @keyframes sweep { 0% { transform: scaleX(0); transform-origin: var(--o); } 45% { transform: scaleX(1); transform-origin: var(--o); } 55% { transform: scaleX(1); transform-origin: var(--e); } 100% { transform: scaleX(0); transform-origin: var(--e); } }
+    .titles .vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.75) 100%); }
+    .title { position: relative; z-index: 1; text-align: center; font-family: "Oswald", sans-serif; text-transform: uppercase; color: #ecebe8; }
+    .title h1 { margin: 0; font-family: "Alfa Slab One", serif; font-weight: 400; font-size: clamp(40px, 10.6cqw, 200px); line-height: .98; letter-spacing: .015em; }
+    @container (max-aspect-ratio: 1/1) { .title h1 { font-size: 12.5cqw; } }
+    /* pinstriped letters with a hard outline and a faint glow, after Frenzy and the Hitchcock title cards */
+    .title .word .slice { color: transparent; -webkit-text-stroke: .014em #ecebe8;
+      background: repeating-linear-gradient(90deg, #ecebe8 0 .052em, transparent .052em .088em); -webkit-background-clip: text; background-clip: text; }
+    .title h1 { filter: drop-shadow(.04em .04em 0 #000) drop-shadow(0 0 .18em rgba(236,235,232,.25)); }
+    .title .pre, .title .post, .titles .based { margin: 0; opacity: 0; text-transform: none; }
+    .title .pre { margin-bottom: 2.6cqh; font-family: "Libre Baskerville", serif; font-style: italic; font-size: clamp(14px, 2.2cqw, 34px); color: #dcdbd9; letter-spacing: .02em; }
+    .title .post { margin-top: 2.2cqh; font-family: "Alfa Slab One", serif; font-size: clamp(18px, 3.4cqw, 60px); color: #ecebe8; letter-spacing: .14em; text-transform: uppercase; }
+    .titles .based { margin-top: 5.5cqh; text-align: center; font-family: "Libre Baskerville", serif; font-weight: 700; font-size: clamp(11px, 1.35cqw, 19px); color: #ecebe8; letter-spacing: .01em; text-shadow: 0 1px 2px #000; }
+    .titles.play .pre { animation: fade .8s ease .3s forwards; }
+    .titles.play .post { animation: stamp .5s cubic-bezier(.2,.7,.2,1) 2.5s forwards; }
+    .titles.play .based { animation: fade 1.2s ease 3.4s forwards; }
+    @keyframes stamp { from { opacity: 0; transform: scale(1.35); letter-spacing: .5em; } to { opacity: 1; transform: none; } }
+    .word { position: relative; display: block; }
+    .word .ghost { visibility: hidden; }
+    .word .slice { position: absolute; inset: 0; clip-path: inset(var(--top) 0 var(--bot) 0); }
+    .titles.play .word .slice { opacity: 0; animation: slide 1.1s cubic-bezier(.16,1,.3,1) var(--t) forwards; }
+    @keyframes slide { 0% { opacity: 1; transform: translateX(var(--from)); } 100% { opacity: 1; transform: none; } }
+    @keyframes fade { to { opacity: 1; } }
 
-    .hero-center {
-      position: relative;
-      z-index: 3;
-      width: min(1280px, 100%);
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      transform: translateY(-1.2vh);
-    }
-    .role { align-self: flex-start; margin-left: 19%; margin-bottom: 4vh; }
-    .name-wrap { position: relative; width: 100%; text-align: center; }
-    h1 {
-      margin: 0;
-      font-family: "Bodoni Moda", Didot, "Times New Roman", serif;
-      font-size: clamp(7rem, 15.5vw, 15.5rem);
-      font-weight: 500;
-      font-style: italic;
-      line-height: .72;
-      letter-spacing: -.09em;
-      white-space: nowrap;
-    }
-    .location { margin-top: 18px; margin-left: 55%; }
-    .hero-statement {
-      max-width: 680px;
-      margin: 48px auto 0;
-      font-family: "DM Mono", monospace;
-      font-size: clamp(11px, 1.1vw, 14px);
-      font-weight: 400;
-      line-height: 1.75;
-      letter-spacing: .055em;
-      text-align: center;
-      text-transform: uppercase;
-    }
 
-    .hero-bottom {
-      position: relative;
-      z-index: 5;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: end;
-    }
-    .availability { line-height: 1.9; opacity: .73; }
-    .scroll { opacity: .76; text-align: center; }
-    .copyright { justify-self: end; text-align: right; opacity: .72; line-height: 1.9; }
+    /* Documentary chapter (who?): cold open on black, typed title, then the photo with a hand-drawn note and subtitles */
+    .doc .shade.soft { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%), linear-gradient(0deg, rgba(0,0,0,.6) 0%, transparent 30%); }
+    .doc .cold-open { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: #000; pointer-events: none; opacity: 0; visibility: hidden; }
+    .doc.active .cold-open { animation: coldOpen 4.2s ease forwards; }
+    @keyframes coldOpen { 0%, 76% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
+    .doc .cold-open .big { font-family: "Courier Prime", monospace; font-size: clamp(40px, 8cqw, 130px); color: #ecebe8; letter-spacing: .02em; }
+    .doc .slate { position: absolute; left: 4cqw; top: 4cqh; z-index: 3; margin: 0; font-family: "Courier Prime", monospace; font-size: clamp(11px, 1.1cqw, 15px); color: #e4e2dd; text-shadow: 0 1px 2px #000; letter-spacing: .04em; }
+    .doc .slate .shots { margin-top: 10px; }
+    .doc .doc-link { position: absolute; right: 4cqw; top: 4cqh; z-index: 3; font-family: "Courier Prime", monospace; font-size: clamp(11px, 1.1cqw, 15px); color: #e4e2dd; text-shadow: 0 1px 2px #000;
+      border-bottom: 1px solid rgba(236,235,232,.4); padding-bottom: 2px; opacity: 0; transition: opacity .4s; }
+    .doc.active .doc-link { opacity: 1; transition: opacity 1s ease 7s; }
+    .doc .doc-link:hover { border-color: #ecebe8; }
+    @container (max-aspect-ratio: 1/1) { .doc .doc-link { top: auto; right: auto; bottom: 3.5cqh; left: 50%; transform: translateX(-50%); white-space: nowrap; } .doc .sub { bottom: 10cqh; } }
+    @media (prefers-reduced-motion: reduce) { .doc .cold-open { display: none; } .doc.active .doc-link { transition: none; } }
 
-    .section {
-      position: relative;
-      min-height: 100svh;
-      padding: 86px 58px;
-      border-bottom: 1px solid var(--grid);
-      overflow: hidden;
-    }
-    .section-number { margin-bottom: 34px; opacity: .7; }
-    .section-heading {
-      margin: 0;
-      font-family: "Bodoni Moda", Didot, serif;
-      font-size: clamp(4rem, 9vw, 9rem);
-      font-style: italic;
-      font-weight: 500;
-      line-height: .9;
-      letter-spacing: -.07em;
-    }
-    .section-heading span { display: block; margin-left: 17%; }
 
-    .works-list { margin-top: 90px; border-top: 1px solid rgba(248,244,235,.45); }
-    .work {
-      display: grid;
-      grid-template-columns: 70px minmax(260px, 1fr) minmax(220px, .65fr) auto;
-      gap: 24px;
-      align-items: center;
-      padding: 27px 0;
-      border-bottom: 1px solid rgba(248,244,235,.45);
-      text-decoration: none;
-      transition: padding .25s ease, color .25s ease;
-    }
-    .work:hover { padding-left: 16px; color: var(--yellow); }
-    .work-index { opacity: .65; }
-    .work-title { font-size: clamp(1.8rem, 3.5vw, 4rem); letter-spacing: -.035em; text-transform: uppercase; }
-    .work-copy { max-width: 450px; font-family: "DM Mono", monospace; font-size: 11px; line-height: 1.7; font-weight: 400; opacity: .8; }
-    .work-arrow { font-size: 25px; }
+    /* ── Title sequences, after Saul Bass: cut-paper shapes in black & white that open onto the picture ── */
+    .bass { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+    .bass i, .bass span { position: absolute; display: block; font-style: normal; }
+    .frame:not(.active) .bass { visibility: hidden; }
+    .frame.active .media { animation-fill-mode: both; }
+    @keyframes clear { to { background-color: transparent; } }
+    @keyframes gone { to { opacity: 0; } }
 
-    .capabilities-grid {
-      margin-top: 90px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-top: 1px solid rgba(248,244,235,.45);
-      border-bottom: 1px solid rgba(248,244,235,.45);
-    }
-    .capability {
-      min-height: 320px;
-      padding: 25px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border-right: 1px solid rgba(248,244,235,.45);
-    }
-    .capability:last-child { border-right: 0; }
-    .capability h3 {
-      max-width: 360px;
-      margin: 0;
-      font-size: clamp(2rem, 3.6vw, 4rem);
-      line-height: .95;
-      letter-spacing: -.04em;
-      text-transform: uppercase;
-    }
-    .capability p {
-      max-width: 390px;
-      margin: 40px 0 0;
-      font-family: "DM Mono", monospace;
-      font-size: 11px;
-      font-weight: 400;
-      line-height: 1.75;
-      opacity: .8;
-    }
+    /* live show — test bars drop, collapse into one line, the picture switches on like a tube */
+    [data-bass=bars] .bass i { top: 0; bottom: 0; left: calc(var(--k) * 100% / 7); width: calc(100% / 7 + 1px); background: hsl(0 0% calc(94% - var(--k) * 12%)); transform: scaleY(0); transform-origin: top; }
+    .frame.active[data-bass=bars] .bass i { animation: drop .5s cubic-bezier(.7,0,.2,1) calc(.9s + var(--k) * .07s) forwards; }
+    .frame.active[data-bass=bars] .bass { animation: tubeOff .8s cubic-bezier(.7,0,.3,1) 1.95s forwards; }
+    .frame.active[data-bass=bars] .media { animation: tubeOn .55s cubic-bezier(.2,.7,.2,1) 2.45s both; }
+    @keyframes drop { to { transform: none; } }
+    @keyframes tubeOff { 55% { transform: scaleY(.004); } 100% { transform: scaleY(.004) scaleX(0); } }
+    @keyframes tubeOn { from { clip-path: inset(50% 0 50% 0); } to { clip-path: inset(0); } }
 
-    .about-layout {
-      min-height: calc(100svh - 172px);
-      display: grid;
-      grid-template-columns: .85fr 1.15fr;
-      gap: 8vw;
-      align-items: center;
-    }
-    .about-copy {
-      font-family: "Bodoni Moda", Didot, serif;
-      font-size: clamp(2.4rem, 4.6vw, 5rem);
-      line-height: 1.05;
-      letter-spacing: -.04em;
-    }
-    .about-copy em { color: var(--yellow); }
-    .about-details { display: grid; gap: 38px; }
-    .about-details p { margin: 0; max-width: 620px; font-family: "DM Mono", monospace; font-size: 13px; line-height: 1.8; font-weight: 400; }
-    .facts { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(248,244,235,.45); }
-    .fact { padding: 18px 15px 0 0; }
-    .fact strong { display: block; margin-bottom: 8px; font-size: 18px; text-transform: uppercase; }
-    .fact span { opacity: .72; }
+    /* manifesto — paper strips carry the words in from alternating sides, then pull away */
+    [data-bass=words] .bass { background: #000; }
+    [data-bass=words] .bass span { left: 0; right: 0; top: calc(var(--k) * 100% / var(--n)); height: calc(100% / var(--n) + 1px); display: flex; align-items: center; justify-content: center;
+      background: #ecebe8; color: #000; font-family: "Oswald", sans-serif; font-weight: 500; text-transform: uppercase; font-size: calc(100cqh / var(--n) * .72); line-height: 1; letter-spacing: .01em;
+      transform: translateX(calc(var(--s) * -101%)); }
+    [data-bass=words] .bass span:nth-child(even) { background: #000; color: #ecebe8; box-shadow: inset 0 1px 0 rgba(236,235,232,.9), inset 0 -1px 0 rgba(236,235,232,.9); }
+    .frame.active[data-bass=words] .bass span { animation: stripIn .6s cubic-bezier(.16,1,.3,1) calc(.9s + var(--k) * .14s) forwards, stripOut .55s cubic-bezier(.7,0,.84,0) calc(2.45s + var(--k) * .07s) forwards; }
+    .frame.active[data-bass=words] .bass { animation: clear 0s linear 2.5s forwards; }
+    @keyframes stripIn { to { transform: none; } }
+    @keyframes stripOut { from { transform: none; } to { transform: translateX(calc(var(--s) * 101%)); } }
 
-    .contact {
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .contact-center { margin: auto 0; text-align: center; }
-    .contact-center p { margin: 0 0 30px; }
-    .contact-title {
-      margin: 0;
-      font-family: "Bodoni Moda", Didot, serif;
-      font-size: clamp(4rem, 11vw, 11rem);
-      font-style: italic;
-      font-weight: 500;
-      line-height: .9;
-      letter-spacing: -.075em;
-    }
-    .email {
-      display: inline-block;
-      margin-top: 44px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--yellow);
-      font-family: "DM Mono", monospace;
-      font-size: clamp(.75rem, 1.3vw, 1.05rem);
-      letter-spacing: .05em;
-      text-decoration: none;
-    }
-    .contact-bottom { display: flex; justify-content: space-between; align-items: end; gap: 24px; opacity: .78; }
-    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
-    .footer-links a {
-      text-decoration: none;
-      border-bottom: 1px solid currentColor;
-      transition: color .2s ease, opacity .2s ease;
-    }
-    .footer-links a:hover {
-      color: var(--yellow);
-      opacity: 1;
-    }
+    /* abducted — a disc comes down, a beam of light, the picture is found inside the beam */
+    [data-bass=beam] .bass { background: #000; }
+    [data-bass=beam] .bass .disc { left: 50%; top: 11%; width: 24cqw; height: 4.4cqw; margin-left: -12cqw; border-radius: 50%; background: #ecebe8; transform: translateY(-40cqh); }
+    [data-bass=beam] .bass .ray { left: 0; right: 0; top: 13%; bottom: 0; background: linear-gradient(rgba(236,235,232,.95), rgba(236,235,232,.35));
+      clip-path: polygon(41% 0, 59% 0, 82% 100%, 18% 100%); transform: scaleY(0); transform-origin: top; }
+    .frame.active[data-bass=beam] .bass .disc { animation: descend .7s cubic-bezier(.16,1,.3,1) .9s forwards, gone .5s ease 2.7s forwards; }
+    .frame.active[data-bass=beam] .bass .ray { animation: drop .45s cubic-bezier(.5,0,.2,1) 1.55s forwards, gone .4s ease 2.1s forwards; }
+    .frame.active[data-bass=beam] .bass { animation: clear 0s linear 2.1s forwards; }
+    .frame.active[data-bass=beam] .media { animation: beamOpen .8s cubic-bezier(.7,0,.2,1) 2.35s both; }
+    @keyframes descend { to { transform: none; } }
+    @keyframes beamOpen { from { clip-path: polygon(41% 13%, 59% 13%, 82% 100%, 18% 100%); } to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); } }
 
-    .reveal { opacity: 0; transform: translateY(25px); transition: opacity .7s ease, transform .7s ease; }
-    .reveal.visible { opacity: 1; transform: none; }
+    /* the lab — a grid is drawn, the picture comes up behind it */
+    [data-bass=grid] .bass { background: #000; }
+    [data-bass=grid] .bass .h { left: 0; right: 0; height: 1px; top: calc(var(--k) * 100% / 7); background: rgba(236,235,232,.75); transform: scaleX(0); transform-origin: left; }
+    [data-bass=grid] .bass .v { top: 0; bottom: 0; width: 1px; left: calc(var(--k) * 100% / 12); background: rgba(236,235,232,.75); transform: scaleY(0); transform-origin: top; }
+    .frame.active[data-bass=grid] .bass .h { animation: drop .7s cubic-bezier(.7,0,.2,1) calc(.9s + var(--k) * .06s) forwards, gone .6s ease calc(2.5s + var(--k) * .05s) forwards; }
+    .frame.active[data-bass=grid] .bass .v { animation: drop .7s cubic-bezier(.7,0,.2,1) calc(1.15s + var(--k) * .04s) forwards, gone .6s ease calc(2.5s + var(--k) * .04s) forwards; }
+    .frame.active[data-bass=grid] .bass { animation: clear .6s ease 2.05s forwards; }
 
-    @media (max-width: 820px) {
-      body { background-size: 48px 48px; }
-      .screen, .section { padding: 24px 20px; }
-      .nav { grid-template-columns: 1fr auto; }
-      .nav-links { display: none; }
-      .socials { gap: 13px; }
-      .hero-center { transform: none; }
-      .role { align-self: center; margin: 0 0 10vh; }
-      h1 { font-size: clamp(5.2rem, 25vw, 9rem); }
-      .location { margin: 25px 0 0 38%; }
-      .hero-statement { max-width: 390px; margin-top: 40px; }
-      .hero-bottom { grid-template-columns: 1fr 1fr; }
-      .scroll { display: none; }
-      .copyright { font-size: 8px; }
-      .section { padding-top: 72px; }
-      .section-heading span { margin-left: 0; }
-      .works-list { margin-top: 62px; }
-      .work { grid-template-columns: 34px 1fr auto; gap: 12px; }
-      .work-copy { grid-column: 2 / -1; }
-      .capabilities-grid { margin-top: 62px; grid-template-columns: 1fr; }
-      .capability { min-height: 260px; border-right: 0; border-bottom: 1px solid rgba(248,244,235,.45); }
-      .capability:last-child { border-bottom: 0; }
-      .about-layout { grid-template-columns: 1fr; gap: 58px; align-content: center; }
-      .facts { grid-template-columns: 1fr; }
-      .fact { padding: 14px 0; border-bottom: 1px solid rgba(248,244,235,.25); }
-      .contact-bottom { flex-direction: column; align-items: flex-start; font-size: 8px; }
-      .footer-links { justify-content: flex-start; }
-    }
+    /* ai films — sprocket rows run past, then part to open the frame */
+    [data-bass=strip] .bass .row { left: -10%; right: -10%; height: 15%; background-color: #000;
+      background-image: linear-gradient(90deg, #ecebe8 50%, transparent 50%); background-size: 4.6cqw 42%; background-repeat: repeat-x; background-position: 0 50%; }
+    [data-bass=strip] .bass .top { top: 0; } [data-bass=strip] .bass .bot { bottom: 0; }
+    .frame.active[data-bass=strip] .bass .top { animation: run 1.6s linear .9s both, partUp .5s cubic-bezier(.7,0,.2,1) 2.4s forwards; }
+    .frame.active[data-bass=strip] .bass .bot { animation: run 1.6s linear .9s both, partDown .5s cubic-bezier(.7,0,.2,1) 2.4s forwards; }
+    .frame.active[data-bass=strip] .media { animation: stripOpen .5s cubic-bezier(.7,0,.2,1) 2.4s both; }
+    @keyframes run { from { background-position-x: 0; } to { background-position-x: -46cqw; } }
+    @keyframes partUp { to { transform: translateY(-100%); } }
+    @keyframes partDown { to { transform: translateY(100%); } }
+    @keyframes stripOpen { from { clip-path: inset(15% 0 15% 0); } to { clip-path: inset(0); } }
+
+    /* music — six strings are drawn, plucked, then part like a curtain */
+    [data-bass=strings] .bass { background: #000; }
+    [data-bass=strings] .bass i { top: 0; bottom: 0; width: 2px; left: calc(38% + var(--k) * 4.8%); background: #ecebe8; transform: scaleY(0); transform-origin: top; }
+    .frame.active[data-bass=strings] .bass i { animation: drop .45s cubic-bezier(.7,0,.2,1) calc(.9s + var(--k) * .08s) forwards, pluck .7s ease-out calc(1.65s + var(--k) * .06s), part .6s cubic-bezier(.7,0,.2,1) 2.4s forwards; }
+    .frame.active[data-bass=strings] .bass { animation: clear .5s ease 2.4s forwards; }
+    .frame.active[data-bass=strings] .media { animation: curtain .6s cubic-bezier(.7,0,.2,1) 2.4s both; }
+    @keyframes pluck { 0% { transform: none; } 15% { transform: translateX(4px); } 30% { transform: translateX(-3px); } 45% { transform: translateX(2px); } 60% { transform: translateX(-1px); } 100% { transform: none; } }
+    @keyframes part { from { transform: none; } to { transform: translateX(calc(var(--dir) * 60cqw)); opacity: 0; } }
+    @keyframes curtain { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0); } }
+
+    /* teaching — a spotlight finds the stage, then the house lights come up */
+    .frame.active[data-bass=spot] .media { animation: spot 2.3s cubic-bezier(.6,0,.2,1) .9s both; }
+    @keyframes spot { 0% { clip-path: circle(0% at 50% 42%); } 30%, 62% { clip-path: circle(17% at 50% 42%); } 100% { clip-path: circle(80% at 50% 42%); } }
+
+    /* chapter titles arrive in slices, like the opening */
+    .frame[data-bass] .copy h2 { position: relative; }
+    .copy h2 .ghost { visibility: hidden; }
+    .copy h2 .slice { position: absolute; inset: 0; clip-path: inset(var(--top) 0 var(--bot) 0); opacity: 0; }
+    .frame.active .copy h2 .slice { animation: slide 1s cubic-bezier(.16,1,.3,1) calc(var(--after) + var(--t)) forwards; }
+    .frame[data-bass].active .copy > h2 { transition: none; opacity: 1; transform: none; }
+
+    /* links in the film read like credits, not buttons */
+    .frame .pills { gap: 0 2em; }
+    .frame .pill { margin-top: clamp(14px, 2.4cqh, 26px); padding: 0 0 3px; border: 0; border-bottom: 1px solid rgba(236,235,232,.45); border-radius: 0; background: none;
+      font-family: "Courier Prime", monospace; font-size: clamp(12px, 1.15cqw, 16px); letter-spacing: .02em; color: #e4e2dd; }
+    .frame .pill:hover { color: #fff; border-color: #fff; background: none; }
+    .copy .pill { padding: 0 0 3px; font-size: clamp(12px, 1.15cqw, 16px); }
+    .frame.talk-frame .pill { padding: 0 0 3px; }
+
+    /* contact — end credits roll first */
+    .talk-frame .roll { position: absolute; left: 0; right: 0; top: 100%; z-index: 2; text-align: center; font-family: "Oswald", sans-serif; text-transform: uppercase; color: #ecebe8; pointer-events: none; }
+    .talk-frame .roll p { max-width: none; color: #ecebe8; margin: 0 0 7cqh; font-size: clamp(16px, 2.4cqw, 34px); font-weight: 300; letter-spacing: .06em; line-height: 1.2; }
+    .talk-frame .roll small { display: block; margin-bottom: .5em; font-family: "Courier Prime", monospace; font-size: clamp(10px, .95cqw, 13px); letter-spacing: .12em; color: #a9a7a3; }
+    .talk-frame.active .roll { animation: roll 5.6s linear .9s forwards; }
+    .talk-frame .credits-line { opacity: 0; transition: opacity .4s; }
+    .talk-frame.active .credits-line { opacity: 1; transition: opacity 1s ease calc(var(--after) + 1.2s); }
+    @keyframes roll { to { transform: translateY(calc(-100% - 100cqh)); } }
+
 
     @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { transition: none !important; }
-      .reveal { opacity: 1; transform: none; }
+      .bass { display: none; }
+      .frame.active .media { animation: none !important; }
+      .copy h2 .slice { display: none; } .copy h2 .ghost { visibility: visible; }
+      .talk-frame .roll { display: none; }
+      .talk-frame { --after: 0s; }
+    }
+
+
+    /* SKILLS — a credits sheet over the picture */
+    .skills-frame .shade { background: linear-gradient(0deg, rgba(0,0,0,.93) 0%, rgba(0,0,0,.75) 55%, rgba(0,0,0,.35) 100%); }
+    .skills-frame .copy { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+    .skills-frame .copy h2 { font-size: clamp(30px, 5.4cqw, 110px); }
+    .sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqh 4cqw; max-width: 88cqw; margin: 1.4cqh 0 0; }
+    .sheet dt { font-family: "Courier Prime", monospace; font-size: clamp(10px, 1cqw, 14px); letter-spacing: .12em; text-transform: uppercase; color: #a9a7a3; }
+    .sheet dd { margin: .35em 0 0; font-size: clamp(13px, 1.45cqw, 20px); line-height: 1.35; color: #ecebe8; }
+    .sheet dd a { border-bottom: 1px solid rgba(236,235,232,.45); }
+    .sheet dd a:hover { border-color: #fff; }
+    @container (max-aspect-ratio: 1/1) {
+      .sheet { grid-template-columns: 1fr; gap: 1.6cqh; }
+      .sheet dd { font-size: 13px; }
+    }
+
+    /* BIO — typed like a press sheet, next to a pinstriped slab title */
+    .bio-frame { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 5cqw; padding: 0 7cqw; background: #050505; }
+    .bio-title span { display: block; font-family: "Alfa Slab One", serif; font-size: clamp(60px, 17cqw, 300px); line-height: .9; text-transform: uppercase; color: transparent; -webkit-text-stroke: .014em #ecebe8;
+      background: repeating-linear-gradient(90deg, #ecebe8 0 .052em, transparent .052em .088em); -webkit-background-clip: text; background-clip: text;
+      filter: drop-shadow(.04em .04em 0 #000) drop-shadow(0 0 .18em rgba(236,235,232,.2)); opacity: 0; transform: translateX(-12cqw); }
+    .bio-frame.active .bio-title span { animation: bioIn .9s cubic-bezier(.16,1,.3,1) 1s forwards; }
+    @keyframes bioIn { to { opacity: 1; transform: none; } }
+    .bio-text { max-width: 62ch; }
+    .bio-text p { margin: 0 0 1.1em; font-family: "Courier Prime", monospace; font-size: clamp(12px, 1.42cqw, 20px); line-height: 1.55; color: #dcdbd9; }
+    .bio-text p:nth-of-type(3) { color: #fff; }
+    .bio-text .pills { justify-content: flex-start; opacity: 0; }
+    .bio-frame.active .bio-text .pills { animation: fade 1s ease 7.5s forwards; }
+    @container (max-aspect-ratio: 1/1) {
+      .bio-frame { grid-template-columns: 1fr; align-content: center; gap: 3cqh; padding: 0 6cqw; }
+      .bio-title span { font-size: 24cqw; }
+      .bio-text p { font-size: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .bio-title span, .bio-text .pills { opacity: 1; transform: none; animation: none !important; } }
+
+    /* Last frame: talk */
+    .talk-frame { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #050505; }
+    .talk-frame h2 { margin: 0; font-family: "Oswald", sans-serif; font-weight: 300; text-transform: uppercase; font-size: clamp(40px, 11cqw, 200px); line-height: .9; color: #ecebe8; }
+    .talk-frame p { max-width: 44ch; margin: 2.5cqh 0 0; color: #a9a7a3; font-size: clamp(13px, 1.35cqw, 18px); line-height: 1.5; }
+    .talk-frame .pill { margin-top: clamp(14px, 3cqh, 30px); padding: .7em 1.5em; font-size: clamp(12px, 1.15cqw, 15px); }
+    .talk-frame .credits-line { position: absolute; left: 0; right: 0; bottom: 4cqh; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; color: var(--muted); font-size: clamp(11px, 1cqw, 13px); }
+    .talk-frame .credits-line a:hover { color: var(--fg); }
+
+    /* Intro: street → lobby → auditorium, then dissolve into the site's screen */
+    #intro { display: none; }
+    html.intro #intro { display: block; position: fixed; inset: 0; z-index: 50; background: #000; }
+    /* Help tip: you can walk in and back out */
+    .tip { position: fixed; left: 50%; bottom: 76px; z-index: 55; display: flex; align-items: center; gap: 16px; padding: 14px 20px; transform: translate(-50%, 10px); opacity: 0; pointer-events: none;
+      border: 1px solid rgba(236,235,232,.22); border-radius: 14px; background: rgba(10,10,10,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      color: #ecebe8; font-size: 14px; line-height: 1.45; transition: opacity .6s ease, transform .6s ease; }
+    .tip.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .tip .mouse { flex: none; width: 22px; height: 34px; border: 1.5px solid #ecebe8; border-radius: 12px; position: relative; }
+    .tip .mouse::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: #ecebe8; animation: wheel 1.6s ease-in-out infinite; }
+    @keyframes wheel { 0% { transform: translateY(-3px); opacity: 0; } 30% { opacity: 1; } 60% { transform: translateY(8px); opacity: 1; } 100% { transform: translateY(8px); opacity: 0; } }
+    .tip small { display: block; color: #9a9894; font-size: 12px; }
+    .tip kbd { font: inherit; padding: 0 5px; border: 1px solid rgba(236,235,232,.3); border-radius: 4px; }
+    .tip button { margin-left: 4px; padding: 6px 12px; border: 1px solid rgba(236,235,232,.35); border-radius: 999px; background: none; color: #ecebe8; font: 12px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; }
+    .tip button:hover { background: #ecebe8; color: #000; }
+    html.touch .tip .mouse { border-radius: 50%; width: 26px; height: 26px; }
+    @media (max-width: 640px) { .tip { width: calc(100vw - 32px); bottom: 70px; } }
+
+    #intro canvas { display: block; width: 100%; height: 100%; }
+    #intro .skip { position: absolute; right: var(--pad); bottom: 22px; padding: 8px 14px; border: 1px solid rgba(236,235,232,.35); border-radius: 999px; background: none; color: #bdbbb7; font: 13px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; }
+    #intro .skip:hover { color: #fff; border-color: #fff; }
+
+    @media (max-width: 640px) {
+      .counter .t { display: none; }
+      .index-toggle { display: block; }
+      .scrub { margin-left: 14px; gap: 6px; }
+      .chapters { position: fixed; right: var(--pad); bottom: 60px; flex-direction: column; align-items: flex-end; gap: 0; padding: 10px 6px; border: 1px solid rgba(236,235,232,.15); border-radius: 12px; background: rgba(8,8,8,.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .3s, transform .3s; }
+      .chapters.open { opacity: 1; transform: none; pointer-events: auto; }
+      .chapters button { padding: 9px 12px; font-size: 15px; }
+      .copy p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .frame, .frame.active, .frame .copy > *, .frame.active .copy > * { transition: none !important; }
+      .frame .media img, .frame .media video { transform: none !important; }
+      .titles canvas { opacity: 1; }
+      .titles .lines { display: none; }
+      .titles.play .word .slice { animation: none; opacity: 1; }
+      .title .pre, .title .post, .titles .based { opacity: 1; animation: none !important; }
     }
   </style>
-</head>
-<body>
-  <section class="screen" id="home">
-    <nav class="nav" aria-label="Main navigation">
-      <a class="nav-brand mono" href="#home">Portfolio 2026</a>
-      <div class="nav-links">
-        <a href="#works">Work</a>
-        <a href="marginalia/">Marginalia</a>
-        <a href="#capabilities">Capabilities</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
-      </div>
-      <div class="socials mono">
-        <a href="https://www.linkedin.com/in/sebastianmacchia/" target="_blank" rel="noopener" aria-label="LinkedIn">LI</a>
-        <a href="https://youtube.com/@nobodyandthecomputer" target="_blank" rel="noopener" aria-label="YouTube">YT</a>
-      </div>
-    </nav>
-
-    <div class="hero-center">
-      <div class="role mono">Audiovisual engineer · AI creative technologist</div>
-      <div class="name-wrap">
-        <h1>sebastian</h1>
-      </div>
-      <p class="hero-statement">I design and build AI-powered tools, audiovisual experiences and creative workflows.</p>
-      <div class="location mono">Based in Miami</div>
-    </div>
-
-    <div class="hero-bottom mono">
-      <div class="availability">Open to creative technology, AI product & innovation roles<br><span id="month-year"></span></div>
-      <div class="scroll">↓ Scroll</div>
-      <div class="copyright">© <span class="year"></span> Sebastian<br>All rights reserved</div>
-    </div>
-
-  </section>
-
-  <section class="section" id="works">
-    <div class="section-number mono">01 / Selected work</div>
-    <h2 class="section-heading reveal">Systems, films <span>and experiments.</span></h2>
-    <div class="works-list reveal">
-      <a class="work" href="apps/">
-        <span class="work-index mono">01</span>
-        <span class="work-title">Apps & AI Systems</span>
-        <span class="work-copy">Autonomous agents, live experiences and working prototypes—including an AI late-night host that runs without humans on air.</span>
-        <span class="work-arrow">→</span>
-      </a>
-      <a class="work" href="aifilm/">
-        <span class="work-index mono">02</span>
-        <span class="work-title">AI Film</span>
-        <span class="work-copy">A growing archive of experimental films, mockumentaries and generative moving-image work.</span>
-        <span class="work-arrow">→</span>
-      </a>
-      <a class="work" href="awards/">
-        <span class="work-index mono">03</span>
-        <span class="work-title">Awards & Recognition</span>
-        <span class="work-copy">Festival screenings, official selections, invited teaching and moments of public recognition.</span>
-        <span class="work-arrow">→</span>
-      </a>
-      <a class="work" href="guitar/">
-        <span class="work-index mono">04</span>
-        <span class="work-title">Guitar Lab</span>
-        <span class="work-copy">A playable fretboard, scale explorer and harmony map for learning music theory directly on the guitar neck.</span>
-        <span class="work-arrow">→</span>
-      </a>
-      <a class="work" href="repertoire/">
-        <span class="work-index mono">05</span>
-        <span class="work-title">Live Repertoire</span>
-        <span class="work-copy">A working songbook for the pieces I’m arranging, learning and shaping into live guitar sets.</span>
-        <span class="work-arrow">→</span>
-      </a>
-      <a class="work" href="https://youtube.com/@nobodyandthecomputer" target="_blank" rel="noopener">
-        <span class="work-index mono">06</span>
-        <span class="work-title">Nobody And The Computer</span>
-        <span class="work-copy">A five-year creative R&D practice exploring generative film, music, tools and new human-machine workflows.</span>
-        <span class="work-arrow">↗</span>
-      </a>
-    </div>
-  </section>
-
-  <section class="section" id="capabilities">
-    <div class="section-number mono">02 / Capabilities</div>
-    <h2 class="section-heading reveal">From imagination <span>to working system.</span></h2>
-    <div class="capabilities-grid reveal">
-      <article class="capability">
-        <span class="mono">A / Creative AI</span>
-        <div>
-          <h3>Creative AI systems</h3>
-          <p>Designing agents, generative experiences and intelligent tools that connect technical possibility with human imagination.</p>
-        </div>
-      </article>
-      <article class="capability">
-        <span class="mono">B / Building</span>
-        <div>
-          <h3>Apps & rapid prototypes</h3>
-          <p>Moving quickly from concept to testable applications, conversational interfaces and practical AI-powered workflows.</p>
-        </div>
-      </article>
-      <article class="capability">
-        <span class="mono">C / Audiovisual</span>
-        <div>
-          <h3>Audiovisual technology</h3>
-          <p>Combining engineering, sound, moving image and interaction to create expressive digital experiences.</p>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <section class="section" id="about">
-    <div class="section-number mono">03 / About</div>
-    <div class="about-layout">
-      <h2 class="about-copy reveal">Audiovisual engineer.<br><em>Creative technologist.</em></h2>
-      <div class="about-details reveal">
-        <p>I’m an engineer, GenAI early adopter and multidisciplinary maker. For more than five years I’ve worked hands-on with emerging AI across apps, agents, film, music and digital experiences. I’m interested in roles where technical fluency, audiovisual thinking and creative experimentation come together to build things people can actually use.</p>
-        <div class="facts">
-          <div class="fact"><strong>Focus</strong><span class="mono">Creative AI systems</span></div>
-          <div class="fact"><strong>Method</strong><span class="mono">Hands-on prototyping</span></div>
-          <div class="fact"><strong>Direction</strong><span class="mono">Creative technology + AI product</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section contact" id="contact">
-    <div class="section-number mono">04 / Contact</div>
-    <div class="contact-center reveal">
-      <p class="mono">Building with AI, sound or image?</p>
-      <h2 class="contact-title">let’s make it work.</h2>
-      <a class="email" href="mailto:sebastianmacchia@gmail.com">sebastianmacchia@gmail.com ↗</a>
-    </div>
-    <div class="contact-bottom mono">
-      <span>Miami · Florida</span>
-      <div class="footer-links" aria-label="Footer links">
-        <a href="marginalia/">Marginalia</a>
-        <a href="guitar/">Guitar Lab</a>
-        <a href="repertoire/">Repertoire</a>
-      </div>
-      <span>© <span class="year"></span> Sebastian Macchia</span>
-    </div>
-  </section>
-
   <script>
-    const now = new Date();
-    document.querySelectorAll('.year').forEach((el) => el.textContent = now.getFullYear());
-    document.getElementById('month-year').textContent = now.toLocaleString('en', { month: 'short', year: 'numeric' });
+    document.documentElement.classList.add('js');
+    (() => {
+      let seen = false;
+      try { seen = sessionStorage.getItem('intro-seen') === '1'; } catch (e) {}
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const m = location.search.match(/[?&]introu=([\d.]+)/);
+      window.__introU = m ? parseFloat(m[1]) : null;            // ?introu=0.5 freezes the camera there (for tuning)
+      const replay = /[?&]intro\b/.test(location.search);        // ?intro starts from the street again
+      if (reduce || /[?&]nointro/.test(location.search)) return;
+      document.documentElement.classList.add('intro');
+      window.__introStartAt = (!replay && location.hash) ? 1 : 0;   // every visit starts on the street; only deep links start at the screen
+      // If the 3D engine can't load (offline, old browser), just show the site
+      setTimeout(() => { if (!window.__introStarted) document.documentElement.classList.remove('intro'); }, 4000);
+    })();
+  </script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="theater at-start">
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) {
-      document.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
-    } else {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
+  <header class="topbar">
+    <a class="name" href="#titles">sebastian macchia</a>
+    <div class="icons">
+      <a href="https://youtube.com/@nobodyandthecomputer" target="_blank" rel="noopener" aria-label="YouTube">
+        <svg viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/in/sebastianmacchia/" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10.5V17M8 7.2v.1M11.5 17v-6.5M11.5 13.2c0-1.6 1-2.7 2.4-2.7s2.1 1 2.1 2.6V17"/></svg>
+      </a>
+      <a href="mailto:sebastianmacchia@gmail.com" aria-label="Email">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="room">
+    <div class="screen" data-film>
+      <div class="strip">
+
+        <section class="frame titles" id="titles" data-short="opening" data-title="titles">
+          <canvas aria-hidden="true"></canvas>
+          <div class="lines" aria-hidden="true"></div>
+          <div class="vignette" aria-hidden="true"></div>
+          <div class="title">
+            <p class="pre">welcome to the</p>
+            <h1 aria-label="Sebastian Macchia"><span class="word a" data-t="1.0" aria-hidden="true">sebastian</span><span class="word b" data-t="1.5" aria-hidden="true">macchia</span></h1>
+            <p class="post">movie-website</p>
+            <p class="based">a super interesting film that, luckily, doesn’t have an ending yet ;-)</p>
+          </div>
+        </section>
+
+        <section class="frame doc" id="who" data-short="who?" data-title="who?">
+          <a class="media" href="who/" tabindex="-1">
+            <img class="color shot on" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy" loading="lazy" style="object-position: 50% 30%"
+              data-point="0.525,0.175" data-note="this is sebastian."
+              data-sub="me as a kid, a toy in my hands, looking closely at how it was made.">
+            <img class="color shot" src="images/who-park.jpg" alt="Three children sitting on the grass in a park" loading="lazy" style="object-position: 50% 62%"
+              data-sub="sweaters, dry grass, and the whole afternoon ahead.">
+          </a>
+          <div class="shade soft"></div>
+          <p class="slate"><span class="typed" data-text="the movie of my life · reel 1"></span></p>
+          <p class="sub" aria-live="polite"></p>
+          <a class="doc-link" href="who/">watch the movie of my life&nbsp;→</a>
+          <div class="cold-open" aria-hidden="true"><span class="typed big" data-text="who?"></span></div>
+        </section>
+
+        <section class="frame skills-frame" id="skills" data-bass="bars" data-short="skills" data-title="skills">
+          <a class="media" href="work/unsupervised-live/" tabindex="-1"><img src="images/unsupervised-live.jpg" alt="" loading="lazy"></a>
+          <div class="shade"></div>
+          <div class="copy">
+            <span class="k">what i do</span>
+            <h2>Skills</h2>
+            <dl class="sheet">
+              <div><dt>sound &amp; image</dt><dd>electronics &amp; telecommunications engineer, audiovisual engineering</dd></div>
+              <div><dt>generative ai</dt><dd>building with it since 2020 — tools, workflows, prototypes</dd></div>
+              <div><dt>ai systems &amp; agents</dt><dd><a href="work/unsupervised-live/">unsupervised live</a>: a late-night show run by five ai systems, live, on one mac</dd></div>
+              <div><dt>ai filmmaking</dt><dd>generative cinema, mockumentaries, experiments</dd></div>
+              <div><dt>music</dt><dd>electronic and jazz-informed compositions, guitar, creative audio tools</dd></div>
+              <div><dt>teaching</dt><dd>ai film workshops · <a href="awards/">minimax masterclass, miami dade college</a></dd></div>
+            </dl>
+            <div class="pills">
+              <a class="pill" href="apps/">apps &amp; ai systems</a>
+              <a class="pill" href="awards/">awards &amp; teaching</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="frame bio-frame" id="bio" data-short="bio" data-title="bio">
+          <div class="bio-title" aria-hidden="true"><span>bio</span></div>
+          <div class="bio-text">
+            <p class="typed">sebastian macchia is an audiovisual engineer and ai creative technologist based in miami. trained as an electronics and telecommunications engineer specialized in sound and image — with film studies and music along the way — he has been building with generative ai since 2020.</p>
+            <p class="typed">he founded nobody and the computer, a lab for ai-generated film and music followed by more than 56,000 people on youtube, and created unsupervised live, a late-night show hosted entirely by ai. his film manifesto for future ais screened in the in silico competition at the message to man international film festival, and he teaches ai filmmaking.</p>
+            <p class="typed">first and foremost, curious.</p>
+            <div class="pills"><a class="pill" href="who/">the whole story</a><a class="pill" href="llms.txt">plain-text bio for ai agents</a></div>
+          </div>
+        </section>
+
+        <section data-chapter="films" class="frame" id="manifesto-for-future-ais" data-bass="words" data-words="a|manifesto|for future|ais" data-short="manifesto" data-title="manifesto for future ais">
+          <a class="media" href="work/manifesto-for-future-ais/" tabindex="-1"><img src="images/manifesto-for-future-ais.jpg" alt="" loading="lazy"></a>
+          <div class="shade"></div>
+          <div class="copy">
+            <span class="k">film · official selection</span>
+            <h2>Manifesto for Future AIs</h2>
+            <p>an experimental film addressed to intelligences still to come. in silico competition, message to man international film festival.</p>
+            <div class="pills"><a class="pill" href="work/manifesto-for-future-ais/">see the film</a></div>
+          </div>
+        </section>
+
+        <section data-chapter="films" class="frame" id="abducted-meta-glasses" data-bass="beam" data-short="abducted" data-title="i was abducted wearing meta glasses">
+          <a class="media" href="work/abducted-meta-glasses/" tabindex="-1"><img src="images/abducted-meta-glasses.jpg" alt="" loading="lazy"></a>
+          <div class="shade"></div>
+          <div class="copy">
+            <span class="k">film · ai mockumentary</span>
+            <h2>I Was Abducted Wearing Meta Glasses</h2>
+            <p>wearable technology, alien testimony and unreliable reality collide.</p>
+            <div class="pills"><a class="pill" href="work/abducted-meta-glasses/">see the film</a></div>
+          </div>
+        </section>
+
+        <section data-chapter="films" class="frame" id="nobody-and-the-computer" data-bass="grid" data-short="the lab" data-title="nobody and the computer">
+          <a class="media" href="work/nobody-and-the-computer/" tabindex="-1">
+            <video muted loop playsinline preload="none" poster="videos/natc.jpg" aria-label="nobody and the computer title sequence">
+              <source src="videos/natc.webm" type="video/webm">
+              <source src="videos/natc.mp4" type="video/mp4">
+            </video>
+          </a>
+          <div class="shade"></div>
+          <div class="copy">
+            <span class="k">studio · channel · since 2020</span>
+            <h2>Nobody And The Computer</h2>
+            <p>my lab for ai-generated film and music. 56k+ on youtube.</p>
+            <div class="pills">
+              <a class="pill" href="https://youtube.com/@nobodyandthecomputer" target="_blank" rel="noopener">youtube channel</a>
+              <a class="pill" href="work/nobody-and-the-computer/">about the lab</a>
+            </div>
+          </div>
+        </section>
+
+        <section data-chapter="films" class="frame" id="films" data-bass="strip" data-short="ai films" data-title="ai films">
+          <a class="media" href="aifilm/" tabindex="-1">
+            <video muted loop playsinline preload="none" poster="videos/ai-films.jpg" aria-label="ai films title sequence">
+              <source src="videos/ai-films.webm" type="video/webm">
+              <source src="videos/ai-films.mp4" type="video/mp4">
+            </video>
+          </a>
+          <div class="shade"></div>
+          <div class="copy">
+            <span class="k">the archive</span>
+            <h2>AI Films</h2>
+            <p>mockumentaries, experiments and generative moving image — punk sinatra, where is my sock and more.</p>
+            <div class="pills"><a class="pill" href="aifilm/">the film archive</a></div>
+          </div>
+        </section>
+
+        <section class="frame" id="music" data-bass="strings" data-short="music" data-title="music">
+          <a class="media" href="guitar/" tabindex="-1"><img src="images/guitar-lab.jpg" alt="" loading="lazy"></a>
+          <div class="shade"></div>
+          <div class="copy">
+            <span class="k">music · tools</span>
+            <h2>Guitar Lab</h2>
+            <p>a playable fretboard, scale explorer and harmony map. and the songbook i play live.</p>
+            <div class="pills">
+              <a class="pill" href="guitar/">play guitar lab</a>
+              <a class="pill" href="repertoire/">live repertoire</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="frame talk-frame" id="talk" data-short="contact" data-title="let's talk">
+          <div class="roll" aria-hidden="true">
+            <p><small>a film by</small>sebastian macchia</p>
+            <p><small>written &amp; directed by</small>sebastian macchia</p>
+            <p><small>music by</small>sebastian macchia</p>
+            <p><small>sound &amp; image engineering</small>sebastian macchia</p>
+            <p><small>with the help of</small>a few very patient machines</p>
+            <p><small>filmed in</small>miami</p>
+          </div>
+          <h2>Let's Talk</h2>
+          <p>collaborations, commissions, talks, workshops, or building something new together.</p>
+          <div class="pills">
+            <a class="pill" href="mailto:sebastianmacchia@gmail.com" data-book>book a conversation</a>
+            <a class="pill" href="mailto:sebastianmacchia@gmail.com">sebastianmacchia@gmail.com</a>
+          </div>
+          <nav class="credits-line" aria-label="Elsewhere">
+            <a href="https://www.linkedin.com/in/sebastianmacchia/" target="_blank" rel="noopener">linkedin</a>
+            <a href="https://youtube.com/@nobodyandthecomputer" target="_blank" rel="noopener">youtube</a>
+            <a href="apps/">systems</a>
+            <a href="marginalia/">marginalia</a>
+            <a href="llms.txt">llms.txt</a>
+            <span>© 2026 sebastian macchia</span>
+          </nav>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottombar" aria-label="Film controls">
+    <div class="counter"><b class="n">01 / 10</b><span class="t">titles</span><span class="scrub" aria-label="scroll to rewind or fast-forward the film"><span class="wheel" aria-hidden="true"></span><button type="button" data-step="-1" aria-label="rewind">↑ rewind</button><span class="sep" aria-hidden="true">·</span><button type="button" data-step="1" aria-label="forward">forward ↓</button></span></div>
+    <nav aria-label="Chapters"><button class="index-toggle" type="button" aria-expanded="false">index</button><ul class="chapters"></ul></nav>
+  </footer>
+
+  <div class="tip" role="status" aria-live="polite">
+    <span class="mouse" aria-hidden="true"></span>
+    <span class="tip-text"><b>scroll down</b> to roll the film · <b>scroll up</b> to rewind<small>the <kbd>↑</kbd> <kbd>↓</kbd> keys work too — rewind past the opening to step back out into the theater</small></span>
+    <button type="button">got it</button>
+  </div>
+  <div id="intro" aria-hidden="true"><canvas></canvas><button class="skip" type="button">skip to the film</button></div>
+  <script type="module" src="intro.js?v=17"></script>
+  <script src="site.js?v=8"></script>
+  <script>
+    (() => {
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const strip = document.querySelector('.strip');
+      const frames = [...document.querySelectorAll('.frame')];
+      const titles = document.querySelector('.titles');
+      const counterN = document.querySelector('.counter .n'), counterT = document.querySelector('.counter .t');
+      const chapters = document.querySelector('.chapters'), indexToggle = document.querySelector('.index-toggle');
+      const pad = n => String(n).padStart(2, '0');
+      let at = 0, moving = false;
+
+      // Title sequence: slice each word, add the sweeping bars
+      const SLICES = 7;
+      document.querySelectorAll('.word').forEach((word, wi) => {
+        const text = word.textContent, t0 = parseFloat(word.dataset.t);
+        word.innerHTML = `<span class="ghost">${text}</span>`;
+        for (let i = 0; i < SLICES; i++) {
+          const sl = document.createElement('span');
+          sl.className = 'slice'; sl.textContent = text;
+          sl.style.setProperty('--top', `${i / SLICES * 100}%`);
+          sl.style.setProperty('--bot', `${100 - (i + 1) / SLICES * 100}%`);
+          sl.style.setProperty('--from', `${((i + wi) % 2 ? 1 : -1) * (35 + i * 9)}cqw`);
+          sl.style.setProperty('--t', `${t0 + Math.abs(i - SLICES / 2) * .06}s`);
+          word.appendChild(sl);
+        }
+      });
+      const lines = titles.querySelector('.lines');
+      [[18,3,0,.9,0],[26,1,.15,1,1],[34,8,.3,1.1,0],[47,2,.05,.8,1],[58,14,.45,1.2,1],[66,1,.25,.9,0],[74,5,.6,1,0],[83,2,.35,.85,1],[12,1,.7,.9,1],[90,6,.55,1.1,0]]
+        .forEach(([y, hgt, t, d, rtl]) => {
+          const el = document.createElement('i');
+          el.style.cssText = `--y:${y}%;--h:${hgt}px;--t:${t}s;--d:${d}s;--o:${rtl ? 'right' : 'left'};--e:${rtl ? 'left' : 'right'}`;
+          lines.appendChild(el);
         });
-      }, { threshold: .14 });
-      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-    }
+      const replayTitles = () => { titles.classList.remove('play'); void titles.offsetWidth; titles.classList.add('play'); };
+
+      // Still spiral behind the title, redrawn when the screen changes size
+      const sp = titles.querySelector('canvas'), sc = sp.getContext('2d');
+      const drawSpiral = () => {
+        const dpr = Math.min(devicePixelRatio || 1, 2), w = sp.clientWidth, h = sp.clientHeight;
+        sp.width = w * dpr; sp.height = h * dpr; sc.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const cx = w / 2, cy = h / 2, R = Math.hypot(w, h) * .55, turns = 11;
+        sc.strokeStyle = 'rgba(236,235,232,.16)'; sc.lineWidth = 1; sc.beginPath();
+        for (let i = 0; i <= 1400; i++) {
+          const k = i / 1400, a = k * turns * Math.PI * 2, r = k * R;
+          const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * .82;
+          i ? sc.lineTo(x, y) : sc.moveTo(x, y);
+        }
+        sc.stroke();
+      };
+
+      // Saul Bass title sequences: build each chapter's cut-paper pieces (the motion itself is CSS)
+      const piece = (cls, vars, text) => {
+        const el = document.createElement(text ? 'span' : 'i');
+        if (cls) el.className = cls;
+        Object.entries(vars || {}).forEach(([k, v]) => el.style.setProperty(k, v));
+        if (text) el.textContent = text;
+        return el;
+      };
+      const BASS = {
+        bars: o => { for (let k = 0; k < 7; k++) o.append(piece('', { '--k': k })); },
+        words: (o, f) => { const w = f.dataset.words.split('|'); w.forEach((t, k) => o.append(piece('', { '--k': k, '--n': w.length, '--s': k % 2 ? -1 : 1 }, t))); },
+        beam: o => o.append(piece('ray'), piece('disc')),
+        grid: o => { for (let k = 1; k < 7; k++) o.append(piece('h', { '--k': k })); for (let k = 1; k < 12; k++) o.append(piece('v', { '--k': k })); },
+        strip: o => o.append(piece('row top'), piece('row bot')),
+        strings: o => { for (let k = 0; k < 6; k++) o.append(piece('', { '--k': k, '--dir': k < 3 ? -1 : 1 })); },
+        spot: () => {},
+      };
+      frames.forEach(f => {
+        const type = f.dataset.bass;
+        if (!type) return;
+        const o = document.createElement('div');
+        o.className = 'bass'; o.setAttribute('aria-hidden', 'true');
+        BASS[type](o, f);
+        f.appendChild(o);
+        // the chapter title slides in as slices, like the opening
+        const h2 = f.querySelector('.copy h2'), text = h2.textContent, N = 5;
+        h2.setAttribute('aria-label', text);
+        h2.innerHTML = `<span class="ghost" aria-hidden="true">${h2.innerHTML}</span>`;
+        for (let i = 0; i < N; i++) {
+          const sl = piece('slice', { '--top': `${i / N * 100}%`, '--bot': `${100 - (i + 1) / N * 100}%`, '--from': `${(i % 2 ? 1 : -1) * (18 + i * 7)}cqw`, '--t': `${Math.abs(i - N / 2) * .05}s` }, text);
+          sl.setAttribute('aria-hidden', 'true');
+          h2.appendChild(sl);
+        }
+      });
+
+      // Chapter index: one entry per section; a section can hold several scenes (films)
+      const chapterOf = f => f.dataset.chapter || f.dataset.short;
+      const chapterList = [...new Set(frames.map(chapterOf))];
+      chapterList.forEach((c, n) => {
+        const li = document.createElement('li'), b = document.createElement('button');
+        b.type = 'button'; b.textContent = c;
+        b.setAttribute('aria-label', `chapter ${n + 1}: ${c}`);
+        b.addEventListener('click', () => {
+          chapters.classList.remove('open'); indexToggle.setAttribute('aria-expanded', 'false');
+          if (window.__intro && !window.__intro.inFilm) window.__intro.skip();   // from the theatre, go straight onto the screen
+          go(frames.findIndex(f => chapterOf(f) === c));
+        });
+        li.appendChild(b); chapters.appendChild(li);
+      });
+      // Corner rewind / forward buttons
+      if (matchMedia('(hover: none)').matches) {
+        document.documentElement.classList.add('touch');
+        const [rw, , fw] = document.querySelectorAll('.scrub > button, .scrub > .sep');
+        rw.textContent = '↑ rewind'; fw.textContent = 'forward ↓';
+        document.querySelector('.scrub').setAttribute('aria-label', 'swipe to rewind or fast-forward the film');
+      }
+      document.querySelectorAll('.scrub button').forEach(b => b.addEventListener('click', () => {
+        const step = +b.dataset.step;
+        if (window.__intro && !window.__intro.inFilm) { window.__intro.scrub(step * 0.15); return; }
+        if (moving) return;
+        if (step < 0 && at === 0 && window.__intro) { window.__intro.enterFromFilm(); return; }
+        advance(step);
+      }));
+      indexToggle.addEventListener('click', () => {
+        const open = chapters.classList.toggle('open');
+        indexToggle.setAttribute('aria-expanded', open);
+      });
+
+      // Advance the film to frame i
+      // Scenes with several shots (e.g. who?): scrolling crossfades to the next shot; the chapter stays the same
+      const shotsOf = f => [...f.querySelectorAll('.media img.shot')];
+      const markShots = f => {
+        const sh = shotsOf(f), bar = f.querySelector('.shots');
+        if (bar) [...bar.children].forEach((d, k) => d.classList.toggle('on', sh[k] && sh[k].classList.contains('on')));
+      };
+      frames.forEach(f => {
+        const sh = shotsOf(f);
+        if (sh.length > 1) {
+          const bar = document.createElement('div'); bar.className = 'shots'; bar.setAttribute('aria-hidden', 'true');
+          sh.forEach(() => bar.appendChild(document.createElement('i')));
+          (f.querySelector('.copy') || f.querySelector('.slate')).appendChild(bar); markShots(f);
+        }
+      });
+      function stepShot(dir) {
+        const f = frames[at], sh = shotsOf(f);
+        if (sh.length < 2) return false;
+        const k = sh.findIndex(x => x.classList.contains('on')), n = k + dir;
+        if (n < 0 || n >= sh.length) return false;
+        sh[k].classList.remove('on'); sh[n].classList.add('on'); markShots(f);
+        if (f.classList.contains('doc')) playDoc(f, true);
+        moving = true; setTimeout(() => { moving = false; }, 1300);
+        return true;
+      }
+      const advance = dir => { if (!stepShot(dir)) go(at + dir); };
+
+      // Documentary chapter: cold open ("who?" typed on black), then the photo, the hand-drawn note, the subtitle.
+      // `cut` = a crossfade to the next shot inside the chapter (no cold open).
+      function playDoc(f, cut) {
+        const img = shotsOf(f).find(x => x.classList.contains('on')) || f.querySelector('.media img');
+        const sub = f.querySelector('.sub');
+        if (cut) { annotate(img, 1.2); subtitle(sub, img.dataset.sub, img.dataset.point ? 3.2 : 1.2); return; }
+        typeOn(f.querySelector('.cold-open .typed'), 1.9, .12);
+        typeOn(f.querySelector('.slate .typed'), 4.2, .03);
+        annotate(img, 4.3);
+        subtitle(sub, img.dataset.sub, img.dataset.point ? 6.4 : 4.4);
+      }
+
+      function go(i, first) {
+        i = Math.max(0, Math.min(frames.length - 1, i));
+        if (i === at && !first) return;
+        const from = at; at = i;
+        frames.forEach((f, k) => f.classList.toggle('active', k === i));
+        { const sh = shotsOf(frames[i]); if (sh.length > 1) { const last = !first && i < from; sh.forEach((x, k) => x.classList.toggle('on', last ? k === sh.length - 1 : k === 0)); markShots(frames[i]); } }
+        if (!first && !still) {
+          moving = true;
+          setTimeout(() => { moving = false; }, 1500);            // let the dissolve finish before the next cut
+        }
+        const ci = chapterList.indexOf(chapterOf(frames[i]));
+        counterN.textContent = `${pad(ci + 1)} / ${pad(chapterList.length)}`;
+        counterT.textContent = frames[i].dataset.title;
+        chapters.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-current', k === ci));
+        document.body.classList.toggle('at-start', i === 0);
+        frames.forEach((f, k) => { f.inert = k !== i; });
+        if (frames[i].classList.contains('doc')) playDoc(frames[i], false);
+        if (frames[i].classList.contains('bio-frame')) { let t = 1.9; frames[i].querySelectorAll('.bio-text .typed').forEach(el => { t = typeOn(el, t, .0055) + .35; }); }
+        if (frames[from].classList.contains('doc') && from !== i) setTimeout(() => { if (at !== from) clearNotes(frames[from]); }, 900);
+        frames.forEach((f, k) => f.querySelectorAll('video').forEach(v => { if (k === i && !still) v.play().catch(() => {}); else v.pause(); }));
+        if (i === 0 && from !== 0 && !first) setTimeout(replayTitles, 900);
+        const id = frames[i].id;
+        history.replaceState(null, '', i === 0 ? location.pathname : `#${id}`);
+      }
+
+      // Opening countdown (≈6s) while the 3D theatre loads, then the help tip
+      const loading = () => document.documentElement.classList.contains('loading');
+      const tip = document.querySelector('.tip');
+      let tipTimer;
+      const hideTip = () => { if (tip.classList.contains('show')) { tip.classList.remove('show'); clearTimeout(tipTimer); } };
+      tip.querySelector('button').addEventListener('click', hideTip);
+      if (matchMedia('(hover: none)').matches) {
+        document.documentElement.classList.add('touch');
+        tip.querySelector('.tip-text').innerHTML = '<b>swipe up</b> to roll the film · <b>swipe down</b> to rewind<small>rewind past the opening to step back out into the theater</small>';
+      }
+      let tipShown = false;
+      const showTip = () => { if (tipShown || at !== 0) return; tipShown = true; tip.classList.add('show'); tipTimer = setTimeout(hideTip, 9000); };
+      // First visit: as soon as the 3D theatre is ready, start the walk and show the tip
+      if (document.documentElement.classList.contains('intro') && window.__introStartAt === 0 && window.__introU === null) {
+        const t0 = performance.now();
+        const whenReady = () => {
+          if (window.__intro) window.__intro.play();
+          else if (performance.now() - t0 < 8000) setTimeout(whenReady, 100);
+        };
+        whenReady();
+      }
+
+      // While in the 3D theatre, scroll / arrows / swipe move the camera (both ways);
+      // on the screen they advance the film, and going back from the first frame steps out into the theatre.
+      const inTheatre = () => window.__intro && !window.__intro.inFilm;
+      const stepOut = () => { if (window.__intro) { window.__intro.enterFromFilm(); return true; } return false; };
+
+      // Wheel / trackpad
+      let lastWheel = 0, lastStep = 0;
+      addEventListener('wheel', e => {
+        e.preventDefault();
+        if (loading()) return;
+        hideTip();
+        const now = performance.now(), gap = now - lastWheel;
+        lastWheel = now;
+        if (inTheatre()) { window.__intro.scrub(e.deltaY * (e.deltaMode === 1 ? 0.012 : 0.00035)); return; }
+        if (moving || Math.abs(e.deltaY) < 4) return;
+        if (gap > 180 || now - lastStep > 1400) {
+          lastStep = now;
+          if (at === 0 && e.deltaY < 0 && stepOut()) return;
+          advance(e.deltaY > 0 ? 1 : -1);
+        }
+      }, { passive: false });
+
+      // Keys
+      addEventListener('keydown', e => {
+        if (e.target.closest('input, textarea') || loading()) return;
+        hideTip();
+        const k = e.key, fwd = ['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(k), back = ['ArrowUp', 'ArrowLeft', 'PageUp'].includes(k);
+        if (inTheatre()) {
+          if (fwd) { e.preventDefault(); window.__intro.scrub(0.06); }
+          else if (back) { e.preventDefault(); window.__intro.scrub(-0.06); }
+          else if (k === 'Enter' || k === 'End') window.__intro.skip();
+          return;
+        }
+        if (fwd) { e.preventDefault(); if (!moving) advance(1); }
+        else if (back) { e.preventDefault(); if (!moving && !(at === 0 && stepOut())) advance(-1); }
+        else if (k === 'Home') go(0); else if (k === 'End') go(frames.length - 1);
+      });
+
+      // Touch: drag scrubs the camera in the theatre; swipes advance the film
+      let ty = null, lastTy = null;
+      addEventListener('touchstart', e => { ty = lastTy = e.touches[0].clientY; }, { passive: true });
+      addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (loading()) return;
+        hideTip();
+        const y = e.touches[0].clientY;
+        if (inTheatre() && lastTy !== null) window.__intro.scrub((lastTy - y) * 0.0014);
+        lastTy = y;
+      }, { passive: false });
+      addEventListener('touchend', e => {
+        if (ty === null) return;
+        const dy = ty - e.changedTouches[0].clientY; ty = lastTy = null;
+        if (inTheatre()) return;
+        if (Math.abs(dy) > 40 && !moving) {
+          if (at === 0 && dy < 0 && stepOut()) return;
+          advance(dy > 0 ? 1 : -1);
+        }
+      });
+
+      // In-page links (#id) jump to that frame
+      document.addEventListener('click', e => {
+        const a = e.target.closest('a[href^="#"]');
+        if (!a) return;
+        const f = frames.findIndex(f => `#${f.id}` === a.getAttribute('href'));
+        if (f >= 0) { e.preventDefault(); go(f); }
+      });
+
+      // The film only moves by advancing; never let the browser scroll the screen (anchor jumps, focus)
+      const screenEl = document.querySelector('.screen');
+      screenEl.addEventListener('scroll', () => { screenEl.scrollTop = 0; screenEl.scrollLeft = 0; });
+
+      // Title sequence starts after the intro (or right away when there is none)
+      addEventListener('intro:done', () => {
+        try { sessionStorage.setItem('intro-seen', '1'); } catch (e) {}
+        lastStep = performance.now(); moving = true; setTimeout(() => { moving = false; }, 1000);
+        if (at === 0) { replayTitles(); setTimeout(showTip, 5200); }   // a chapter picked from the theatre keeps its scene
+      });
+      if (!document.documentElement.classList.contains('intro') || window.__introStartAt === 1) { replayTitles(); if (!location.hash) setTimeout(showTip, 5200); }
+
+      // Start at the frame in the URL, if any
+      const startAt = Math.max(0, frames.findIndex(f => `#${f.id}` === location.hash));
+      go(startAt, true);
+      addEventListener('hashchange', () => {
+        const f = frames.findIndex(f => `#${f.id}` === location.hash);
+        go(f < 0 ? 0 : f);
+      });
+      addEventListener('resize', drawSpiral);
+      document.fonts.ready.then(drawSpiral);
+    })();
   </script>
 </body>
 </html>
