@@ -47,7 +47,7 @@ if (!reduceMotion) {
     if (now - last < 1000 / 24 || document.hidden) return;
     last = now;
     c.clearRect(0, 0, w, h);
-    c.fillStyle = `rgba(255,255,255,${Math.random() * .03})`;
+    c.fillStyle = `rgba(255,255,255,${Math.random() * .01})`;
     c.fillRect(0, 0, w, h);
     const specks = Math.random() < .55 ? 0 : 1 + (Math.random() * 3 | 0);
     for (let i = 0; i < specks; i++) {

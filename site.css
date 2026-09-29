@@ -15,9 +15,9 @@ img, video { display: block; max-width: 100%; }
 
 /* Celluloid grain over everything, black and white throughout */
 body::after, [data-film]::after {
-  content: ""; position: fixed; inset: -60%; z-index: 100; pointer-events: none; opacity: .13;
+  content: ""; position: fixed; inset: -60%; z-index: 100; pointer-events: none; opacity: .07;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain .6s steps(6) infinite;
+  animation: grain 1.4s steps(6) infinite;   /* softer, slower grain — easier on the eyes */
 }
 /* On the cinema page the grain lives on the screen only */
 body.theater::after { content: none; }
