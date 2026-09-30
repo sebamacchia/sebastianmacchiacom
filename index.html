@@ -308,20 +308,6 @@
     /* Intro: street → lobby → auditorium, then dissolve into the site's screen */
     #intro { display: none; }
     html.intro #intro { display: block; position: fixed; inset: 0; z-index: 50; background: #000; }
-    /* Help tip: you can walk in and back out */
-    .tip { position: fixed; left: 50%; bottom: 76px; z-index: 55; display: flex; align-items: center; gap: 16px; padding: 14px 20px; transform: translate(-50%, 10px); opacity: 0; pointer-events: none;
-      border: 1px solid rgba(236,235,232,.22); border-radius: 14px; background: rgba(10,10,10,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      color: #ecebe8; font-size: 14px; line-height: 1.45; transition: opacity .6s ease, transform .6s ease; }
-    .tip.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-    .tip .mouse { flex: none; width: 22px; height: 34px; border: 1.5px solid #ecebe8; border-radius: 12px; position: relative; }
-    .tip .mouse::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: #ecebe8; animation: wheel 1.6s ease-in-out infinite; }
-    @keyframes wheel { 0% { transform: translateY(-3px); opacity: 0; } 30% { opacity: 1; } 60% { transform: translateY(8px); opacity: 1; } 100% { transform: translateY(8px); opacity: 0; } }
-    .tip small { display: block; color: #9a9894; font-size: 12px; }
-    .tip kbd { font: inherit; padding: 0 5px; border: 1px solid rgba(236,235,232,.3); border-radius: 4px; }
-    .tip button { margin-left: 4px; padding: 6px 12px; border: 1px solid rgba(236,235,232,.35); border-radius: 999px; background: none; color: #ecebe8; font: 12px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; }
-    .tip button:hover { background: #ecebe8; color: #000; }
-    html.touch .tip .mouse { border-radius: 50%; width: 26px; height: 26px; }
-    @media (max-width: 640px) { .tip { width: calc(100vw - 32px); bottom: 70px; } }
 
     #intro canvas { display: block; width: 100%; height: 100%; }
 
@@ -414,7 +400,7 @@
     <div class="screen" data-film>
       <div class="strip">
 
-        <section class="frame titles" id="titles" data-music="audio/music/opening.mp3" data-music-once data-music-then="audio/music/score-1.mp3" data-short="opening" data-title="titles">
+        <section class="frame titles" id="titles" data-music="audio/music/opening.mp3" data-music-once data-music-then="audio/music/score-1.mp3|audio/music/bass-1.mp3|audio/music/bass-2.mp3" data-short="opening" data-title="titles">
           <canvas aria-hidden="true"></canvas>
           <div class="lines" aria-hidden="true"></div>
           <div class="vignette" aria-hidden="true"></div>
@@ -430,7 +416,7 @@
         <!-- THE FILM OF HIS LIFE — built scene by scene.
              A "story" scene is one or more photos and a shot list; each scroll is a hard cut to the next shot:
              shot = [x, y, size] (x, y = the point of the photo to frame; size 1 = wide, 2.5 = close-up), img = which photo, sub = the narrator's line. -->
-        <section class="frame story" id="the-toy-car" data-music="audio/music/score-1.mp3" data-chapter="the toy car" data-short="the toy car" data-title="the toy car"
+        <section class="frame story" id="the-toy-car" data-music="audio/music/score-1.mp3|audio/music/bass-1.mp3|audio/music/bass-2.mp3" data-chapter="the toy car" data-short="the toy car" data-title="the toy car"
           data-beats='[{"shot": [0.5, 0.45, 1], "sub": "this is sebastian.", "voice": "audio/voice/the-toy-car-1.mp3"}, {"shot": [0.56, 0.46, 2.3], "sub": "and this is a toy car with a small motor inside.", "fx": "motor", "fxAt": 2.6, "voice": "audio/voice/the-toy-car-2.mp3"}, {"shot": [0.54, 0.37, 2.1], "sub": "a few minutes later, sebastian is going to take the car apart, remove the motor, and use it to build some kind of invention.", "voice": "audio/voice/the-toy-car-3.mp3"}, {"shot": [0.5, 0.45, 1], "sub": "sebastian was a very curious child.", "voice": "audio/voice/the-toy-car-4.mp3"}]'>
           <div class="media">
             <img class="color" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy car" style="object-position: 50% 30%" data-gap="2.3">
@@ -439,7 +425,7 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame story" id="the-family" data-music="audio/music/score-2.mp3" data-chapter="the family" data-short="the family" data-title="armando &amp; pascua"
+        <section class="frame story" id="the-family" data-music="audio/music/score-2.mp3|audio/music/bass-4.mp3|audio/music/bass-5.mp3" data-chapter="the family" data-short="the family" data-title="armando &amp; pascua"
           data-beats='[{"img": 0, "shot": [0.667, 0.25, 2.7], "sub": "his father, armando, was a writer and filmmaker.", "voice": "audio/voice/the-family-1.mp3"}, {"img": 0, "shot": [0.6, 0.42, 1.5], "sub": "an amateur filmmaker. he worked as an accountant to support the family, but he was an artist.", "voice": "audio/voice/the-family-2.mp3"}, {"img": 1, "shot": [0.683, 0.13, 2.4], "sub": "his mother, pascua, was a ceramicist and painter.", "voice": "audio/voice/the-family-3.mp3"}, {"img": 0, "shot": [0.595, 0.5, 1], "sub": "another artist.", "voice": "audio/voice/the-family-4.mp3"}]'>
           <div class="media">
             <img class="color" src="images/wedding.jpg" alt="Armando and Pascua on their wedding day, walking down the aisle" data-gap="1.6">
@@ -449,7 +435,7 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame story" id="the-arts" data-music="audio/music/score-2.mp3" data-chapter="the family" data-title="the arts"
+        <section class="frame story" id="the-arts" data-music="audio/music/score-2.mp3|audio/music/bass-4.mp3|audio/music/bass-5.mp3" data-chapter="the family" data-title="the arts"
           data-beats='[{"shot": [0.47, 0.4, 1.05], "sub": "they sent sebastian to study the arts from a very young age.", "voice": "audio/voice/the-arts-1.mp3"}]'>
           <div class="media">
             <img class="color" src="images/seba-and-mother.jpg" style="object-position: 50% 30%" alt="Pascua with Sebastian and his little brother on a rocky beach">
@@ -458,7 +444,7 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame story" id="super-8" data-music="audio/music/score-3.mp3" data-room="projector" data-chapter="super 8" data-short="super 8" data-title="super 8"
+        <section class="frame story" id="super-8" data-music="audio/music/score-3.mp3|audio/music/bass-6.mp3|audio/music/bass-3.mp3" data-room="projector" data-chapter="super 8" data-short="super 8" data-title="super 8"
           data-beats='[{"img": 0, "shot": [0.5, 0.5, 1.05], "sub": "from his father, he learned a now-extinct, noble art:", "voice": "audio/voice/super-8-1.mp3"}, {"img": 1, "shot": [0.6, 0.42, 1.15], "sub": "slicing super 8 film and syncing it to audio tape, by hand.", "voice": "audio/voice/super-8-2.mp3"}, {"img": 0, "shot": [0.58, 0.24, 2.1], "sub": "that is how, still a child, he learned to edit. long before editing had an undo button.", "voice": "audio/voice/super-8-3.mp3"}]'>
           <div class="media">
             <img class="color" src="images/super8-projector.jpg" alt="The family's Super 8 projector, a red reel on top">
@@ -468,18 +454,18 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame card" id="music-at-four" data-music="audio/music/score-4.mp3" data-voice="audio/voice/music-at-four.mp3" data-chapter="first music" data-short="first music" data-title="music at four">
+        <section class="frame card" id="music-at-four" data-music="audio/music/score-4.mp3|audio/music/bass-7.mp3" data-voice="audio/voice/music-at-four.mp3" data-chapter="first music" data-short="first music" data-title="music at four">
           <p class="line">at four he started studying music.</p>
           <p class="line small">first a wooden box drum in a children’s orchestra. later, the recorder.</p>
         </section>
 
-        <section class="frame card" id="never-stopped" data-music="audio/music/score-4.mp3" data-voice="audio/voice/never-stopped.mp3" data-chapter="first music" data-title="he never stopped">
+        <section class="frame card" id="never-stopped" data-music="audio/music/score-4.mp3|audio/music/bass-7.mp3" data-voice="audio/voice/never-stopped.mp3" data-chapter="first music" data-title="he never stopped">
           <p class="line big">he never stopped playing.</p>
         </section>
 
         <!-- to be continued -->
 
-        <section class="frame talk-frame" id="talk" data-music="audio/music/score-4.mp3" data-short="contact" data-title="let's talk">
+        <section class="frame talk-frame" id="talk" data-music="audio/music/score-4.mp3|audio/music/bass-7.mp3" data-short="contact" data-title="let's talk">
           <div class="roll" aria-hidden="true">
             <p><small>an idea of</small>sebastian macchia</p>
             <p><small>with the help of</small>a few very patient machines</p>
@@ -507,11 +493,6 @@
     <nav aria-label="Chapters"><button class="index-toggle" type="button" aria-expanded="false">index</button><ul class="chapters"></ul></nav>
   </footer>
 
-  <div class="tip" role="status" aria-live="polite">
-    <span class="mouse" aria-hidden="true"></span>
-    <span class="tip-text"><b>scroll down</b> to roll the film · <b>scroll up</b> to rewind<small>the <kbd>↑</kbd> <kbd>↓</kbd> keys work too. rewind past the opening to step back out into the theater. <b>click anywhere</b> to hear the narrator.</small></span>
-    <button type="button">got it</button>
-  </div>
   <div id="intro" aria-hidden="true"><canvas></canvas></div>
   <div class="booth" role="dialog" aria-label="enter the cinema">
     <button class="ticket" type="button" aria-label="enter the cinema, with sound">
@@ -689,40 +670,51 @@
       };
       // ── Sound: the narrator, a score under each chapter, and the noises of a film print ──
       // Browsers only allow sound after a click, tap or key press, so the first one switches it on (unless it was turned off).
-      // The narrator is an <audio> element; the score and the effects go through Web Audio (the effects are synthesized: nothing to download).
-      const voice = new Audio(), soundBtn = document.querySelector('.sound');
-      voice.preload = 'auto';
-      let wanted = true, unlocked = false, unlockedAt = 0, line = null, lineAt = 0, voiceTimer;
+      // Everything plays through one Web Audio context, which the first tap unlocks: the narrator, the score, and the
+      // effects (synthesized, nothing to download). The narrator's lines are fetched ahead, a scene before they're needed.
+      const soundBtn = document.querySelector('.sound');
+      let wanted = true, unlocked = false, unlockedAt = 0, line = null, lineAt = 0, voiceTimer, voiceSrc = null;
       try { wanted = localStorage.getItem('sound') !== 'off'; } catch (e) {}
       const live = () => wanted && unlocked;
-      const MUSIC = .26, DUCKED = .09;                                   // score level, and under the narrator
-      let ctx = null, master, musicBus, fxBus, noise, track = null, room = null, bed = null, scene = { music: null, room: null };
+      const MUSIC = .26, DUCKED = .14, VOICE = .7;                       // score level, score under the narrator, narrator level
+      let ctx = null, master, voiceBus, musicBus, fxBus, noise, track = null, room = null, bed = null, scene = { music: null, room: null };
 
       const initAudio = () => {
         if (ctx) return;
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
         ctx = new AC();
-        master = ctx.createGain(); master.connect(ctx.destination);
+        try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}   // iPhone: play even with the silent switch on
+        // levels, measured: narrator -21.5 LUFS, opening ~-20, score -32 (-37 under the narrator), street -31, effects -36 to -46;
+        // a limiter on the way out so nothing can clip or blast, whatever happens to play at once
+        const limiter = ctx.createDynamicsCompressor();
+        limiter.threshold.value = -4; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = .003; limiter.release.value = .25;
+        limiter.connect(ctx.destination);
+        master = ctx.createGain(); master.connect(limiter);
+        voiceBus = ctx.createGain(); voiceBus.gain.value = VOICE; voiceBus.connect(master);
         musicBus = ctx.createGain(); musicBus.gain.value = MUSIC; musicBus.connect(master);
         fxBus = ctx.createGain(); fxBus.gain.value = .5; fxBus.connect(master);
         noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
         const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       };
       const duck = down => { if (ctx) musicBus.gain.setTargetAtTime(down ? DUCKED : MUSIC, ctx.currentTime, .3); };
-      voice.addEventListener('playing', () => duck(true));
-      ['pause', 'ended'].forEach(t => voice.addEventListener(t, () => duck(false)));
 
-      // the score: each chapter names its piece (data-music); a new piece crossfades in, the same one keeps playing across scenes
+      // the score: each chapter names its pieces (data-music, a playlist "a.mp3|b.mp3|…"): they play in turn, each crossfading
+      // into the next, and loop; a new chapter crossfades in its own, the same chapter keeps playing across scenes
       const buffers = {}, XF = 2.5;
       const load = url => buffers[url] || (buffers[url] = fetch(url).then(r => r.arrayBuffer()).then(b => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))));
-      const loopFrom = (t, buf, when, alive = () => track === t) => {    // each pass overlaps the next by XF seconds, so the loop has no seam
-        const src = ctx.createBufferSource(), g = ctx.createGain(), d = buf.duration;
-        src.buffer = buf; src.connect(g); g.connect(t.gain);
-        g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(1, when + XF);
-        g.gain.setValueAtTime(1, when + d - XF); g.gain.linearRampToValueAtTime(0, when + d);
-        src.start(when); src.stop(when + d); t.srcs.push(src);
-        t.timer = setTimeout(() => { if (alive()) loopFrom(t, buf, when + d - XF, alive); }, Math.max(0, when + d - XF - ctx.currentTime - 1) * 1000);
+      const loopFrom = (t, list, i, when, alive = () => track === t) => {   // each piece overlaps the next by XF seconds: no seams
+        load(list[i % list.length]).then(buf => {
+          if (!alive()) return;
+          when = Math.max(when, ctx.currentTime + .02);
+          const src = ctx.createBufferSource(), g = ctx.createGain(), d = buf.duration;
+          src.buffer = buf; src.connect(g); g.connect(t.gain);
+          g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(1, when + XF);
+          g.gain.setValueAtTime(1, when + d - XF); g.gain.linearRampToValueAtTime(0, when + d);
+          src.start(when); src.stop(when + d); t.srcs.push(src);
+          load(list[(i + 1) % list.length]).catch(() => {});             // have the next piece ready
+          t.timer = setTimeout(() => { if (alive()) loopFrom(t, list, i + 1, when + d - XF, alive); }, Math.max(0, when + d - XF - ctx.currentTime - 1) * 1000);
+        }).catch(() => {});
       };
       const fadeAway = (node, srcs, ...timers) => {                     // a slow fade, never a cut
         timers.forEach(clearTimeout);
@@ -730,7 +722,7 @@
         g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.setTargetAtTime(0, now, 1.1);
         setTimeout(() => { srcs.forEach(x => { try { x.stop(); } catch (e) {} }); node.disconnect(); }, 7000);
       };
-      const OPENING = 2.4, HANDOVER = 6, FADE_IN = 2.5;                                 // the opening sits louder; it hands over to the next piece over 6 seconds
+      const OPENING = 2.1, HANDOVER = 6, FADE_IN = 2.5;                                 // the opening sits louder; it hands over to the next piece over 6 seconds
       const playMusic = (url, once, then) => {
         if (!ctx || (track && track.url === url)) return;
         if (track) fadeAway(track.gain, track.srcs, track.timer, track.handover);
@@ -739,10 +731,10 @@
         const t = { url, gain: ctx.createGain(), srcs: [] }, now = ctx.currentTime, level = once ? OPENING : 1;
         t.gain.gain.setValueAtTime(0, now); if (!once) t.gain.gain.setTargetAtTime(level, now, .9);
         t.gain.connect(musicBus); track = t;
-        if (then) load(then).catch(() => {});                           // have the next piece ready for the handover
+        if (then) load(then.split('|')[0]).catch(() => {});             // have the next piece ready for the handover
+        if (!once) { loopFrom(t, url.split('|'), 0, ctx.currentTime + .05); return; }
         load(url).then(buf => {
           if (track !== t) return;
-          if (!once) { loopFrom(t, buf, ctx.currentTime + .05); return; }
           // the opening: once, from the top; near its end the next piece rises underneath while it fades away
           const src = ctx.createBufferSource(), when = ctx.currentTime + .05, end = when + buf.duration, xo = Math.min(HANDOVER, buf.duration / 2);
           src.buffer = buf; src.connect(t.gain); src.start(when); t.srcs.push(src);
@@ -754,7 +746,7 @@
             const n = { url: then, gain: ctx.createGain(), srcs: [] }, at0 = ctx.currentTime;
             n.gain.gain.setValueAtTime(0, at0); n.gain.gain.linearRampToValueAtTime(1, at0 + xo);
             n.gain.connect(musicBus); track = n;
-            load(then).then(nb => { if (track === n) loopFrom(n, nb, ctx.currentTime + .02); }).catch(() => {});
+            loopFrom(n, then.split('|'), 0, ctx.currentTime + .02);
             setTimeout(() => { t.srcs.forEach(x => { try { x.stop(); } catch (e) {} }); t.gain.disconnect(); }, (xo + 1) * 1000);
           }, Math.max(0, end - xo - ctx.currentTime) * 1000);
         }).catch(() => {});
@@ -806,7 +798,7 @@
         if (room) fadeAway(room.gain, room.srcs);
         room = null;
         if (!name || !ROOMS[name]) return;
-        const g = ctx.createGain(); g.gain.value = 0; g.connect(fxBus); g.gain.setTargetAtTime(.22, ctx.currentTime + .8, .6);
+        const g = ctx.createGain(); g.gain.value = 0; g.connect(fxBus); g.gain.setTargetAtTime(.13, ctx.currentTime + .8, .6);   // the projector, kept under the narrator
         room = { name, gain: g, srcs: ROOMS[name](g) };
       };
       // under everything, the print itself: faint hiss and the odd crackle
@@ -827,7 +819,7 @@
         if (street || !ctx) return;
         const t = { gain: ctx.createGain(), srcs: [] };
         t.gain.gain.value = 0; t.gain.connect(fxBus); street = t;
-        load('audio/music/street.mp3').then(buf => loopFrom(t, buf, ctx.currentTime + .02, () => street === t)).catch(() => {});
+        loopFrom(t, ['audio/music/street.mp3'], 0, ctx.currentTime + .02, () => street === t);
       };
       setInterval(() => {
         if (!ctx || !live()) return;
@@ -839,15 +831,36 @@
       }, 120);
 
       const soundLabel = () => { const on = live(); soundBtn.textContent = on ? 'sound on' : 'sound off'; soundBtn.setAttribute('aria-pressed', on); };
-      const say = () => { if (!line || !live()) return; voice.src = line; voice.play().catch(() => {}); };
+      // the narrator
+      const stopVoice = () => { if (!voiceSrc) return; voiceSrc.onended = null; try { voiceSrc.stop(); } catch (e) {} voiceSrc = null; duck(false); };
+      const say = () => {
+        if (!line || !live() || !ctx) return;
+        const want = line;
+        load(want).then(buf => {
+          if (line !== want || !live()) return;                          // the film moved on while it was loading
+          stopVoice();
+          const src = ctx.createBufferSource(); src.buffer = buf; src.connect(voiceBus); src.start();
+          voiceSrc = src; duck(true);
+          src.onended = () => { if (voiceSrc !== src) return; voiceSrc = null; duck(false); roll(1400); };   // finished: a beat of silence, then cut
+        }).catch(() => {});
+      };
       const speak = (src, delay) => {
-        clearTimeout(voiceTimer); voice.pause();
+        clearTimeout(voiceTimer); stopVoice();
         line = src || null; lineAt = performance.now() + delay * 1000;
-        if (line) voiceTimer = setTimeout(say, delay * 1000);
+        if (line) { if (ctx) load(line).catch(() => {}); voiceTimer = setTimeout(say, delay * 1000); }
+      };
+      // fetch the lines of this scene and the next one, so the narrator is never late
+      const linesOf = f => f ? (f._beats ? f._beats.map(b => b.voice) : [f.dataset.voice]).filter(Boolean) : [];
+      const prefetch = f => {
+        if (!ctx) return;
+        const i = frames.indexOf(f), next = frames[i + 1];
+        [...linesOf(f), ...linesOf(next)].forEach(u => load(u).catch(() => {}));
+        if (next && next.dataset.music) load(next.dataset.music.split('|')[0]).catch(() => {});   // and the next chapter's music
       };
       // what the current scene should sound like: its piece of the score and its room
       const setScene = f => {
-        scene = { music: f.dataset.music || null, once: 'musicOnce' in f.dataset, then: f.dataset.musicThen || null, room: f.dataset.room || null };
+        scene = { music: f.dataset.music || null, once: 'musicOnce' in f.dataset, then: f.dataset.musicThen || null, room: f.dataset.room || null, frame: f };
+        prefetch(f);
         if (!live()) return;
         if (track && scene.then && track.url === scene.then) return;    // back on the title after the opening handed over: keep what's playing
         if (scene.once && !doorsOpened) return;                          // the opening waits for the doors
@@ -855,28 +868,31 @@
       };
       const wake = () => {
         initAudio(); if (!ctx) return;
-        ctx.resume(); startBed(); playRoom(scene.room);
+        ctx.resume();
+        const tick = ctx.createBufferSource(); tick.buffer = ctx.createBuffer(1, 1, 22050); tick.connect(ctx.destination); tick.start(0);   // iPhone: a silent sample inside the tap unlocks the output
+        startBed(); playRoom(scene.room); prefetch(scene.frame);
         if (!(scene.once && !doorsOpened)) playMusic(scene.music, scene.once, scene.then);
       };
+      // iPhones only count a tap when the finger lifts (touchend / click), so keep trying on every gesture until sound is actually running
       const unlock = () => {
-        if (unlocked) return;
-        unlocked = true; unlockedAt = performance.now(); soundLabel();
-        if (!wanted) return;
+        const first = !unlocked;
+        if (first) { unlocked = true; unlockedAt = performance.now(); soundLabel(); }
+        if (!wanted || (ctx && ctx.state === 'running' && !first)) return;
         wake();
-        if (line && performance.now() >= lineAt) say();                 // the line on screen now, if its moment already passed
+        if (line && performance.now() >= lineAt && !voiceSrc) say();     // the line on screen now, if its moment already passed
       };
-      ['pointerdown', 'keydown', 'touchend'].forEach(t => addEventListener(t, unlock, { capture: true }));
+      ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(t => addEventListener(t, unlock, { capture: true }));
       const setWanted = w => {
         wanted = w; soundLabel();
         try { localStorage.setItem('sound', wanted ? 'on' : 'off'); } catch (e) {}
-        if (wanted) { wake(); say(); } else { voice.pause(); if (ctx) ctx.suspend(); }
+        if (wanted) { wake(); say(); } else { stopVoice(); if (ctx) ctx.suspend(); }
       };
       soundBtn.addEventListener('click', () => {
         if (performance.now() - unlockedAt < 800) { if (!wanted) setWanted(true); return; }   // the click that switched sound on
         setWanted(!wanted);
       });
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) { voice.pause(); if (ctx) ctx.suspend(); } else if (live() && ctx) ctx.resume();
+        if (document.hidden) { if (ctx) ctx.suspend(); } else if (live() && ctx) ctx.resume();
       });
       soundLabel();
       // Some browsers let a page play sound straight away (Chrome for sites you often play media on, Safari set to
@@ -903,7 +919,6 @@
       };
       // hold a shot: `delay` seconds until its words arrive, then time to hear or read them
       const hold = (delay, text) => roll((delay + (text || '').length / 12 + 1.8) * 1000);
-      voice.addEventListener('ended', () => roll(1400));                 // the narrator finished: a beat of silence, then cut
       playBtn.addEventListener('click', () => {
         auto = !auto; playLabel();
         try { localStorage.setItem('auto', auto ? 'on' : 'off'); } catch (e) {}
@@ -987,18 +1002,8 @@
         history.replaceState(null, '', i === 0 ? location.pathname : `#${id}`);
       }
 
-      // Opening countdown (≈6s) while the 3D theatre loads, then the help tip
       const loading = () => document.documentElement.classList.contains('loading');
-      const tip = document.querySelector('.tip');
-      let tipTimer;
-      const hideTip = () => { if (tip.classList.contains('show')) { tip.classList.remove('show'); clearTimeout(tipTimer); } };
-      tip.querySelector('button').addEventListener('click', hideTip);
-      if (matchMedia('(hover: none)').matches) {
-        document.documentElement.classList.add('touch');
-        tip.querySelector('.tip-text').innerHTML = '<b>swipe up</b> to roll the film · <b>swipe down</b> to rewind<small>rewind past the opening to step back out into the theater. <b>tap anywhere</b> to hear the narrator.</small>';
-      }
-      let tipShown = false;
-      const showTip = () => { if (tipShown || at !== 0) return; tipShown = true; tip.classList.add('show'); tipTimer = setTimeout(hideTip, 9000); };
+      if (matchMedia('(hover: none)').matches) document.documentElement.classList.add('touch');
       // Every visit from the street: the ticket first (its click is what lets the film play sound), then the walk in
       const booth = document.querySelector('.booth');
       const ticketUp = () => document.documentElement.classList.contains('booth-up');
@@ -1034,7 +1039,6 @@
       addEventListener('wheel', e => {
         e.preventDefault();
         if (loading() || atDoor()) return;
-        hideTip();
         const now = performance.now(), gap = now - lastWheel;
         lastWheel = now;
         if (inTheatre()) { window.__intro.scrub(e.deltaY * (e.deltaMode === 1 ? 0.012 : 0.00035)); return; }
@@ -1049,7 +1053,6 @@
       // Keys
       addEventListener('keydown', e => {
         if (e.target.closest('input, textarea') || loading() || atDoor()) return;
-        hideTip();
         const k = e.key, fwd = ['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(k), back = ['ArrowUp', 'ArrowLeft', 'PageUp'].includes(k);
         if (inTheatre()) {
           if (fwd) { e.preventDefault(); window.__intro.scrub(0.06); }
@@ -1068,7 +1071,6 @@
       addEventListener('touchmove', e => {
         e.preventDefault();
         if (loading() || atDoor()) return;
-        hideTip();
         const y = e.touches[0].clientY;
         if (inTheatre() && lastTy !== null) window.__intro.scrub((lastTy - y) * 0.0014);
         lastTy = y;
@@ -1099,9 +1101,9 @@
       addEventListener('intro:done', () => {
         try { sessionStorage.setItem('intro-seen', '1'); } catch (e) {}
         lastStep = performance.now(); moving = true; setTimeout(() => { moving = false; }, 1000);
-        if (at === 0) { replayTitles(); setTimeout(showTip, 5200); roll(7500); }   // a chapter picked from the theatre keeps its scene
+        if (at === 0) { replayTitles(); roll(7500); }   // a chapter picked from the theatre keeps its scene
       });
-      if (!document.documentElement.classList.contains('intro') || window.__introStartAt === 1) { replayTitles(); if (!location.hash) setTimeout(showTip, 5200); }
+      if (!document.documentElement.classList.contains('intro') || window.__introStartAt === 1) { replayTitles(); }
 
       // Start at the frame in the URL, if any
       const startAt = Math.max(0, frames.findIndex(f => `#${f.id}` === location.hash));
