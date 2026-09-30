@@ -1,2 +1,10 @@
 .DS_Store
 tmp/
+
+# Originals stay on this Mac: drop full-size photos in assets/, web versions go in images/.
+# Only the film-burn clips in assets/ are part of the site.
+assets/*
+!assets/film-burn.webm
+!assets/film-burn.mp4
+# master audio (the site uses the small .mp3 versions)
+*.wav
