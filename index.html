@@ -703,7 +703,8 @@
       // the score: each chapter names its pieces (data-music, a playlist "a.mp3|b.mp3|…"): they play in turn, each crossfading
       // into the next, and loop; a new chapter crossfades in its own, the same chapter keeps playing across scenes
       const buffers = {}, XF = 2.5;
-      const load = url => buffers[url] || (buffers[url] = fetch(url).then(r => r.arrayBuffer()).then(b => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))));
+      const AUDIO_V = 3;                                                 // bump whenever sound files are replaced, so browsers fetch the new ones
+      const load = url => buffers[url] || (buffers[url] = fetch(`${url}?v=${AUDIO_V}`).then(r => r.arrayBuffer()).then(b => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))));
       const loopFrom = (t, list, i, when, alive = () => track === t) => {   // each piece overlaps the next by XF seconds: no seams
         load(list[i % list.length]).then(buf => {
           if (!alive()) return;
