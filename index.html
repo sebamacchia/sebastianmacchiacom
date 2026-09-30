@@ -103,7 +103,7 @@
     /* --after: when the chapter's title sequence is over and the words may come in */
     .frame { --after: 1.5s; }
     .frame[data-bass] { --after: 3.2s; }
-    .talk-frame { --after: 4.8s; }
+    .talk-frame { --after: 6s; }
     .frame.active .copy > :nth-child(1), .talk-frame.active > h2 { transition-delay: var(--after); }
     .frame.active .copy > :nth-child(2), .talk-frame.active > p { transition-delay: calc(var(--after) + .45s); }
     .frame.active .copy > :nth-child(3), .talk-frame.active > .pills { transition-delay: calc(var(--after) + .8s); }
@@ -259,7 +259,7 @@
     .talk-frame .roll { position: absolute; left: 0; right: 0; top: 100%; z-index: 2; text-align: center; font-family: "Oswald", sans-serif; text-transform: uppercase; color: #ecebe8; pointer-events: none; }
     .talk-frame .roll p { max-width: none; color: #ecebe8; margin: 0 0 7cqh; font-size: clamp(16px, 2.4cqw, 34px); font-weight: 300; letter-spacing: .06em; line-height: 1.2; }
     .talk-frame .roll small { display: block; margin-bottom: .5em; font-family: "Courier Prime", monospace; font-size: clamp(10px, .95cqw, 13px); letter-spacing: .12em; color: #a9a7a3; }
-    .talk-frame.active .roll { animation: roll 4.4s linear .9s forwards; }
+    .talk-frame.active .roll { animation: roll 5.6s linear .9s forwards; }
     .talk-frame .credits-line { opacity: 0; transition: opacity .4s; }
     .talk-frame.active .credits-line { opacity: 1; transition: opacity 1s ease calc(var(--after) + 1.2s); }
     @keyframes roll { to { transform: translateY(calc(-100% - 100cqh)); } }
@@ -469,6 +469,7 @@
           <div class="roll" aria-hidden="true">
             <p><small>an idea of</small>sebastian macchia</p>
             <p><small>with the help of</small>a few very patient machines</p>
+            <p><small>narrated by</small>a machine that believes it is alfred hitchcock</p>
           </div>
           <h2>Let's Talk</h2>
           <p>collaborations, commissions, talks, workshops, or building something new together.</p>
