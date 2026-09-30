@@ -58,6 +58,15 @@
     .scrub button:hover { color: var(--fg); }
     .scrub button:focus { outline: none; } .scrub button:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
     .scrub .sep { opacity: .5; }
+    .sound { margin-left: 22px; padding: 4px 2px; border: 0; background: none; color: var(--muted); font: 12px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; transition: color .25s; }
+    .sound:hover, .sound[aria-pressed="true"] { color: var(--fg); }
+    .sound:focus { outline: none; } .sound:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+    .sound::before { content: "♪ "; }
+    .play { margin-left: 22px; padding: 4px 2px; border: 0; background: none; color: var(--fg); font: 12px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; }
+    .play:focus { outline: none; } .play:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+    .play::before { content: "❚❚ "; font-size: .8em; letter-spacing: -.1em; }
+    .play[aria-pressed="false"] { color: var(--muted); } .play[aria-pressed="false"]::before { content: "▶ "; letter-spacing: 0; }
+    .play + .sound { margin-left: 16px; }
     html.touch .scrub .wheel { display: none; }
     /* Chapter index along the bottom */
     .chapters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 4px; margin: 0; padding: 0; list-style: none; }
@@ -277,15 +286,15 @@
     .story .media img.on { visibility: visible; }
     .story .shade { background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 40%, rgba(0,0,0,.72) 100%), linear-gradient(0deg, rgba(0,0,0,.75) 0%, transparent 32%); }
     .story .sub { bottom: 7cqh; }
-    .story .sub span { max-width: 40ch; padding: 0; font-family: "Libre Baskerville", serif; font-size: clamp(15px, 1.75cqw, 27px); line-height: 1.5; letter-spacing: .005em; animation-duration: .35s; }
+    .story .sub span { max-width: 40ch; padding: 0; font-family: "Libre Baskerville", serif; font-size: clamp(17px, 2.01cqw, 31px); line-height: 1.5; letter-spacing: .005em; animation-duration: .35s; }
     /* intertitles: the narrator alone on black */
     .card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3cqh; padding: 0 12cqw; text-align: center; background: #000; }
-    .card p { max-width: 28ch; margin: 0; font-family: "Libre Baskerville", serif; font-size: clamp(18px, 2.9cqw, 50px); line-height: 1.45; color: #ecebe8; opacity: 0; }
-    .card p.small { max-width: 40ch; font-style: italic; font-size: clamp(14px, 1.9cqw, 30px); color: #bdbbb7; }
-    .card p.big { font-size: clamp(24px, 4.4cqw, 80px); }
+    .card p { max-width: 28ch; margin: 0; font-family: "Libre Baskerville", serif; font-size: clamp(21px, 3.34cqw, 58px); line-height: 1.45; color: #ecebe8; opacity: 0; }
+    .card p.small { max-width: 40ch; font-style: italic; font-size: clamp(16px, 2.19cqw, 35px); color: #bdbbb7; }
+    .card p.big { font-size: clamp(28px, 5.06cqw, 92px); }
     .card.active p { opacity: 1; transition: opacity .4s ease 2.1s; }
     .card.active p + p { transition-delay: 3.6s; }
-    @container (max-aspect-ratio: 1/1) { .card p { font-size: 6cqw; } .card p.small { font-size: 4.4cqw; } .card p.big { font-size: 7.6cqw; } }
+    @container (max-aspect-ratio: 1/1) { .card p { font-size: 6.9cqw; } .card p.small { font-size: 5.06cqw; } .card p.big { font-size: 8.74cqw; } }
     @media (prefers-reduced-motion: reduce) { .card p { opacity: 1; transition: none !important; } }
 
     /* Last frame: talk */
@@ -315,6 +324,36 @@
     @media (max-width: 640px) { .tip { width: calc(100vw - 32px); bottom: 70px; } }
 
     #intro canvas { display: block; width: 100%; height: 100%; }
+
+    /* The ticket: the one click browsers ask for before a page may play sound, taken at the door like a real ticket */
+    .booth { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+      background: radial-gradient(ellipse at 50% 55%, rgba(0,0,0,.35), rgba(0,0,0,.85)); transition: opacity .9s ease .5s; }
+    html.booth-up .booth { display: flex; }
+    .ticket { --paper: #ece4cf; --ink: #151412; position: relative; display: flex; width: min(560px, 86vw); padding: 0; border: 0; cursor: pointer; background: none;
+      transform: rotate(-3deg); filter: drop-shadow(0 18px 40px rgba(0,0,0,.7)) drop-shadow(0 0 30px rgba(236,228,207,.12));
+      transition: transform .35s cubic-bezier(.2,.7,.2,1); animation: ticketIn 1s cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes ticketIn { from { opacity: 0; transform: translateY(24px) rotate(-6deg); } }
+    .ticket:hover, .ticket:focus-visible { transform: rotate(-1.5deg) translateY(-4px); }
+    .ticket:focus { outline: none; }
+    /* the paper: notched corners, a perforated line between stub and face */
+    .ticket .stub, .ticket .face { background: var(--paper); color: var(--ink); -webkit-mask: radial-gradient(circle 11px at var(--nx) 0, transparent 98%, #000) top / 100% 51% no-repeat, radial-gradient(circle 11px at var(--nx) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+      mask: radial-gradient(circle 11px at var(--nx) 0, transparent 98%, #000) top / 100% 51% no-repeat, radial-gradient(circle 11px at var(--nx) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat; }
+    .ticket .stub { --nx: 100%; flex: 0 0 22%; display: flex; align-items: center; justify-content: center; border-right: 2px dashed rgba(21,20,18,.45); transition: transform .7s cubic-bezier(.5,0,.3,1), opacity .7s; }
+    .ticket .stub .no { writing-mode: vertical-rl; transform: rotate(180deg); font: 12px "Courier Prime", monospace; letter-spacing: .18em; text-transform: uppercase; }
+    .ticket .stub i { font-style: normal; }
+    .ticket .face { --nx: 0; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px 22px 22px; text-align: center; transition: transform .8s cubic-bezier(.5,0,.3,1); }
+    .ticket .face small { font: 12px "Courier Prime", monospace; letter-spacing: .35em; text-transform: uppercase; }
+    .ticket .face b { font: 400 clamp(24px, 5.4vw, 40px)/1 "Alfa Slab One", serif; letter-spacing: .02em; text-transform: uppercase; margin: 4px 0 2px; }
+    .ticket .face em { font: italic clamp(15px, 2.6vw, 20px) "Libre Baskerville", serif; }
+    .ticket .face .fine { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(21,20,18,.35); font: 12px "Courier Prime", monospace; letter-spacing: .12em; text-transform: uppercase; }
+    .quiet { padding: 6px 2px; border: 0; background: none; color: #8f8d88; font: 13px "Instrument Sans", sans-serif; text-transform: lowercase; cursor: pointer; animation: fade 1s ease 1s both; opacity: 0; }
+    .quiet:hover { color: #ecebe8; }
+    .quiet:focus { outline: none; } .quiet:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+    /* torn at the door: the stub drops, the ticket goes into the dark */
+    .booth.torn { opacity: 0; pointer-events: none; }
+    .booth.torn .stub { transform: translate(-30px, 60px) rotate(-18deg); opacity: 0; }
+    .booth.torn .face { transform: translateX(20px) rotate(2deg); }
+    @media (prefers-reduced-motion: reduce) { .ticket, .quiet { animation: none; opacity: 1; } .booth, .ticket .stub, .ticket .face { transition: none; } }
 
     @media (max-width: 640px) {
       .counter .t { display: none; }
@@ -375,7 +414,7 @@
     <div class="screen" data-film>
       <div class="strip">
 
-        <section class="frame titles" id="titles" data-short="opening" data-title="titles">
+        <section class="frame titles" id="titles" data-music="audio/music/opening.mp3" data-music-once data-music-then="audio/music/score-1.mp3" data-short="opening" data-title="titles">
           <canvas aria-hidden="true"></canvas>
           <div class="lines" aria-hidden="true"></div>
           <div class="vignette" aria-hidden="true"></div>
@@ -391,8 +430,8 @@
         <!-- THE FILM OF HIS LIFE — built scene by scene.
              A "story" scene is one or more photos and a shot list; each scroll is a hard cut to the next shot:
              shot = [x, y, size] (x, y = the point of the photo to frame; size 1 = wide, 2.5 = close-up), img = which photo, sub = the narrator's line. -->
-        <section class="frame story" id="the-toy-car" data-chapter="the toy car" data-short="the toy car" data-title="the toy car"
-          data-beats='[{"shot": [0.5, 0.45, 1], "sub": "this is sebastian."}, {"shot": [0.56, 0.46, 2.3], "sub": "and this is a toy car with a small motor inside."}, {"shot": [0.54, 0.37, 2.1], "sub": "a few minutes later, sebastian is going to take the car apart, remove the motor, and use it to build some kind of invention."}, {"shot": [0.5, 0.45, 1], "sub": "sebastian was a very curious child."}]'>
+        <section class="frame story" id="the-toy-car" data-music="audio/music/score-1.mp3" data-chapter="the toy car" data-short="the toy car" data-title="the toy car"
+          data-beats='[{"shot": [0.5, 0.45, 1], "sub": "this is sebastian.", "voice": "audio/voice/the-toy-car-1.mp3"}, {"shot": [0.56, 0.46, 2.3], "sub": "and this is a toy car with a small motor inside.", "fx": "motor", "fxAt": 2.6, "voice": "audio/voice/the-toy-car-2.mp3"}, {"shot": [0.54, 0.37, 2.1], "sub": "a few minutes later, sebastian is going to take the car apart, remove the motor, and use it to build some kind of invention.", "voice": "audio/voice/the-toy-car-3.mp3"}, {"shot": [0.5, 0.45, 1], "sub": "sebastian was a very curious child.", "voice": "audio/voice/the-toy-car-4.mp3"}]'>
           <div class="media">
             <img class="color" src="images/who-childhood.jpg" alt="Sebastian as a child, holding a toy car" style="object-position: 50% 30%" data-gap="2.3">
           </div>
@@ -400,8 +439,8 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame story" id="the-family" data-chapter="the family" data-short="the family" data-title="armando &amp; pascua"
-          data-beats='[{"img": 0, "shot": [0.667, 0.25, 2.7], "sub": "his father, armando, was a writer and filmmaker."}, {"img": 0, "shot": [0.6, 0.42, 1.5], "sub": "an amateur filmmaker. he worked as an accountant to support the family, but he was an artist."}, {"img": 1, "shot": [0.683, 0.13, 2.4], "sub": "his mother, pascua, was a ceramicist and painter."}, {"img": 0, "shot": [0.595, 0.5, 1], "sub": "another artist."}]'>
+        <section class="frame story" id="the-family" data-music="audio/music/score-2.mp3" data-chapter="the family" data-short="the family" data-title="armando &amp; pascua"
+          data-beats='[{"img": 0, "shot": [0.667, 0.25, 2.7], "sub": "his father, armando, was a writer and filmmaker.", "voice": "audio/voice/the-family-1.mp3"}, {"img": 0, "shot": [0.6, 0.42, 1.5], "sub": "an amateur filmmaker. he worked as an accountant to support the family, but he was an artist.", "voice": "audio/voice/the-family-2.mp3"}, {"img": 1, "shot": [0.683, 0.13, 2.4], "sub": "his mother, pascua, was a ceramicist and painter.", "voice": "audio/voice/the-family-3.mp3"}, {"img": 0, "shot": [0.595, 0.5, 1], "sub": "another artist.", "voice": "audio/voice/the-family-4.mp3"}]'>
           <div class="media">
             <img class="color" src="images/wedding.jpg" alt="Armando and Pascua on their wedding day, walking down the aisle" data-gap="1.6">
             <img class="color" src="images/pascua-tall-girl.jpg" alt="Pascua as a girl, the tall one, in a family portrait">
@@ -410,8 +449,8 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame story" id="the-arts" data-chapter="the family" data-title="the arts"
-          data-beats='[{"shot": [0.47, 0.4, 1.05], "sub": "they sent sebastian to study the arts from a very young age."}]'>
+        <section class="frame story" id="the-arts" data-music="audio/music/score-2.mp3" data-chapter="the family" data-title="the arts"
+          data-beats='[{"shot": [0.47, 0.4, 1.05], "sub": "they sent sebastian to study the arts from a very young age.", "voice": "audio/voice/the-arts-1.mp3"}]'>
           <div class="media">
             <img class="color" src="images/seba-and-mother.jpg" style="object-position: 50% 30%" alt="Pascua with Sebastian and his little brother on a rocky beach">
           </div>
@@ -419,18 +458,28 @@
           <p class="sub" aria-live="off"></p>
         </section>
 
-        <section class="frame card" id="music-at-four" data-chapter="first music" data-short="first music" data-title="music at four">
+        <section class="frame story" id="super-8" data-music="audio/music/score-3.mp3" data-room="projector" data-chapter="super 8" data-short="super 8" data-title="super 8"
+          data-beats='[{"img": 0, "shot": [0.5, 0.5, 1.05], "sub": "from his father, he learned a now-extinct, noble art:", "voice": "audio/voice/super-8-1.mp3"}, {"img": 1, "shot": [0.6, 0.42, 1.15], "sub": "slicing super 8 film and syncing it to audio tape, by hand.", "voice": "audio/voice/super-8-2.mp3"}, {"img": 0, "shot": [0.58, 0.24, 2.1], "sub": "that is how, still a child, he learned to edit. long before editing had an undo button.", "voice": "audio/voice/super-8-3.mp3"}]'>
+          <div class="media">
+            <img class="color" src="images/super8-projector.jpg" alt="The family's Super 8 projector, a red reel on top">
+            <img class="color" src="images/super8-splicer.jpg" alt="A Fujica Single-8 splicer, with buttons marked film and tape">
+          </div>
+          <div class="shade soft"></div>
+          <p class="sub" aria-live="off"></p>
+        </section>
+
+        <section class="frame card" id="music-at-four" data-music="audio/music/score-4.mp3" data-voice="audio/voice/music-at-four.mp3" data-chapter="first music" data-short="first music" data-title="music at four">
           <p class="line">at four he started studying music.</p>
           <p class="line small">first a wooden box drum in a children’s orchestra. later, the recorder.</p>
         </section>
 
-        <section class="frame card" id="never-stopped" data-chapter="first music" data-title="he never stopped">
+        <section class="frame card" id="never-stopped" data-music="audio/music/score-4.mp3" data-voice="audio/voice/never-stopped.mp3" data-chapter="first music" data-title="he never stopped">
           <p class="line big">he never stopped playing.</p>
         </section>
 
         <!-- to be continued -->
 
-        <section class="frame talk-frame" id="talk" data-short="contact" data-title="let's talk">
+        <section class="frame talk-frame" id="talk" data-music="audio/music/score-4.mp3" data-short="contact" data-title="let's talk">
           <div class="roll" aria-hidden="true">
             <p><small>an idea of</small>sebastian macchia</p>
             <p><small>with the help of</small>a few very patient machines</p>
@@ -454,17 +503,29 @@
   </main>
 
   <footer class="bottombar" aria-label="Film controls">
-    <div class="counter"><b class="n">01 / 05</b><span class="t">titles</span><span class="scrub" aria-label="scroll to rewind or fast-forward the film"><span class="wheel" aria-hidden="true"></span><button type="button" data-step="-1" aria-label="rewind">↑ rewind</button><span class="sep" aria-hidden="true">·</span><button type="button" data-step="1" aria-label="forward">forward ↓</button></span></div>
+    <div class="counter"><b class="n">01 / 05</b><span class="t">titles</span><span class="scrub" aria-label="scroll to rewind or fast-forward the film"><span class="wheel" aria-hidden="true"></span><button type="button" data-step="-1" aria-label="rewind">↑ rewind</button><span class="sep" aria-hidden="true">·</span><button type="button" data-step="1" aria-label="forward">forward ↓</button></span><button class="play" type="button" aria-pressed="true">pause</button><button class="sound" type="button" aria-pressed="false">sound off</button></div>
     <nav aria-label="Chapters"><button class="index-toggle" type="button" aria-expanded="false">index</button><ul class="chapters"></ul></nav>
   </footer>
 
   <div class="tip" role="status" aria-live="polite">
     <span class="mouse" aria-hidden="true"></span>
-    <span class="tip-text"><b>scroll down</b> to roll the film · <b>scroll up</b> to rewind<small>the <kbd>↑</kbd> <kbd>↓</kbd> keys work too. rewind past the opening to step back out into the theater</small></span>
+    <span class="tip-text"><b>scroll down</b> to roll the film · <b>scroll up</b> to rewind<small>the <kbd>↑</kbd> <kbd>↓</kbd> keys work too. rewind past the opening to step back out into the theater. <b>click anywhere</b> to hear the narrator.</small></span>
     <button type="button">got it</button>
   </div>
   <div id="intro" aria-hidden="true"><canvas></canvas></div>
-  <script type="module" src="intro.js?v=23"></script>
+  <div class="booth" role="dialog" aria-label="enter the cinema">
+    <button class="ticket" type="button" aria-label="enter the cinema, with sound">
+      <span class="stub" aria-hidden="true"><span class="no">Nº <i>000000</i></span></span>
+      <span class="face">
+        <small>admit one</small>
+        <b>Sebastian Macchia</b>
+        <em>the web-movie</em>
+        <span class="fine">click to enter · with sound</span>
+      </span>
+    </button>
+    <button class="quiet" type="button">or enter without sound</button>
+  </div>
+  <script type="module" src="intro.js?v=24"></script>
   <script src="site.js?v=16"></script>
   <script>
     (() => {
@@ -626,6 +687,230 @@
         img.style.objectPosition = c.pos;
         img.style.transform = `translate(${c.dx}px, ${c.dy}px) scale(${c.s})`;
       };
+      // ── Sound: the narrator, a score under each chapter, and the noises of a film print ──
+      // Browsers only allow sound after a click, tap or key press, so the first one switches it on (unless it was turned off).
+      // The narrator is an <audio> element; the score and the effects go through Web Audio (the effects are synthesized: nothing to download).
+      const voice = new Audio(), soundBtn = document.querySelector('.sound');
+      voice.preload = 'auto';
+      let wanted = true, unlocked = false, unlockedAt = 0, line = null, lineAt = 0, voiceTimer;
+      try { wanted = localStorage.getItem('sound') !== 'off'; } catch (e) {}
+      const live = () => wanted && unlocked;
+      const MUSIC = .26, DUCKED = .09;                                   // score level, and under the narrator
+      let ctx = null, master, musicBus, fxBus, noise, track = null, room = null, bed = null, scene = { music: null, room: null };
+
+      const initAudio = () => {
+        if (ctx) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        ctx = new AC();
+        master = ctx.createGain(); master.connect(ctx.destination);
+        musicBus = ctx.createGain(); musicBus.gain.value = MUSIC; musicBus.connect(master);
+        fxBus = ctx.createGain(); fxBus.gain.value = .5; fxBus.connect(master);
+        noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+        const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      };
+      const duck = down => { if (ctx) musicBus.gain.setTargetAtTime(down ? DUCKED : MUSIC, ctx.currentTime, .3); };
+      voice.addEventListener('playing', () => duck(true));
+      ['pause', 'ended'].forEach(t => voice.addEventListener(t, () => duck(false)));
+
+      // the score: each chapter names its piece (data-music); a new piece crossfades in, the same one keeps playing across scenes
+      const buffers = {}, XF = 2.5;
+      const load = url => buffers[url] || (buffers[url] = fetch(url).then(r => r.arrayBuffer()).then(b => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))));
+      const loopFrom = (t, buf, when, alive = () => track === t) => {    // each pass overlaps the next by XF seconds, so the loop has no seam
+        const src = ctx.createBufferSource(), g = ctx.createGain(), d = buf.duration;
+        src.buffer = buf; src.connect(g); g.connect(t.gain);
+        g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(1, when + XF);
+        g.gain.setValueAtTime(1, when + d - XF); g.gain.linearRampToValueAtTime(0, when + d);
+        src.start(when); src.stop(when + d); t.srcs.push(src);
+        t.timer = setTimeout(() => { if (alive()) loopFrom(t, buf, when + d - XF, alive); }, Math.max(0, when + d - XF - ctx.currentTime - 1) * 1000);
+      };
+      const fadeAway = (node, srcs, ...timers) => {                     // a slow fade, never a cut
+        timers.forEach(clearTimeout);
+        const now = ctx.currentTime, g = node.gain;
+        g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.setTargetAtTime(0, now, 1.1);
+        setTimeout(() => { srcs.forEach(x => { try { x.stop(); } catch (e) {} }); node.disconnect(); }, 7000);
+      };
+      const OPENING = 2.4, HANDOVER = 6, FADE_IN = 2.5;                                 // the opening sits louder; it hands over to the next piece over 6 seconds
+      const playMusic = (url, once, then) => {
+        if (!ctx || (track && track.url === url)) return;
+        if (track) fadeAway(track.gain, track.srcs, track.timer, track.handover);
+        track = null;
+        if (!url) return;
+        const t = { url, gain: ctx.createGain(), srcs: [] }, now = ctx.currentTime, level = once ? OPENING : 1;
+        t.gain.gain.setValueAtTime(0, now); if (!once) t.gain.gain.setTargetAtTime(level, now, .9);
+        t.gain.connect(musicBus); track = t;
+        if (then) load(then).catch(() => {});                           // have the next piece ready for the handover
+        load(url).then(buf => {
+          if (track !== t) return;
+          if (!once) { loopFrom(t, buf, ctx.currentTime + .05); return; }
+          // the opening: once, from the top; near its end the next piece rises underneath while it fades away
+          const src = ctx.createBufferSource(), when = ctx.currentTime + .05, end = when + buf.duration, xo = Math.min(HANDOVER, buf.duration / 2);
+          src.buffer = buf; src.connect(t.gain); src.start(when); t.srcs.push(src);
+          t.gain.gain.cancelScheduledValues(ctx.currentTime);
+          t.gain.gain.setValueAtTime(0, when); t.gain.gain.linearRampToValueAtTime(level, when + FADE_IN);   // fade in
+          t.gain.gain.setValueAtTime(level, end - xo); t.gain.gain.linearRampToValueAtTime(0, end);         // fade out into the next piece
+          if (then) t.handover = setTimeout(() => {
+            if (track !== t) return;
+            const n = { url: then, gain: ctx.createGain(), srcs: [] }, at0 = ctx.currentTime;
+            n.gain.gain.setValueAtTime(0, at0); n.gain.gain.linearRampToValueAtTime(1, at0 + xo);
+            n.gain.connect(musicBus); track = n;
+            load(then).then(nb => { if (track === n) loopFrom(n, nb, ctx.currentTime + .02); }).catch(() => {});
+            setTimeout(() => { t.srcs.forEach(x => { try { x.stop(); } catch (e) {} }); t.gain.disconnect(); }, (xo + 1) * 1000);
+          }, Math.max(0, end - xo - ctx.currentTime) * 1000);
+        }).catch(() => {});
+      };
+
+      // effects, all synthesized
+      const burst = (when, dur, filter, freq, peak, dest = fxBus) => {  // a short shaped burst of noise
+        const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+        src.buffer = noise; src.loop = true; f.type = filter; f.frequency.value = freq;
+        g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(peak, when + .004); g.gain.exponentialRampToValueAtTime(.0001, when + dur);
+        src.connect(f); f.connect(g); g.connect(dest); src.start(when, Math.random() * .9); src.stop(when + dur + .05);
+      };
+      const FX = {
+        // a splice going through the gate: a dull bump on every hard cut
+        cut: when => {
+          burst(when, .09, 'lowpass', 900, .5);
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.frequency.setValueAtTime(90, when); o.frequency.exponentialRampToValueAtTime(40, when + .08);
+          g.gain.setValueAtTime(.35, when); g.gain.exponentialRampToValueAtTime(.0001, when + .1);
+          o.connect(g); g.connect(fxBus); o.start(when); o.stop(when + .12);
+        },
+        // a toy motor spinning up, whining, winding down
+        motor: when => {
+          const o = ctx.createOscillator(), lfo = ctx.createOscillator(), depth = ctx.createGain(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+          o.type = 'sawtooth'; lfo.frequency.value = 23; depth.gain.value = 9; lfo.connect(depth); depth.connect(o.frequency);
+          o.frequency.setValueAtTime(70, when); o.frequency.exponentialRampToValueAtTime(260, when + .5); o.frequency.setValueAtTime(260, when + 1.1); o.frequency.exponentialRampToValueAtTime(60, when + 1.8);
+          f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 1.2;
+          g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(.16, when + .3); g.gain.setValueAtTime(.16, when + 1.1); g.gain.linearRampToValueAtTime(0, when + 1.8);
+          o.connect(f); f.connect(g); g.connect(fxBus); o.start(when); lfo.start(when); o.stop(when + 1.9); lfo.stop(when + 1.9);
+        },
+      };
+      const sfx = (name, delay = 0) => { if (ctx && live() && FX[name]) FX[name](ctx.currentTime + delay); };
+
+      // the room a scene plays in (data-room): a Super 8 projector clattering at 18 frames a second
+      const ROOMS = {
+        projector: out => {
+          const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), gate = ctx.createGain(), lfo = ctx.createOscillator(), depth = ctx.createGain();
+          src.buffer = noise; src.loop = true; f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = .8;
+          lfo.type = 'square'; lfo.frequency.value = 18; depth.gain.value = .5; gate.gain.value = .5;
+          lfo.connect(depth); depth.connect(gate.gain);
+          const hum = ctx.createOscillator(), hg = ctx.createGain(); hum.frequency.value = 55; hg.gain.value = .25;
+          src.connect(f); f.connect(gate); gate.connect(out); hum.connect(hg); hg.connect(out);
+          [src, lfo, hum].forEach(n => n.start());
+          return [src, lfo, hum];
+        },
+      };
+      const playRoom = name => {
+        if (!ctx || (room && room.name === name)) return;
+        if (room) fadeAway(room.gain, room.srcs);
+        room = null;
+        if (!name || !ROOMS[name]) return;
+        const g = ctx.createGain(); g.gain.value = 0; g.connect(fxBus); g.gain.setTargetAtTime(.22, ctx.currentTime + .8, .6);
+        room = { name, gain: g, srcs: ROOMS[name](g) };
+      };
+      // under everything, the print itself: faint hiss and the odd crackle
+      const startBed = () => {
+        if (bed || !ctx) return;
+        const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+        src.buffer = noise; src.loop = true; f.type = 'bandpass'; f.frequency.value = 5000; f.Q.value = .6; g.gain.value = .02;
+        src.connect(f); f.connect(g); g.connect(fxBus); src.start();
+        bed = setInterval(() => { if (live() && Math.random() < .3) burst(ctx.currentTime + Math.random() * .2, .012, 'highpass', 1800, .04 + Math.random() * .1); }, 220);
+      };
+
+      // Out on the street: an empty street at night, looping, fading as the doors swing open.
+      // The opening music waits for the doors: it starts the moment they open.
+      const STREET = 1.1;
+      let street = null, doorsOpened = !(window.__intro || document.documentElement.classList.contains('intro')) || window.__introStartAt === 1;
+      const inStreet = () => window.__intro && !window.__intro.inFilm;
+      const startStreet = () => {
+        if (street || !ctx) return;
+        const t = { gain: ctx.createGain(), srcs: [] };
+        t.gain.gain.value = 0; t.gain.connect(fxBus); street = t;
+        load('audio/music/street.mp3').then(buf => loopFrom(t, buf, ctx.currentTime + .02, () => street === t)).catch(() => {});
+      };
+      setInterval(() => {
+        if (!ctx || !live()) return;
+        const loadingStreet = document.documentElement.classList.contains('intro') && !window.__intro;   // the 3D street is still loading
+        const d = loadingStreet ? 0 : inStreet() ? (window.__intro.doors || 0) : 1;
+        if (!street && d < .95) startStreet();
+        if (street) street.gain.gain.setTargetAtTime((1 - d) * STREET, ctx.currentTime, .35);
+        if (!doorsOpened && d > .12) { doorsOpened = true; if (at === 0) playMusic(scene.music, scene.once, scene.then); }
+      }, 120);
+
+      const soundLabel = () => { const on = live(); soundBtn.textContent = on ? 'sound on' : 'sound off'; soundBtn.setAttribute('aria-pressed', on); };
+      const say = () => { if (!line || !live()) return; voice.src = line; voice.play().catch(() => {}); };
+      const speak = (src, delay) => {
+        clearTimeout(voiceTimer); voice.pause();
+        line = src || null; lineAt = performance.now() + delay * 1000;
+        if (line) voiceTimer = setTimeout(say, delay * 1000);
+      };
+      // what the current scene should sound like: its piece of the score and its room
+      const setScene = f => {
+        scene = { music: f.dataset.music || null, once: 'musicOnce' in f.dataset, then: f.dataset.musicThen || null, room: f.dataset.room || null };
+        if (!live()) return;
+        if (track && scene.then && track.url === scene.then) return;    // back on the title after the opening handed over: keep what's playing
+        if (scene.once && !doorsOpened) return;                          // the opening waits for the doors
+        playMusic(scene.music, scene.once, scene.then); playRoom(scene.room);
+      };
+      const wake = () => {
+        initAudio(); if (!ctx) return;
+        ctx.resume(); startBed(); playRoom(scene.room);
+        if (!(scene.once && !doorsOpened)) playMusic(scene.music, scene.once, scene.then);
+      };
+      const unlock = () => {
+        if (unlocked) return;
+        unlocked = true; unlockedAt = performance.now(); soundLabel();
+        if (!wanted) return;
+        wake();
+        if (line && performance.now() >= lineAt) say();                 // the line on screen now, if its moment already passed
+      };
+      ['pointerdown', 'keydown', 'touchend'].forEach(t => addEventListener(t, unlock, { capture: true }));
+      const setWanted = w => {
+        wanted = w; soundLabel();
+        try { localStorage.setItem('sound', wanted ? 'on' : 'off'); } catch (e) {}
+        if (wanted) { wake(); say(); } else { voice.pause(); if (ctx) ctx.suspend(); }
+      };
+      soundBtn.addEventListener('click', () => {
+        if (performance.now() - unlockedAt < 800) { if (!wanted) setWanted(true); return; }   // the click that switched sound on
+        setWanted(!wanted);
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { voice.pause(); if (ctx) ctx.suspend(); } else if (live() && ctx) ctx.resume();
+      });
+      soundLabel();
+      // Some browsers let a page play sound straight away (Chrome for sites you often play media on, Safari set to
+      // "Allow All Auto-Play"): try, and if it's allowed, the film starts with sound and nobody has to click.
+      if (wanted) {
+        initAudio();
+        if (ctx) ctx.resume().then(() => { if (ctx.state === 'running' && !unlocked) { unlocked = true; soundLabel(); wake(); say(); } }).catch(() => {});
+      }
+
+      // Auto mode: the film runs by itself. Each shot holds until the narrator has said its line (or, without sound,
+      // long enough to read it), then cuts to the next. Scrolling still jumps ahead or back; "pause" stops the projector.
+      const playBtn = document.querySelector('.play');
+      let auto = true, autoTimer;
+      try { auto = localStorage.getItem('auto') !== 'off'; } catch (e) {}
+      const playLabel = () => { playBtn.textContent = auto ? 'pause' : 'play'; playBtn.setAttribute('aria-pressed', auto); };
+      const roll = ms => {
+        clearTimeout(autoTimer);
+        if (!auto || at === frames.length - 1) return;                   // the end credits are the end
+        autoTimer = setTimeout(function next() {
+          if (window.__intro && !window.__intro.inFilm) return;          // still out in the theater
+          if (moving || document.hidden) { autoTimer = setTimeout(next, 600); return; }
+          advance(1);
+        }, ms);
+      };
+      // hold a shot: `delay` seconds until its words arrive, then time to hear or read them
+      const hold = (delay, text) => roll((delay + (text || '').length / 12 + 1.8) * 1000);
+      voice.addEventListener('ended', () => roll(1400));                 // the narrator finished: a beat of silence, then cut
+      playBtn.addEventListener('click', () => {
+        auto = !auto; playLabel();
+        try { localStorage.setItem('auto', auto ? 'on' : 'off'); } catch (e) {}
+        if (auto) roll(1200); else clearTimeout(autoTimer);
+      });
+      playLabel();
+
       function playBeat(f, k, enter) {
         const b = f._beats[k], imgs = [...f.querySelectorAll('.media img')], img = imgs[b.img || 0], sub = f.querySelector('.sub');
         f._beat = k;
@@ -634,7 +919,10 @@
           if (f._beat !== k) return;
           compose(f);
           imgs.forEach(x => x.classList.toggle('on', x === img));      // the cut
-          subtitle(sub, b.sub, still ? 0 : enter ? 2.3 : .9);           // let the picture register before the narrator speaks
+          const t = still ? 0 : enter ? 2.3 : .9;                       // let the picture register before the narrator speaks
+          subtitle(sub, b.sub, t); speak(b.voice, t); hold(t, b.sub);
+          if (!enter) sfx('cut');
+          if (b.fx) sfx(b.fx, t + (b.fxAt || 0));
         };
         if (img.complete && img.naturalWidth) frameIt(); else img.addEventListener('load', frameIt, { once: true });
       }
@@ -683,7 +971,15 @@
         document.body.classList.toggle('at-start', i === 0);
         frames.forEach((f, k) => { f.inert = k !== i; });
         if (frames[i].classList.contains('doc')) playDoc(frames[i], false);
+        setScene(frames[i]);
+        if (!first) sfx('cut', .55);
         if (frames[i]._beats) playBeat(frames[i], !first && i < from ? frames[i]._beats.length - 1 : 0, true);
+        else {
+          speak(frames[i].dataset.voice, still ? 0 : 2.1);
+          if (frames[i].classList.contains('card')) hold(2.1, frames[i].textContent.trim());
+          else if (i === 0) roll(7500);                                  // the title sequence
+          else clearTimeout(autoTimer);
+        }
         if (frames[from].matches('.doc, .story') && from !== i) setTimeout(() => { if (at !== from) clearNotes(frames[from]); }, 900);
         frames.forEach((f, k) => f.querySelectorAll('video').forEach(v => { if (k === i && !still) v.play().catch(() => {}); else v.pause(); }));
         if (i === 0 && from !== 0 && !first) setTimeout(replayTitles, 900);
@@ -699,19 +995,34 @@
       tip.querySelector('button').addEventListener('click', hideTip);
       if (matchMedia('(hover: none)').matches) {
         document.documentElement.classList.add('touch');
-        tip.querySelector('.tip-text').innerHTML = '<b>swipe up</b> to roll the film · <b>swipe down</b> to rewind<small>rewind past the opening to step back out into the theater</small>';
+        tip.querySelector('.tip-text').innerHTML = '<b>swipe up</b> to roll the film · <b>swipe down</b> to rewind<small>rewind past the opening to step back out into the theater. <b>tap anywhere</b> to hear the narrator.</small>';
       }
       let tipShown = false;
       const showTip = () => { if (tipShown || at !== 0) return; tipShown = true; tip.classList.add('show'); tipTimer = setTimeout(hideTip, 9000); };
-      // First visit: as soon as the 3D theatre is ready, start the walk and show the tip
+      // Every visit from the street: the ticket first (its click is what lets the film play sound), then the walk in
+      const booth = document.querySelector('.booth');
+      const ticketUp = () => document.documentElement.classList.contains('booth-up');
       if (document.documentElement.classList.contains('intro') && window.__introStartAt === 0 && window.__introU === null) {
+        document.documentElement.classList.add('booth-up');
+        booth.querySelector('.no i').textContent = String(Math.floor(Math.random() * 900000) + 100000);
+        booth.querySelector('.ticket').focus({ preventScroll: true });
         const t0 = performance.now();
-        const whenReady = () => {
+        const walk = () => {
           if (window.__intro) window.__intro.play();
-          else if (performance.now() - t0 < 8000) setTimeout(whenReady, 100);
+          else if (performance.now() - t0 < 8000) setTimeout(walk, 100);
         };
-        whenReady();
-      }
+        const enter = withSound => {
+          if (!ticketUp()) return;
+          if (!withSound) setWanted(false); else if (!wanted) setWanted(true);
+          booth.classList.add('torn');
+          booth.dataset.done = '1';                                       // torn: the film is free to move; the ticket fades out
+          setTimeout(() => { document.documentElement.classList.remove('booth-up'); booth.remove(); }, 1500);
+          setTimeout(walk, 600);
+        };
+        booth.querySelector('.ticket').addEventListener('click', () => enter(true));
+        booth.querySelector('.quiet').addEventListener('click', () => enter(false));
+      } else booth.remove();
+      const atDoor = () => ticketUp() && !booth.dataset.done;
 
       // While in the 3D theatre, scroll / arrows / swipe move the camera (both ways);
       // on the screen they advance the film, and going back from the first frame steps out into the theatre.
@@ -722,7 +1033,7 @@
       let lastWheel = 0, lastStep = 0;
       addEventListener('wheel', e => {
         e.preventDefault();
-        if (loading()) return;
+        if (loading() || atDoor()) return;
         hideTip();
         const now = performance.now(), gap = now - lastWheel;
         lastWheel = now;
@@ -737,7 +1048,7 @@
 
       // Keys
       addEventListener('keydown', e => {
-        if (e.target.closest('input, textarea') || loading()) return;
+        if (e.target.closest('input, textarea') || loading() || atDoor()) return;
         hideTip();
         const k = e.key, fwd = ['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(k), back = ['ArrowUp', 'ArrowLeft', 'PageUp'].includes(k);
         if (inTheatre()) {
@@ -756,14 +1067,14 @@
       addEventListener('touchstart', e => { ty = lastTy = e.touches[0].clientY; }, { passive: true });
       addEventListener('touchmove', e => {
         e.preventDefault();
-        if (loading()) return;
+        if (loading() || atDoor()) return;
         hideTip();
         const y = e.touches[0].clientY;
         if (inTheatre() && lastTy !== null) window.__intro.scrub((lastTy - y) * 0.0014);
         lastTy = y;
       }, { passive: false });
       addEventListener('touchend', e => {
-        if (ty === null) return;
+        if (ty === null || atDoor()) return;
         const dy = ty - e.changedTouches[0].clientY; ty = lastTy = null;
         if (inTheatre()) return;
         if (Math.abs(dy) > 40 && !moving) {
@@ -788,7 +1099,7 @@
       addEventListener('intro:done', () => {
         try { sessionStorage.setItem('intro-seen', '1'); } catch (e) {}
         lastStep = performance.now(); moving = true; setTimeout(() => { moving = false; }, 1000);
-        if (at === 0) { replayTitles(); setTimeout(showTip, 5200); }   // a chapter picked from the theatre keeps its scene
+        if (at === 0) { replayTitles(); setTimeout(showTip, 5200); roll(7500); }   // a chapter picked from the theatre keeps its scene
       });
       if (!document.documentElement.classList.contains('intro') || window.__introStartAt === 1) { replayTitles(); if (!location.hash) setTimeout(showTip, 5200); }
 

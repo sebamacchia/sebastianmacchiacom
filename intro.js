@@ -303,7 +303,7 @@ async function start() {
   // u = where the camera is along the move (0 street … 1 screen); target = where the visitor is scrolling to.
   const fixedU = window.__introU ?? null;
   const startAt = fixedU ?? (window.__introStartAt || 0);
-  let u = startAt, target = startAt, inFilm = startAt >= 1, dirty = true;
+  let u = startAt, target = startAt, inFilm = startAt >= 1, dirty = true, doorsOpen = 0;
   // Auto-walk: after the countdown the camera drifts toward the screen on its own (~6.5s street → screen).
   // Scrolling down keeps it going; scrolling up (rewinding) pauses it until the visitor scrolls forward again.
   const AUTO_SECONDS = 6.5;
@@ -317,6 +317,7 @@ async function start() {
   window.__intro = {
     get inFilm() { return inFilm; },
     get progress() { return u; },
+    get doors() { return doorsOpen; },                                   // 0 shut … 1 wide open (the sound follows it)
     scrub(delta) {
       target = clamp01(target + delta); if (target < 1) inFilm = false; dirty = true;
       lastUser = performance.now();
@@ -332,7 +333,7 @@ async function start() {
     const p = path.getPointAt(u), q = look.getPointAt(u);
     camera.position.copy(p); camera.lookAt(q);
     const open = 1 - THREE.MathUtils.smoothstep(p.z, 3.5, 9);          // doors swing open as the camera approaches
-    doorL.rotation.y = open * -1.45; doorR.rotation.y = open * 1.45;
+    doorL.rotation.y = open * -1.45; doorR.rotation.y = open * 1.45; doorsOpen = open;
     const t = (now - tStart) / 1000;
     dust.rotation.y = t * 0.02;
     film.uniforms.time.value = t;
