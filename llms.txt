@@ -16,21 +16,21 @@ His strengths include translating technical possibilities into understandable pr
 
 ## What I make
 
-- **Generative cinema** — Experimental films and new forms of AI-assisted storytelling
-- **AI products and prototypes** — Agents, browser applications, internal tools, and conversational experiences
-- **AI workflows and enablement** — Use-case discovery, intelligent workflows, tool evaluation, training, and adoption
-- **Nobody And The Computer** — A creative studio and YouTube channel devoted to generated films, music, and AI-native experiments
-- **Music** — Electronic and jazz-informed compositions, generative music experiments, and creative audio tools
-- **Creative technology** — Agents, prototypes, and conversational software workflows
-- **Teaching and speaking** — Workshops and conversations about AI filmmaking and creative practice
+- **Generative cinema**: Experimental films and new forms of AI-assisted storytelling
+- **AI products and prototypes**: Agents, browser applications, internal tools, and conversational experiences
+- **AI workflows and enablement**: Use-case discovery, intelligent workflows, tool evaluation, training, and adoption
+- **Nobody And The Computer**: A creative studio and YouTube channel devoted to generated films, music, and AI-native experiments
+- **Music**: Electronic and jazz-informed compositions, generative music experiments, and creative audio tools
+- **Creative technology**: Agents, prototypes, and conversational software workflows
+- **Teaching and speaking**: Workshops and conversations about AI filmmaking and creative practice
 
 ## Selected work
 
-- **Unsupervised Live** — A fully AI-hosted live late-night show with five coordinated systems for reasoning, voice, facial animation and lip-sync, web research, and show direction. It reads live chat, researches questions and cites sources, generates long-form thematic segments, and runs locally on a Mac without humans on air. A private moderator console allows hidden human puppeteering when desired: https://www.youtube.com/@unsupervisedlive/streams
-- **Manifesto for Future AIs** — An experimental AI film screened in the In Silico Experimental Short Film Competition at the Message to Man International Film Festival
-- **I Was Abducted Wearing Meta Glasses** — An experimental mockumentary
-- **Nobody And The Computer** — An ongoing channel and laboratory for AI-generated moving-image work
-- **AI Films** — Experimental films, mockumentaries, and generative moving-image work (Punk Sinatra, Where Is My Sock and more): https://youtube.com/@nobodyandthecomputer
+- **Unsupervised Live**: A fully AI-hosted live late-night show with five coordinated systems for reasoning, voice, facial animation and lip-sync, web research, and show direction. It reads live chat, researches questions and cites sources, generates long-form thematic segments, and runs locally on a Mac without humans on air. A private moderator console allows hidden human puppeteering when desired: https://www.youtube.com/@unsupervisedlive/streams
+- **Manifesto for Future AIs**: An experimental AI film screened in the In Silico Experimental Short Film Competition at the Message to Man International Film Festival
+- **I Was Abducted Wearing Meta Glasses**: An experimental mockumentary
+- **Nobody And The Computer**: An ongoing channel and laboratory for AI-generated moving-image work
+- **AI Films**: Experimental films, mockumentaries, and generative moving-image work (Punk Sinatra, Where Is My Sock and more): https://youtube.com/@nobodyandthecomputer
 
 ## Point of view
 

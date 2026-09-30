@@ -122,7 +122,7 @@ async function start() {
     g.font = '400 112px "Alfa Slab One", "Rockwell", Georgia, serif';
     g.fillText('SEBASTIAN MACCHIA', W / 2, 123);
     g.fillRect(540, 180, 968, 3);
-    spaced('THE MOVIE-WEBSITE', 211, '500 48px "Oswald", "Arial Narrow", sans-serif', 16);
+    spaced('THE WEB-MOVIE', 211, '500 48px "Oswald", "Arial Narrow", sans-serif', 16);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
   })();
   const marquee = new THREE.Group(); marquee.position.set(0, 4.9, 1.2); scene.add(marquee);
@@ -326,7 +326,7 @@ async function start() {
     enterFromFilm() { inFilm = false; auto = false; target = 0.97; u = Math.max(u, 0.995); dirty = true; },
     skip() { target = 1; dirty = true; },
   };
-  overlay.querySelector('.skip').addEventListener('click', () => window.__intro.skip());
+
 
   const render = now => {
     const p = path.getPointAt(u), q = look.getPointAt(u);

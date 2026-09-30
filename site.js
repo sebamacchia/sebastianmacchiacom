@@ -86,14 +86,15 @@ window.annotate = (img, delay = 0) => {
   note.className = 'note'; note.setAttribute('aria-hidden', 'true');
   img.after(note);
   let raf, alive = true;
-  const follow = () => { if (!alive) return; note.style.transform = getComputedStyle(img).transform; raf = requestAnimationFrame(follow); };
+  // A photo framed by the story camera (img._cam) holds still while its notes are up: they're drawn straight in screen space
+  const follow = () => { if (!alive) return; note.style.transform = img._cam ? 'none' : getComputedStyle(img).transform; raf = requestAnimationFrame(follow); };
   const onResize = () => { note.classList.add('instant'); build(); };
   note.stop = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('resize', onResize); };
   function build() {
     const W = img.clientWidth, H = img.clientHeight, nw = img.naturalWidth, nh = img.naturalHeight;
     if (!W || !nw) return;
     const s = Math.max(W / nw, H / nh);
-    const [ox, oy] = getComputedStyle(img).objectPosition.split(' ').map(v => parseFloat(v) / 100);
+    const [ox, oy] = ((img._cam && img._cam.pos) || getComputedStyle(img).objectPosition).split(' ').map(v => parseFloat(v) / 100);   // the camera's framing, even while it's still moving there
     const box = img.getBoundingClientRect(), k = box.width / W || 1;       // undo the push-in scale when measuring page elements
     note.innerHTML = '';
     notes.forEach((n, i) => {
@@ -104,7 +105,10 @@ window.annotate = (img, delay = 0) => {
         const r = el.getBoundingClientRect();
         if (n.edge === 'top') { tx = (r.left + r.width / 2 - box.left) / k; ty = (r.top - box.top) / k - 8; }
         else { tx = (r.left - box.left) / k - 8; ty = (r.top + r.height / 2 - box.top) / k; }
-      } else { tx = (W - nw * s) * ox + n.at[0] * nw * s; ty = (H - nh * s) * oy + n.at[1] * nh * s; }
+      } else {
+        tx = (W - nw * s) * ox + n.at[0] * nw * s; ty = (H - nh * s) * oy + n.at[1] * nh * s;
+        const c = img._cam; if (c) { tx = W / 2 + c.s * (tx - W / 2) + c.dx; ty = H / 2 + c.s * (ty - H / 2) + c.dy; }
+      }
       const one = document.createElement('div');
       one.className = 'one'; one.style.setProperty('--d', `${reduceMotion ? 0 : delay + i * gap}s`);
       const fs = Math.max(20, Math.min(W * .034, 48)) * (n.size || 1);
