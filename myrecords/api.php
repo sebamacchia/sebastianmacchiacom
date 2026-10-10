@@ -13,7 +13,7 @@ const LOCK_SECONDS = 900;
 const SESSION_SECONDS = 7776000; // 90 days
 const COOKIE = 'myrecords';
 const OPENAI_MODEL = 'gpt-5-mini';
-const OPENAI_SECONDS = 40;
+const OPENAI_SECONDS = 60;
 
 // Warnings must never be printed into a JSON reply.
 ini_set('display_errors', '0');
@@ -61,7 +61,7 @@ function data_dir(): string
             return $dir = $candidate;
         }
     }
-    fail(500, 'El servidor no puede guardar datos.');
+    fail(500, 'The server cannot save data.');
 }
 
 function store_read(string $name): array
@@ -76,7 +76,7 @@ function store_update(string $name, callable $change)
 {
     $handle = fopen(data_dir() . "/$name.json", 'c+');
     if (!$handle || !flock($handle, LOCK_EX)) {
-        fail(500, 'El servidor no puede guardar datos.');
+        fail(500, 'The server cannot save data.');
     }
     $data = json_decode(stream_get_contents($handle) ?: '', true);
     if (!is_array($data)) {
@@ -164,7 +164,7 @@ function login(string $password): void
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     if (count(recent_fails(store_read('attempts'), $ip)) >= MAX_FAILS) {
-        fail(429, 'Demasiados intentos. Espera 15 minutos y vuelve a probar.');
+        fail(429, 'Too many attempts. Wait 15 minutes and try again.');
     }
     $hash = store_read('config')['password'] ?? '';
     if ($hash === '' || !password_verify($password, $hash)) {
@@ -179,7 +179,7 @@ function login(string $password): void
             $kept[$ip][] = time();
             $attempts = $kept;
         });
-        fail(401, 'Contraseña incorrecta.');
+        fail(401, 'Wrong password.');
     }
     store_update('attempts', function (array &$attempts) use ($ip) {
         unset($attempts[$ip]);
@@ -192,11 +192,11 @@ function login(string $password): void
 function setup(string $password): void
 {
     if (strlen($password) < MIN_PASSWORD) {
-        fail(400, 'La contraseña necesita al menos ' . MIN_PASSWORD . ' caracteres.');
+        fail(400, 'The password needs at least ' . MIN_PASSWORD . ' characters.');
     }
     $handle = @fopen(data_dir() . '/config.json', 'x');
     if (!$handle) {
-        fail(409, 'La contraseña ya está creada.');
+        fail(409, 'The password has already been created.');
     }
     fwrite($handle, json_encode(['password' => password_hash($password, PASSWORD_DEFAULT)]));
     fclose($handle);
@@ -205,9 +205,11 @@ function setup(string $password): void
 
 // ── Records ──
 
-function clean_text(string $value, int $max): string
+// Control characters become spaces. With $lines, line breaks are kept.
+function clean_text(string $value, int $max, bool $lines = false): string
 {
-    $value = trim(preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $value) ?? '');
+    $junk = $lines ? '/[\x00-\x09\x0B-\x1F\x7F]+/u' : '/[\x00-\x1F\x7F]+/u';
+    $value = trim(preg_replace($junk, ' ', $value) ?? '');
     return mb_substr($value, 0, $max);
 }
 
@@ -217,7 +219,7 @@ function clean_date(string $value): string
         return '';
     }
     if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) || !checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
-        fail(400, 'La fecha no es válida.');
+        fail(400, 'That date is not valid.');
     }
     return $value;
 }
@@ -228,7 +230,7 @@ function clean_year(string $value): string
         return '';
     }
     if (!preg_match('/^\d{4}$/', $value) || (int) $value < 1900 || (int) $value > 2100) {
-        fail(400, 'El año no es válido.');
+        fail(400, 'That year is not valid.');
     }
     return $value;
 }
@@ -238,12 +240,12 @@ function clean_listens(string $json): array
 {
     $list = $json === '' ? [] : json_decode($json, true);
     if (!is_array($list) || count($list) > MAX_LISTENS) {
-        fail(400, 'La lista de escuchas no es válida.');
+        fail(400, 'The listening history is not valid.');
     }
     $listens = [];
     foreach ($list as $listen) {
         if (!is_array($listen)) {
-            fail(400, 'La lista de escuchas no es válida.');
+            fail(400, 'The listening history is not valid.');
         }
         $date = clean_date((string) ($listen['date'] ?? ''));
         $note = clean_text((string) ($listen['note'] ?? ''), 80);
@@ -267,14 +269,14 @@ function check_photo(string $field): void
 {
     $upload = $_FILES[$field] ?? [];
     if (($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($upload['tmp_name'])) {
-        fail(400, 'La foto no ha llegado. Vuelve a intentarlo.');
+        fail(400, 'The photo did not arrive. Try again.');
     }
     if ($upload['size'] > MAX_PHOTO_BYTES) {
-        fail(413, 'La foto pesa demasiado.');
+        fail(413, 'The photo is too large.');
     }
     $info = @getimagesize($upload['tmp_name']);
     if (!$info || $info[2] !== IMAGETYPE_JPEG || $info[0] > MAX_PHOTO_SIDE || $info[1] > MAX_PHOTO_SIDE) {
-        fail(400, 'El archivo no es una foto válida.');
+        fail(400, 'That file is not a valid photo.');
     }
 }
 
@@ -310,17 +312,22 @@ function save_item(): array
         'album' => clean_text((string) ($_POST['album'] ?? ''), 100),
         'genre' => clean_text((string) ($_POST['genre'] ?? ''), 30),
         'year' => clean_year(trim((string) ($_POST['year'] ?? ''))),
+        'label' => clean_text((string) ($_POST['label'] ?? ''), 60),
+        'edition' => clean_text((string) ($_POST['edition'] ?? ''), 120),
+        'price' => clean_text((string) ($_POST['price'] ?? ''), 30),
+        'about' => clean_text((string) ($_POST['about'] ?? ''), 800),
+        'samples' => clean_text(str_replace("\r", '', (string) ($_POST['samples'] ?? '')), 1000, true),
         'place' => clean_text((string) ($_POST['place'] ?? ''), 60),
         'listens' => clean_listens((string) ($_POST['listens'] ?? '')),
     ];
     if ($fields['artist'] === '' || $fields['album'] === '') {
-        fail(400, 'Falta el artista o el álbum.');
+        fail(400, 'The artist or the album is missing.');
     }
     if ($id !== '' && !preg_match('/^[a-f0-9]{16}$/', $id)) {
-        fail(400, 'Disco desconocido.');
+        fail(400, 'Unknown record.');
     }
     $isNew = $id === '';
-    $full = 'La colección está llena. Borra algún disco para añadir otro.';
+    $full = 'The collection is full. Delete a record to add another.';
     if ($isNew && count(store_read('items')) >= MAX_ITEMS) {
         fail(409, $full);
     }
@@ -337,7 +344,7 @@ function save_item(): array
     $backPhoto = $hasBackPhoto ? store_photo('backPhoto') : null;
     if (($isNew && !$photo) || ($hasBackPhoto && !$backPhoto)) {
         drop_photos($photo, $backPhoto);
-        fail(500, 'El servidor no ha podido guardar la foto.');
+        fail(500, 'The server could not save the photo.');
     }
 
     if ($isNew) {
@@ -374,7 +381,7 @@ function save_item(): array
     });
     if (!$item) {
         drop_photos($backPhoto);
-        fail(404, 'Ese disco ya no existe.');
+        fail(404, 'That record no longer exists.');
     }
     drop_photos($oldBackPhoto);
     return $item;
@@ -406,7 +413,7 @@ function openai_key(): string
 function openai(string $path, string $key, ?array $body = null): array
 {
     if (!function_exists('curl_init')) {
-        fail(500, 'Este servidor no puede conectar con OpenAI.');
+        fail(500, 'This server cannot connect to OpenAI.');
     }
     $request = curl_init((getenv('MYRECORDS_OPENAI_URL') ?: 'https://api.openai.com/v1') . $path);
     curl_setopt_array($request, [
@@ -419,7 +426,7 @@ function openai(string $path, string $key, ?array $body = null): array
     }
     $raw = curl_exec($request);
     if ($raw === false) {
-        fail(502, 'No se ha podido conectar con OpenAI.');
+        fail(502, 'Could not connect to OpenAI.');
     }
     $reply = json_decode($raw, true);
     return [curl_getinfo($request, CURLINFO_RESPONSE_CODE), is_array($reply) ? $reply : []];
@@ -430,10 +437,10 @@ function set_openai_key(string $key): void
 {
     if ($key !== '') {
         if (!preg_match('/^sk-[A-Za-z0-9_-]{20,300}$/', $key)) {
-            fail(400, 'Eso no parece una clave de OpenAI. Empiezan por «sk-».');
+            fail(400, 'That does not look like an OpenAI key. They start with "sk-".');
         }
         if (openai('/models', $key)[0] === 401) {
-            fail(400, 'OpenAI no acepta esa clave. Cópiala otra vez.');
+            fail(400, 'OpenAI does not accept that key. Copy it again.');
         }
     }
     store_update('openai', function (array &$config) use ($key) {
@@ -441,68 +448,103 @@ function set_openai_key(string $key): void
     });
 }
 
-// Sends the cover photo to OpenAI. Anything it is not sure about comes back empty.
+// What OpenAI is asked for: field => [longest answer kept, what to write].
+const OPENAI_FIELDS = [
+    'artist' => [80, 'Artist or band.'],
+    'album' => [100, 'Album title.'],
+    'genre' => [30, 'Genre in one or two words.'],
+    'year' => [4, 'Year the album was first released, four digits.'],
+    'label' => [60, 'Record label of this pressing.'],
+    'edition' => [120, 'This pressing as printed on the sleeve: catalogue number, country, pressing year, original or reissue.'],
+    'price' => [30, 'Rough second-hand price range for this pressing in good condition, in US dollars, like "$15-30".'],
+    'about' => [800, 'Three or four sentences about the album with one or two curiosities: how it was recorded, who plays on it, how it was received, well-known samples taken from it.'],
+];
+
+// Sends the cover photo, and the back cover when there is one, to OpenAI. For a saved
+// record (id) the stored photos are used. Anything it is not sure about comes back empty.
 function identify_record(): array
 {
     $key = openai_key();
     if ($key === '') {
-        fail(409, 'Falta la clave de OpenAI.');
+        fail(409, 'The OpenAI key is missing.');
     }
-    check_photo('photo');
+    $id = (string) ($_POST['id'] ?? '');
+    $item = null;
+    if ($id === '') {
+        check_photo('photo');
+        $photos = [$_FILES['photo']['tmp_name']];
+    } else {
+        foreach (store_read('items') as $saved) {
+            if ($saved['id'] === $id) {
+                $item = $saved;
+            }
+        }
+        if (!$item) {
+            fail(404, 'That record no longer exists.');
+        }
+        $photos = [photo_path($item['photo'])];
+    }
+    if (was_uploaded('backPhoto')) {
+        check_photo('backPhoto');
+        $photos[] = $_FILES['backPhoto']['tmp_name'];
+    } elseif ($item && ($item['backPhoto'] ?? '') !== '') {
+        $photos[] = photo_path($item['backPhoto']);
+    }
+
     $genres = clean_text((string) ($_POST['genres'] ?? ''), 600);
-    $text = 'This is a photo of a vinyl record cover. Identify the release and give the artist, '
-        . 'the album title, the genre and the year the album was first released. '
-        . 'Genre: one or two words in Spanish' . ($genres === '' ? '. ' : ", using one of these when it fits: $genres. ")
-        . 'Use an empty string for anything you cannot tell with confidence. Do not guess.';
-    $names = ['artist', 'album', 'genre', 'year'];
+    $content = [['type' => 'text', 'text' => 'These are photos of a vinyl record: the front cover'
+        . (count($photos) > 1 ? ', then the back cover. Read the small print on the back for the label and the edition. ' : '. ')
+        . 'Identify the release and fill in the fields, in English. '
+        . ($genres === '' ? '' : "For the genre use one of these when it fits: $genres. ")
+        . 'Use an empty string for any fact you cannot tell with confidence; the price is an estimate.']];
+    foreach ($photos as $photo) {
+        $content[] = ['type' => 'image_url', 'image_url' => [
+            'url' => 'data:image/jpeg;base64,' . base64_encode((string) @file_get_contents($photo)),
+            'detail' => 'high',
+        ]];
+    }
+    $properties = [];
+    foreach (OPENAI_FIELDS as $name => [, $description]) {
+        $properties[$name] = ['type' => 'string', 'description' => $description];
+    }
     [$status, $reply] = openai('/chat/completions', $key, [
         'model' => OPENAI_MODEL,
-        'messages' => [[
-            'role' => 'user',
-            'content' => [
-                ['type' => 'text', 'text' => $text],
-                ['type' => 'image_url', 'image_url' => [
-                    'url' => 'data:image/jpeg;base64,' . base64_encode(file_get_contents($_FILES['photo']['tmp_name'])),
-                ]],
-            ],
-        ]],
+        'messages' => [['role' => 'user', 'content' => $content]],
         'response_format' => ['type' => 'json_schema', 'json_schema' => [
             'name' => 'record',
             'strict' => true,
             'schema' => [
                 'type' => 'object',
-                'properties' => array_fill_keys($names, ['type' => 'string']),
-                'required' => $names,
+                'properties' => $properties,
+                'required' => array_keys($properties),
                 'additionalProperties' => false,
             ],
         ]],
     ]);
     if ($status === 401) {
-        fail(502, 'OpenAI ya no acepta la clave. Cámbiala al final de la lista de discos.');
+        fail(502, 'OpenAI no longer accepts the key. Change it at the bottom of the record list.');
     }
     if ($status === 429) {
-        fail(502, 'OpenAI no ha respondido: la cuenta no tiene saldo o hay demasiadas peticiones.');
+        fail(502, 'OpenAI did not answer: the account has no credit or there are too many requests.');
     }
     if ($status !== 200) {
-        fail(502, 'OpenAI ha fallado: ' . clean_text((string) ($reply['error']['message'] ?? "error $status"), 200));
+        fail(502, 'OpenAI failed: ' . clean_text((string) ($reply['error']['message'] ?? "error $status"), 200));
     }
     $found = json_decode((string) ($reply['choices'][0]['message']['content'] ?? ''), true);
-    $field = function (string $name, int $max) use ($found): string {
-        return is_array($found) && is_string($found[$name] ?? null) ? clean_text($found[$name], $max) : '';
-    };
-    $year = $field('year', 4);
-    return [
-        'artist' => $field('artist', 80),
-        'album' => $field('album', 100),
-        'genre' => $field('genre', 30),
-        'year' => preg_match('/^\d{4}$/', $year) && $year >= 1900 && $year <= 2100 ? $year : '',
-    ];
+    $record = [];
+    foreach (OPENAI_FIELDS as $name => [$max]) {
+        $record[$name] = is_array($found) && is_string($found[$name] ?? null) ? clean_text($found[$name], $max) : '';
+    }
+    if (!preg_match('/^\d{4}$/', $record['year']) || $record['year'] < 1900 || $record['year'] > 2100) {
+        $record['year'] = '';
+    }
+    return $record;
 }
 
 function send_photo(string $name): void
 {
     if (!preg_match('/^[a-f0-9]{32}$/', $name) || !is_file(photo_path($name))) {
-        fail(404, 'Foto no encontrada.');
+        fail(404, 'Photo not found.');
     }
     header('Content-Type: image/jpeg');
     header('Content-Length: ' . filesize(photo_path($name)));
@@ -520,10 +562,10 @@ $writes = ['setup', 'login', 'logout', 'save', 'delete', 'identify', 'key'];
 if (in_array($action, $writes, true)) {
     // A custom header cannot be sent by another site's form or image tag.
     if ($method !== 'POST' || ($_SERVER['HTTP_X_RECORDS'] ?? '') !== '1') {
-        fail(400, 'Petición no válida.');
+        fail(400, 'Invalid request.');
     }
 } elseif ($method !== 'GET') {
-    fail(405, 'Petición no válida.');
+    fail(405, 'Invalid request.');
 }
 
 $body = [];
@@ -550,7 +592,7 @@ switch ($action) {
 }
 
 if (!$configured || !signed_in()) {
-    fail(401, 'Escribe la contraseña para entrar.');
+    fail(401, 'Enter the password to continue.');
 }
 
 switch ($action) {
@@ -579,5 +621,5 @@ switch ($action) {
         send_photo((string) ($_GET['f'] ?? ''));
 
     default:
-        fail(404, 'Petición no válida.');
+        fail(404, 'Invalid request.');
 }

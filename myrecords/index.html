@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -77,7 +77,7 @@
   .masthead p { font-weight: 600; text-align: right; }
 
   /* ── Controls ── */
-  button, input { font: inherit; color: inherit; }
+  button, input, textarea { font: inherit; color: inherit; }
   button {
     border: 2px solid var(--black);
     border-radius: 0;
@@ -113,7 +113,8 @@
   input[type='search'],
   input[type='text'],
   input[type='date'],
-  input[type='password'] {
+  input[type='password'],
+  textarea {
     display: block;
     width: 100%;
     min-height: 48px;
@@ -125,8 +126,9 @@
     -webkit-appearance: none;
     appearance: none;
   }
-  input::placeholder { color: var(--grey); opacity: 1; }
-  input:focus {
+  textarea { min-height: 132px; resize: vertical; }
+  input::placeholder, textarea::placeholder { color: var(--grey); opacity: 1; }
+  input:focus, textarea:focus {
     outline: 3px solid var(--mark);
     outline-offset: 2px;
     box-shadow: 0 0 0 2px var(--black);
@@ -210,7 +212,8 @@
   .row input { flex: 1; min-width: 0; }
   .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
   .strip .second { margin-top: 16px; }
-  .uses:empty + .second { margin-top: 0; }
+  .uses:empty + .second, #aiNote[hidden] + .second { margin-top: 0; }
+  .note { white-space: pre-wrap; overflow-wrap: anywhere; }
 
   /* ── Record detail: the album title is the poster ── */
   .poster {
@@ -268,7 +271,7 @@
   </header>
 
   <div id="searchStrip" class="strip" hidden>
-    <input id="search" type="search" placeholder="Buscar artista, álbum o género" aria-label="Buscar artista, álbum o género" autocomplete="off" enterkeyhint="search">
+    <input id="search" type="search" placeholder="Search artist, album or genre" aria-label="Search artist, album or genre" autocomplete="off" enterkeyhint="search">
   </div>
   <div id="grid" class="grid"></div>
   <div id="empty" class="strip empty" hidden>
@@ -276,91 +279,137 @@
     <p id="emptyText"></p>
   </div>
   <form id="aiForm" class="strip" autocomplete="off" hidden>
-    <label for="aiKey">Rellenar con OpenAI <span id="aiState" class="quiet"></span></label>
-    <p class="quiet">Al fotografiar un disco, la foto se envía a OpenAI y vuelve con artista, álbum, género y año. Necesita una clave de tu cuenta de OpenAI, que cobra un poco por cada foto.</p>
-    <div class="row second">
-      <input id="aiKey" type="password" placeholder="sk-..." aria-label="Clave de OpenAI" maxlength="320" autocomplete="off" required>
-      <button id="aiSave" type="submit">Guardar</button>
+    <label for="aiKey">Fill in with OpenAI <span id="aiState" class="quiet"></span></label>
+    <p class="quiet">When you add a record, its photos are sent to OpenAI, which fills in artist, album, genre, year, label, edition, an estimated price and a short text about the album. It needs a key from your OpenAI account, which charges a little for each record.</p>
+    <div id="aiRow" class="row second">
+      <input id="aiKey" type="password" placeholder="sk-..." aria-label="OpenAI key" maxlength="320" autocomplete="off" required>
+      <button id="aiSave" type="submit">Save</button>
     </div>
-    <button id="aiRemove" class="second" type="button" hidden>Quitar clave</button>
+    <div id="aiButtons" class="row second" hidden>
+      <button id="aiChange" type="button">Change key</button>
+      <button id="aiRemove" type="button">Remove key</button>
+    </div>
     <p id="aiError" class="error second" role="alert" hidden></p>
   </form>
   <div id="logoutStrip" class="strip" hidden>
-    <button id="logout" type="button">Cerrar sesión</button>
+    <button id="logout" type="button">Sign out</button>
   </div>
 </main>
 
-<button id="add" class="add primary" type="button" hidden>Añadir disco</button>
+<button id="add" class="add primary" type="button" hidden>Add record</button>
 <input id="camera" type="file" accept="image/*" capture="environment" hidden>
 <input id="backCamera" type="file" accept="image/*" capture="environment" hidden>
+
+<section id="backStep" class="sheet" hidden>
+  <div class="sheet-body">
+    <div class="strip sheet-head">
+      <h2>Now the<br>back cover</h2>
+      <img id="backStepCover" class="thumb" alt="Front cover photo">
+    </div>
+    <p class="strip">The back usually shows the label, the edition and the track list.</p>
+    <p id="backStepError" class="strip error" role="alert" hidden></p>
+    <div class="actions">
+      <button id="backSkip" type="button">Skip</button>
+      <button id="backTake" class="primary" type="button">Take photo</button>
+    </div>
+  </div>
+</section>
 
 <section id="sheet" class="sheet" hidden>
   <form id="form" autocomplete="off">
     <div class="strip sheet-head">
       <h2 id="sheetTitle"></h2>
-      <img id="preview" class="thumb" alt="Foto de la portada">
+      <img id="preview" class="thumb" alt="Front cover photo">
     </div>
 
-    <p id="aiNote" class="strip" role="status" hidden></p>
+    <div id="aiStrip" class="strip" hidden>
+      <p id="aiNote" role="status" hidden></p>
+      <button id="aiAsk" class="second" type="button">Fill in with OpenAI</button>
+    </div>
 
     <div class="strip">
-      <label for="artist">Artista</label>
+      <label for="artist">Artist</label>
       <div id="artistChips" class="chips"></div>
       <input id="artist" type="text" placeholder="Miles Davis" maxlength="80" autocapitalize="words" enterkeyhint="next" required>
     </div>
 
     <div class="strip">
-      <label for="album">Álbum</label>
+      <label for="album">Album</label>
       <input id="album" type="text" placeholder="Kind of Blue" maxlength="100" autocapitalize="sentences" enterkeyhint="next" required>
     </div>
 
     <div class="strip">
-      <label for="genre">Género <span class="quiet">Opcional</span></label>
+      <label for="genre">Genre <span class="quiet">Optional</span></label>
       <div id="genreChips" class="chips"></div>
       <input id="genre" type="text" placeholder="Jazz, rock" maxlength="30" autocapitalize="sentences" enterkeyhint="next">
     </div>
 
     <div class="strip">
-      <label for="year">Año <span class="quiet">Opcional</span></label>
+      <label for="year">Year <span class="quiet">Optional</span></label>
       <input id="year" type="text" inputmode="numeric" pattern="[0-9]{4}" placeholder="1959" maxlength="4" enterkeyhint="next">
     </div>
 
     <div class="strip">
-      <label for="place">Dónde está <span class="quiet">Opcional</span></label>
-      <div id="placeChips" class="chips"></div>
-      <input id="place" type="text" placeholder="Estante 2, caja A" maxlength="60" autocapitalize="sentences" enterkeyhint="done">
+      <label for="label">Label <span class="quiet">Optional</span></label>
+      <input id="label" type="text" placeholder="Columbia" maxlength="60" autocapitalize="words" enterkeyhint="next">
     </div>
 
     <div class="strip">
-      <p class="label">Foto de la contraportada <span class="quiet">Opcional</span></p>
+      <label for="edition">Edition <span class="quiet">Optional</span></label>
+      <input id="edition" type="text" placeholder="CS 8163, US, 1977 reissue" maxlength="120" autocapitalize="sentences" enterkeyhint="next">
+    </div>
+
+    <div class="strip">
+      <label for="price">Estimated price <span class="quiet">Optional</span></label>
+      <input id="price" type="text" placeholder="$15-30" maxlength="30" enterkeyhint="next">
+    </div>
+
+    <div class="strip">
+      <label for="about">About the album <span class="quiet">Optional</span></label>
+      <textarea id="about" placeholder="Story and curiosities" maxlength="800" autocapitalize="sentences"></textarea>
+    </div>
+
+    <div class="strip">
+      <label for="samples">Samples <span class="quiet">Optional</span></label>
+      <textarea id="samples" placeholder="What I sampled from it and in which project" maxlength="1000" autocapitalize="sentences"></textarea>
+    </div>
+
+    <div class="strip">
+      <label for="place">Where it is <span class="quiet">Optional</span></label>
+      <div id="placeChips" class="chips"></div>
+      <input id="place" type="text" placeholder="Shelf 2, crate A" maxlength="60" autocapitalize="sentences" enterkeyhint="done">
+    </div>
+
+    <div class="strip">
+      <p class="label">Back cover photo <span class="quiet">Optional</span></p>
       <div class="row">
-        <img id="backPreview" class="thumb" alt="Foto de la contraportada" hidden>
+        <img id="backPreview" class="thumb" alt="Back cover photo" hidden>
         <div class="stack">
-          <button id="backShot" type="button">Hacer foto de la contraportada</button>
-          <button id="backRemove" type="button" hidden>Quitar foto</button>
+          <button id="backShot" type="button">Photograph the back cover</button>
+          <button id="backRemove" type="button" hidden>Remove photo</button>
         </div>
       </div>
     </div>
 
     <div class="strip">
-      <p class="label">Cuándo lo escuché <span class="quiet">Opcional</span></p>
+      <p class="label">When I listened to it <span class="quiet">Optional</span></p>
       <ul id="listenList" class="uses"></ul>
-      <label for="listenDate" class="second">Fecha</label>
+      <label for="listenDate" class="second">Date</label>
       <div class="row">
         <input id="listenDate" type="date">
-        <button id="listenToday" type="button">Hoy</button>
+        <button id="listenToday" type="button">Today</button>
       </div>
-      <label for="listenNote" class="second">Nota</label>
-      <input id="listenNote" type="text" placeholder="Con quién, dónde, cómo sonó" maxlength="80" autocapitalize="sentences" enterkeyhint="done">
-      <button id="listenAdd" class="second" type="button">Añadir otra escucha</button>
+      <label for="listenNote" class="second">Note</label>
+      <input id="listenNote" type="text" placeholder="Who with, where, how it sounded" maxlength="80" autocapitalize="sentences" enterkeyhint="done">
+      <button id="listenAdd" class="second" type="button">Add another listen</button>
     </div>
 
     <p id="formError" class="strip error" role="alert" hidden></p>
 
     <div class="actions">
-      <button id="del" class="danger" type="button" hidden>Borrar</button>
-      <button id="cancel" type="button">Cancelar</button>
-      <button id="save" class="primary" type="submit">Guardar</button>
+      <button id="del" class="danger" type="button" hidden>Delete</button>
+      <button id="cancel" type="button">Cancel</button>
+      <button id="save" class="primary" type="submit">Save</button>
     </div>
   </form>
 </section>
@@ -374,29 +423,49 @@
     <img id="detailPhoto" class="full" alt="">
     <div id="detailFacts" class="strip facts" hidden>
       <div id="detailGenreBox">
-        <p class="label">Género</p>
+        <p class="label">Genre</p>
         <p id="detailGenre" class="fact"></p>
       </div>
       <div id="detailYearBox">
-        <p class="label">Año</p>
+        <p class="label">Year</p>
         <p id="detailYear" class="fact"></p>
       </div>
+      <div id="detailLabelBox">
+        <p class="label">Label</p>
+        <p id="detailLabel" class="fact"></p>
+      </div>
+      <div id="detailPriceBox">
+        <p class="label">Estimated price</p>
+        <p id="detailPrice" class="fact"></p>
+      </div>
       <div id="detailPlaceBox">
-        <p class="label">Dónde está</p>
+        <p class="label">Where it is</p>
         <p id="detailPlace" class="fact"></p>
       </div>
     </div>
+    <div id="detailEditionBox" class="strip" hidden>
+      <p class="label">Edition</p>
+      <p id="detailEdition" class="note"></p>
+    </div>
+    <div id="detailAboutBox" class="strip" hidden>
+      <p class="label">About the album</p>
+      <p id="detailAbout" class="note"></p>
+    </div>
+    <div id="detailSamplesBox" class="strip" hidden>
+      <p class="label">Samples</p>
+      <p id="detailSamples" class="note"></p>
+    </div>
     <div id="detailBackStrip" class="strip" hidden>
-      <p class="label">Contraportada</p>
-      <img id="detailBackPhoto" class="full" alt="Foto de la contraportada">
+      <p class="label">Back cover</p>
+      <img id="detailBackPhoto" class="full" alt="Back cover photo">
     </div>
     <div id="detailListensStrip" class="strip" hidden>
-      <p class="label">Cuándo lo escuché</p>
+      <p class="label">When I listened to it</p>
       <ul id="detailListens" class="uses"></ul>
     </div>
     <div class="actions">
-      <button id="detailClose" type="button">Cerrar</button>
-      <button id="detailEdit" class="primary" type="button">Editar</button>
+      <button id="detailClose" type="button">Close</button>
+      <button id="detailEdit" class="primary" type="button">Edit</button>
     </div>
   </div>
 </section>
@@ -412,36 +481,42 @@
       <p id="gateText"></p>
     </div>
     <div class="strip">
-      <label for="password">Contraseña</label>
+      <label for="password">Password</label>
       <input id="password" type="password" minlength="8" maxlength="200" autocomplete="current-password" required>
       <div id="repeatWrap" hidden>
-        <label for="password2">Repite la contraseña</label>
+        <label for="password2">Repeat the password</label>
         <input id="password2" type="password" maxlength="200" autocomplete="new-password">
       </div>
       <p id="gateError" class="error" role="alert" hidden></p>
     </div>
     <div class="actions">
-      <button id="enter" class="primary" type="submit">Entrar</button>
+      <button id="enter" class="primary" type="submit">Enter</button>
     </div>
   </form>
 </section>
 
 <script>
 (() => {
-  const GENRES = ['Jazz', 'Rock', 'Pop', 'Soul', 'Funk', 'Blues', 'Clásica', 'Electrónica', 'Hip hop', 'Folk', 'Tango', 'Latina'];
+  const GENRES = ['Jazz', 'Rock', 'Pop', 'Soul', 'Funk', 'Blues', 'Classical', 'Electronic', 'Hip hop', 'Folk', 'Tango', 'Latin'];
   const MAX_SIDE = 1000;
+  const MAX_BACK_SIDE = 1600; // the back cover keeps more pixels so its small print stays readable
+  const MAX_BYTES = 1000000;
 
   const $ = (id) => document.getElementById(id);
   const grid = $('grid'), empty = $('empty'), search = $('search');
-  const sheet = $('sheet'), detail = $('detail'), gate = $('gate');
+  const sheet = $('sheet'), detail = $('detail'), gate = $('gate'), backStep = $('backStep');
   const preview = $('preview');
-  const artistInput = $('artist'), albumInput = $('album'), genreInput = $('genre'), yearInput = $('year'), placeInput = $('place');
+  // Every text field of a record: its name on the server and its input in the form.
+  const inputs = {};
+  for (const name of ['artist', 'album', 'genre', 'year', 'label', 'edition', 'price', 'about', 'samples', 'place']) inputs[name] = $(name);
+  const { artist: artistInput, album: albumInput, genre: genreInput, year: yearInput, place: placeInput } = inputs;
 
   let items = [];
   let editing = null; // a saved record being edited, or { blob } for a new one; backBlob / removeBackPhoto track the back cover photo
+  let pending = null; // a new record whose cover is taken and whose back cover is being asked for
   let viewing = null;
   let gateMode = 'login';
-  let ai = false; // the server has an OpenAI key, so new cover photos are sent to be recognised
+  let ai = false; // the server has an OpenAI key, so new records are sent to be recognised
 
   // --- server (photos and list live on the hosting, nothing is kept on the phone) ---
   async function api(action, body) {
@@ -456,11 +531,11 @@
     try {
       res = await fetch('api.php?a=' + action, options);
     } catch (err) {
-      throw new Error('Sin conexión. Comprueba internet y vuelve a intentarlo.');
+      throw new Error('No connection. Check the internet and try again.');
     }
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 && action !== 'login') showGate('login');
-    if (!res.ok) throw new Error(data.error || 'El servidor ha fallado. Vuelve a intentarlo.');
+    if (!res.ok) throw new Error(data.error || 'The server failed. Try again.');
     return data;
   }
 
@@ -475,12 +550,12 @@
 
   // Only one full-screen layer is open at a time; the page behind must not scroll.
   function show(layer) {
-    for (const each of [sheet, detail, gate]) each.hidden = each !== layer;
+    for (const each of [sheet, detail, gate, backStep]) each.hidden = each !== layer;
     document.body.classList.toggle('locked', Boolean(layer));
     if (layer) layer.scrollTop = 0;
   }
 
-  // Lower case without accents, so "clasica" finds "Clásica".
+  // Lower case without accents, so "bjork" finds "Björk".
   const plain = (text) => text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
   function today() {
@@ -490,7 +565,7 @@
 
   function longDate(iso) {
     const [year, month, day] = iso.split('-').map(Number);
-    return new Date(year, month - 1, day).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(year, month - 1, day).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   async function load() {
@@ -501,10 +576,12 @@
     showAi();
   }
 
-  function showAi() {
-    $('aiState').textContent = ai ? 'Activado' : 'Sin clave';
-    $('aiKey').placeholder = ai ? 'Pega otra clave para cambiarla' : 'sk-...';
-    $('aiRemove').hidden = !ai;
+  // With a key saved the key field is put away until "Change key" is pressed.
+  function showAi(changing = false) {
+    $('aiState').textContent = ai ? 'On' : 'No key';
+    $('aiKey').placeholder = ai ? 'Paste the new key' : 'sk-...';
+    $('aiRow').hidden = ai && !changing;
+    $('aiButtons').hidden = !ai || changing;
   }
 
   async function saveKey(key) {
@@ -522,29 +599,39 @@
     }
   }
 
-  // Ask OpenAI what the photographed record is and fill in whatever is still empty.
+  // Ask OpenAI what the record in the form is and fill in whatever is still empty.
   async function identify(entry) {
     const note = $('aiNote');
-    say(note, 'Buscando el disco en OpenAI.');
+    say(note, 'Asking OpenAI about this record.');
+    $('aiAsk').disabled = true;
     const body = new FormData();
-    body.set('photo', entry.blob, 'photo.jpg');
+    if (entry.id != null) body.set('id', entry.id);
+    else body.set('photo', entry.blob, 'photo.jpg');
+    if (entry.backBlob) body.set('backPhoto', entry.backBlob, 'back.jpg');
     body.set('genres', suggestions('genre', GENRES).join(', '));
-    let record;
+    let record = null, message;
     try {
       record = (await api('identify', body)).record;
     } catch (err) {
-      if (editing === entry) say(note, err.message + ' Rellena el disco a mano.');
-      return;
+      message = err.message + ' Fill it in by hand.';
     }
     if (editing !== entry) return; // the form was closed while waiting
-    for (const [input, value] of [[artistInput, record.artist], [albumInput, record.album], [genreInput, record.genre], [yearInput, record.year]]) {
-      if (!input.value.trim()) input.value = value;
+    $('aiAsk').disabled = false;
+    if (record) {
+      let filled = 0;
+      for (const [name, value] of Object.entries(record)) {
+        if (value && inputs[name] && !inputs[name].value.trim()) {
+          inputs[name].value = value;
+          filled++;
+        }
+      }
+      mark($('artistChips'), artistInput);
+      mark($('genreChips'), genreInput);
+      message = filled ? 'Filled in by OpenAI. Check it before saving.'
+        : record.artist || record.album ? 'OpenAI had nothing to add to what is already here.'
+        : 'OpenAI did not recognise this record. Fill it in by hand.';
     }
-    mark($('artistChips'), artistInput);
-    mark($('genreChips'), genreInput);
-    say(note, record.artist || record.album
-      ? 'Rellenado por OpenAI. Revísalo antes de guardar.'
-      : 'OpenAI no ha reconocido el disco. Rellénalo a mano.');
+    say(note, message);
   }
 
   // --- photo ---
@@ -553,21 +640,25 @@
       const url = URL.createObjectURL(file);
       const img = new Image();
       img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se ha podido leer la foto. Prueba a hacerla otra vez.')); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read the photo. Try taking it again.')); };
       img.src = url;
     });
   }
 
-  async function shrink(file) {
+  async function shrink(file, side = MAX_SIDE) {
     const img = await loadImage(file);
-    const scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
+    const scale = Math.min(1, side / Math.max(img.width, img.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(img.width * scale);
     canvas.height = Math.round(img.height * scale);
     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('No se ha podido preparar la foto.')), 'image/jpeg', 0.8);
-    });
+    // The server refuses photos over 1 MB, so a heavy one is saved again with more compression.
+    for (const quality of [0.8, 0.6, 0.4]) {
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+      if (!blob) break;
+      if (blob.size <= MAX_BYTES) return blob;
+    }
+    throw new Error('Could not prepare the photo.');
   }
 
   // --- ui ---
@@ -626,7 +717,7 @@
     if (onRemove) {
       const remove = document.createElement('button');
       remove.type = 'button';
-      remove.textContent = 'Quitar';
+      remove.textContent = 'Remove';
       remove.onclick = onRemove;
       row.append(remove);
     }
@@ -649,12 +740,13 @@
     const source = editing.backBlob || (!editing.removeBackPhoto && editing.backPhoto) || null;
     setImage($('backPreview'), source);
     $('backPreview').hidden = $('backRemove').hidden = !source;
-    $('backShot').textContent = source ? 'Cambiar foto' : 'Hacer foto de la contraportada';
+    $('backShot').textContent = source ? 'Change photo' : 'Photograph the back cover';
   }
 
+  // Fill one part of the detail screen, hiding it when the record has nothing there.
   function fact(name, value) {
     $('detail' + name + 'Box').hidden = !value;
-    $('detail' + name).textContent = value;
+    $('detail' + name).textContent = value || '';
   }
 
   function openDetail(item) {
@@ -663,10 +755,15 @@
     $('detailAlbum').textContent = item.album;
     setImage($('detailPhoto'), item.photo);
     $('detailPhoto').alt = item.album;
-    $('detailFacts').hidden = !item.genre && !item.year && !item.place;
+    $('detailFacts').hidden = !item.genre && !item.year && !item.label && !item.price && !item.place;
     fact('Genre', item.genre);
     fact('Year', item.year);
+    fact('Label', item.label);
+    fact('Price', item.price);
     fact('Place', item.place);
+    fact('Edition', item.edition);
+    fact('About', item.about);
+    fact('Samples', item.samples);
     $('detailBackStrip').hidden = !item.backPhoto;
     setImage($('detailBackPhoto'), item.backPhoto);
     $('detailListensStrip').hidden = item.listens.length === 0;
@@ -677,11 +774,7 @@
   function openSheet(entry) {
     editing = entry;
     setImage(preview, entry.blob || entry.photo);
-    artistInput.value = entry.artist || '';
-    albumInput.value = entry.album || '';
-    genreInput.value = entry.genre || '';
-    yearInput.value = entry.year || '';
-    placeInput.value = entry.place || '';
+    for (const [name, input] of Object.entries(inputs)) input.value = entry[name] || '';
     chips($('artistChips'), suggestions('artist', [], 8), artistInput);
     chips($('genreChips'), suggestions('genre', GENRES), genreInput);
     chips($('placeChips'), suggestions('place', [], 8), placeInput);
@@ -690,9 +783,10 @@
     showListens();
     showBackPhoto();
     $('del').hidden = entry.id == null;
-    $('sheetTitle').textContent = entry.id == null ? 'Nuevo disco' : 'Editar disco';
+    $('sheetTitle').textContent = entry.id == null ? 'New record' : 'Edit record';
     say($('formError'), '');
     say($('aiNote'), '');
+    $('aiStrip').hidden = !ai;
     busy(false);
     show(sheet);
   }
@@ -704,25 +798,35 @@
     editing = null;
   }
 
+  // The back cover step is over (photo taken or skipped): open the form and ask OpenAI.
+  function startRecord() {
+    const entry = pending;
+    pending = null;
+    setImage($('backStepCover'), null);
+    openSheet(entry);
+    if (ai) identify(entry);
+  }
+
   function busy(on) {
     for (const button of sheet.querySelectorAll('button')) button.disabled = on;
-    $('save').textContent = on ? 'Guardando' : 'Guardar';
+    $('save').textContent = on ? 'Saving' : 'Save';
   }
 
   function showGate(mode) {
     gateMode = mode;
     const setup = mode === 'setup';
-    $('gateTitle').textContent = setup ? 'Crea la contraseña.' : 'Escribe la contraseña.';
+    $('gateTitle').textContent = setup ? 'Create the password.' : 'Enter the password.';
     $('gateText').textContent = setup
-      ? 'Protege tu colección. Solo quien la sepa podrá ver, añadir o borrar discos. Mínimo 8 caracteres.'
-      : 'Este teléfono la recordará durante 3 meses.';
+      ? 'It protects your collection. Only someone who knows it can see, add or delete records. At least 8 characters.'
+      : 'This phone will remember it for 3 months.';
     $('repeatWrap').hidden = !setup;
     $('password').autocomplete = setup ? 'new-password' : 'current-password';
     $('password2').required = setup;
-    $('enter').textContent = setup ? 'Crear contraseña' : 'Entrar';
+    $('enter').textContent = setup ? 'Create password' : 'Enter';
     $('password').value = $('password2').value = '';
     say($('gateError'), '');
     if (!sheet.hidden) closeSheet();
+    pending = null;
     $('add').hidden = true;
     show(gate);
   }
@@ -742,14 +846,14 @@
     grid.replaceChildren();
     $('searchStrip').hidden = true;
     empty.hidden = false;
-    $('emptyTitle').textContent = 'No se ha podido cargar.';
+    $('emptyTitle').textContent = 'Could not load.';
     $('emptyText').textContent = message;
   }
 
   function render() {
     const q = plain(search.value.trim());
     const shown = q
-      ? items.filter((it) => plain([it.artist, it.album, it.genre, it.year, it.place, ...it.listens.map((listen) => listen.note)].join(' ')).includes(q))
+      ? items.filter((it) => plain([...Object.keys(inputs).map((name) => it[name] || ''), ...it.listens.map((listen) => listen.note)].join(' ')).includes(q))
       : items;
 
     grid.replaceChildren(...shown.map((it) => {
@@ -772,40 +876,48 @@
     }));
 
     $('searchStrip').hidden = items.length === 0;
-    $('count').textContent = items.length === 1 ? '1 disco' : items.length ? items.length + ' discos' : '';
+    $('count').textContent = items.length === 1 ? '1 record' : items.length ? items.length + ' records' : '';
     empty.hidden = shown.length > 0;
-    $('emptyTitle').textContent = items.length ? 'Nada coincide.' : 'Fotografía tu primer disco.';
+    $('emptyTitle').textContent = items.length ? 'Nothing matches.' : 'Photograph your first record.';
     $('emptyText').textContent = items.length
-      ? 'Prueba con otro artista, álbum o género.'
-      : 'Después apunta el artista y el álbum.';
+      ? 'Try another artist, album or genre.'
+      : 'Front cover first, then the back cover.';
   }
 
   // --- events ---
   $('add').onclick = () => $('camera').click();
 
+  // A new record: front cover, then the back cover step, then the form.
   $('camera').onchange = async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
     try {
-      const entry = { blob: await shrink(file) };
-      openSheet(entry);
-      if (ai) identify(entry);
+      pending = { blob: await shrink(file) };
     } catch (err) {
-      problem(err.message);
+      return problem(err.message);
     }
+    setImage($('backStepCover'), pending.blob);
+    say($('backStepError'), '');
+    show(backStep);
   };
+  $('backTake').onclick = () => $('backCamera').click();
+  $('backSkip').onclick = startRecord;
 
   // Enter moves to the next field instead of saving a half-filled form.
-  const order = [artistInput, albumInput, genreInput, yearInput, placeInput];
-  order.forEach((input, index) => {
+  const order = ['artist', 'album', 'genre', 'year', 'label', 'edition', 'price', 'about'].map((name) => inputs[name]);
+  order.slice(0, -1).forEach((input, index) => {
     input.onkeydown = (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      if (order[index + 1]) order[index + 1].focus();
-      else input.blur();
+      order[index + 1].focus();
     };
   });
+  placeInput.onkeydown = (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    placeInput.blur();
+  };
   artistInput.oninput = () => mark($('artistChips'), artistInput);
   genreInput.oninput = () => mark($('genreChips'), genreInput);
   placeInput.oninput = () => mark($('placeChips'), placeInput);
@@ -814,19 +926,23 @@
   $('cancel').onclick = closeSheet;
   $('detailClose').onclick = () => show(null);
   $('detailEdit').onclick = () => openSheet({ ...viewing });
+  $('aiAsk').onclick = () => identify(editing);
 
   $('backShot').onclick = () => $('backCamera').click();
   $('backCamera').onchange = async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
-    if (!file || !editing) return;
+    const entry = pending || editing;
+    if (!file || !entry) return;
+    const error = pending ? $('backStepError') : $('formError');
     try {
-      editing.backBlob = await shrink(file);
-      showBackPhoto();
-      say($('formError'), '');
+      entry.backBlob = await shrink(file, MAX_BACK_SIDE);
     } catch (err) {
-      say($('formError'), err.message);
+      return say(error, err.message);
     }
+    say(error, '');
+    if (entry === pending) startRecord();
+    else if (entry === editing) showBackPhoto();
   };
   $('backRemove').onclick = () => {
     editing.backBlob = null;
@@ -845,15 +961,9 @@
 
   $('form').onsubmit = async (e) => {
     e.preventDefault();
-    const artist = artistInput.value.trim();
-    const album = albumInput.value.trim();
-    if (!artist || !album || !editing) return;
+    if (!artistInput.value.trim() || !albumInput.value.trim() || !editing) return;
     const body = new FormData();
-    body.set('artist', artist);
-    body.set('album', album);
-    body.set('genre', genreInput.value.trim());
-    body.set('year', yearInput.value.trim());
-    body.set('place', placeInput.value.trim());
+    for (const [name, input] of Object.entries(inputs)) body.set(name, input.value.trim());
     // A listen typed in but not yet added to the list is saved too.
     body.set('listens', JSON.stringify(editing.listens.concat(pendingListen() || [])));
     if (editing.id != null) body.set('id', editing.id);
@@ -871,7 +981,7 @@
   };
 
   $('del').onclick = async () => {
-    if (!confirm('¿Borrar este disco? Las fotos se eliminan del servidor y no se pueden recuperar.')) return;
+    if (!confirm('Delete this record? Its photos are removed from the server and cannot be recovered.')) return;
     busy(true);
     try {
       await api('delete', { id: editing.id });
@@ -886,7 +996,7 @@
     e.preventDefault();
     const password = $('password').value;
     if (gateMode === 'setup' && password !== $('password2').value) {
-      say($('gateError'), 'Las dos contraseñas no coinciden.');
+      say($('gateError'), 'The two passwords do not match.');
       return;
     }
     $('enter').disabled = true;
@@ -903,6 +1013,10 @@
   $('aiForm').onsubmit = (e) => {
     e.preventDefault();
     saveKey($('aiKey').value.trim());
+  };
+  $('aiChange').onclick = () => {
+    showAi(true);
+    $('aiKey').focus();
   };
   $('aiRemove').onclick = () => saveKey('');
 
