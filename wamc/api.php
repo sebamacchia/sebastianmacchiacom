@@ -253,7 +253,7 @@ function with_all_fields(array $item): array
         $item['worn'] = ($date !== '' || $place !== '') ? [['date' => $date, 'place' => $place]] : [];
     }
     unset($item['wornDate'], $item['wornPlace']);
-    return $item + ['color' => '', 'fabric' => '', 'placePhoto' => ''];
+    return $item + ['aka' => '', 'color' => '', 'fabric' => '', 'placePhoto' => ''];
 }
 
 function was_uploaded(string $field): bool
@@ -307,6 +307,7 @@ function save_item(): array
     $fields = [
         'type' => clean_text((string) ($_POST['type'] ?? ''), 40),
         'place' => clean_text((string) ($_POST['place'] ?? ''), 60),
+        'aka' => clean_text((string) ($_POST['aka'] ?? ''), 60),
         'color' => clean_text((string) ($_POST['color'] ?? ''), 30),
         'fabric' => clean_text((string) ($_POST['fabric'] ?? ''), 30),
         'worn' => clean_uses((string) ($_POST['worn'] ?? '')),

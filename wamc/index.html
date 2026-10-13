@@ -268,7 +268,7 @@
   </header>
 
   <div id="searchStrip" class="strip" hidden>
-    <input id="search" type="search" placeholder="Buscar prenda, color o lugar" aria-label="Buscar prenda, color o lugar" autocomplete="off" enterkeyhint="search">
+    <input id="search" type="search" placeholder="Buscar prenda, AKA, color o lugar" aria-label="Buscar prenda, AKA, color o lugar" autocomplete="off" enterkeyhint="search">
   </div>
   <div id="grid" class="grid"></div>
   <div id="empty" class="strip empty" hidden>
@@ -300,7 +300,13 @@
     <div class="strip">
       <label for="place">Dónde está</label>
       <div id="placeChips" class="chips"></div>
-      <input id="place" type="text" placeholder="Armario, cajón 2, maleta" maxlength="60" autocapitalize="sentences" enterkeyhint="done" required>
+      <input id="place" type="text" placeholder="Armario, cajón 2, maleta" maxlength="60" autocapitalize="sentences" enterkeyhint="next" required>
+    </div>
+
+    <div class="strip">
+      <label for="aka">AKA <span class="quiet">Opcional</span></label>
+      <div id="akaChips" class="chips"></div>
+      <input id="aka" type="text" placeholder="Conjuntito Carmen" maxlength="60" autocapitalize="sentences" enterkeyhint="next">
     </div>
 
     <div class="strip">
@@ -356,6 +362,10 @@
       <h2 id="detailPlace" class="poster"></h2>
     </div>
     <img id="detailPhoto" class="full" alt="">
+    <div id="detailAkaStrip" class="strip" hidden>
+      <p class="label">AKA</p>
+      <p id="detailAka" class="fact"></p>
+    </div>
     <div id="detailFacts" class="strip facts" hidden>
       <div id="detailColorBox">
         <p class="label">Color</p>
@@ -417,7 +427,7 @@
   const grid = $('grid'), empty = $('empty'), search = $('search');
   const sheet = $('sheet'), detail = $('detail'), gate = $('gate');
   const typeInput = $('type'), placeInput = $('place'), preview = $('preview');
-  const colorInput = $('color'), fabricInput = $('fabric');
+  const akaInput = $('aka'), colorInput = $('color'), fabricInput = $('fabric');
 
   let items = [];
   let editing = null; // a saved garment being edited, or { blob } for a new one; placeBlob / removePlacePhoto track the place photo
@@ -596,6 +606,8 @@
     $('detailPhoto').alt = item.type;
     $('detailPlaceStrip').hidden = !item.placePhoto;
     setImage($('detailPlacePhoto'), item.placePhoto);
+    $('detailAkaStrip').hidden = !item.aka;
+    $('detailAka').textContent = item.aka;
     $('detailFacts').hidden = !item.color && !item.fabric;
     $('detailColorBox').hidden = !item.color;
     $('detailFabricBox').hidden = !item.fabric;
@@ -611,6 +623,7 @@
     setImage(preview, entry.blob || entry.photo);
     typeInput.value = entry.type || '';
     placeInput.value = entry.place || '';
+    akaInput.value = entry.aka || '';
     colorInput.value = entry.color || '';
     fabricInput.value = entry.fabric || '';
     chips($('colorChips'), suggestions('color', COLORS), colorInput);
@@ -621,6 +634,7 @@
     showPlacePhoto();
     chips($('typeChips'), suggestions('type', TYPES), typeInput);
     chips($('placeChips'), suggestions('place'), placeInput);
+    chips($('akaChips'), suggestions('aka'), akaInput);
     $('del').hidden = entry.id == null;
     $('sheetTitle').textContent = entry.id == null ? 'Nueva prenda' : 'Editar prenda';
     say($('formError'), '');
@@ -680,7 +694,7 @@
   function render() {
     const q = plain(search.value.trim());
     const shown = q
-      ? items.filter((it) => plain([it.type, it.place, it.color, it.fabric, ...it.worn.map((use) => use.place)].join(' ')).includes(q))
+      ? items.filter((it) => plain([it.type, it.aka, it.place, it.color, it.fabric, ...it.worn.map((use) => use.place)].join(' ')).includes(q))
       : items;
 
     grid.replaceChildren(...shown.map((it) => {
@@ -693,7 +707,7 @@
       img.loading = 'lazy';
       const info = document.createElement('div');
       const type = document.createElement('span');
-      type.textContent = [it.type, it.color].filter(Boolean).join(', ');
+      type.textContent = [it.aka || it.type, it.color].filter(Boolean).join(', ');
       const place = document.createElement('b');
       place.textContent = it.place;
       info.append(type, place);
@@ -707,7 +721,7 @@
     empty.hidden = shown.length > 0;
     $('emptyTitle').textContent = items.length ? 'Nada coincide.' : 'Fotografía tu primera prenda.';
     $('emptyText').textContent = items.length
-      ? 'Prueba con otro tipo de prenda o con otro lugar.'
+      ? 'Prueba con otro tipo de prenda, AKA o lugar.'
       : 'Después apunta qué es y dónde la guardas.';
   }
 
@@ -730,6 +744,13 @@
     if (e.key === 'Enter') { e.preventDefault(); placeInput.focus(); }
   };
   placeInput.oninput = () => mark($('placeChips'), placeInput);
+  placeInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); akaInput.focus(); }
+  };
+  akaInput.oninput = () => mark($('akaChips'), akaInput);
+  akaInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); colorInput.focus(); }
+  };
   colorInput.onkeydown = (e) => {
     if (e.key === 'Enter') { e.preventDefault(); fabricInput.focus(); }
   };
@@ -779,6 +800,7 @@
     const body = new FormData();
     body.set('type', type);
     body.set('place', place);
+    body.set('aka', akaInput.value.trim());
     body.set('color', colorInput.value.trim());
     body.set('fabric', fabricInput.value.trim());
     // A use typed in but not yet added to the list is saved too.
