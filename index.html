@@ -14,6 +14,10 @@
   <meta property="og:image" content="https://sebastianmacchia.com/videos/natc.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM-readable summary">
+  <script>
+    /* Links saved from when the film was the home page still open the film. */
+    if (/^#(titles|the-toy-car|the-family|the-arts|super-8|music-at-four|never-stopped|intro)$/.test(location.hash) || /[?&](intro|nointro|introu)\b/.test(location.search)) location.replace("/myfilm/" + location.search + location.hash);
+  </script>
   <link rel="stylesheet" href="portfolio.css?v=1">
   <script type="application/ld+json">
   {
@@ -40,7 +44,7 @@
     <header>
       <h1>Sebastian Macchia</h1>
       <p class="intro"><em>Building with AI, sound, and image.</em> I’m an audiovisual engineer and creative technologist in Miami. I turn emerging technology into working prototypes, creative tools, and experiences people can watch, hear, and interact with.</p>
-      <p>I’ve been working with AI since 2019. I’m the founder of <a href="/work/nobody-and-the-computer/">Nobody And The Computer</a>, a YouTube channel and Patreon community exploring AI for creative work. I also give talks and advise people and teams on how to use AI in their creative practice.</p>
+      <p>I’ve been working with generative AI since 2020. I’m the founder of <a href="/work/nobody-and-the-computer/">Nobody And The Computer</a>, a YouTube channel and Patreon community exploring AI for creative work. I also give talks and advise people and teams on how to use AI in their creative practice.</p>
       <p class="availability"><span class="dot" aria-hidden="true"></span>Open to AI creative technology and applied AI roles.<br><span class="availability-links"><a href="https://www.linkedin.com/in/sebastianmacchia/">LinkedIn <span aria-hidden="true">↗</span></a><a href="mailto:sebastianmacchia@gmail.com">Get in touch <span aria-hidden="true">↗</span></a></span></p>
     </header>
 
@@ -54,7 +58,7 @@
         </article>
         <article id="music">
           <h3><a href="/fretmap/">Fretmap <span aria-hidden="true">↗</span></a></h3>
-          <p>A browser-based guitar sheet editor with chord diagrams and playback. Connecting music and interactive tools.</p>
+          <p>A browser-based guitar sheet editor with chord diagrams and playback.</p>
         </article>
       </section>
       <section id="films" aria-labelledby="selected-title">
@@ -106,7 +110,7 @@
       <p>Have a role, a project, or an interesting problem in mind?<br>Reach me at <a href="mailto:sebastianmacchia@gmail.com">sebastianmacchia@gmail.com</a>.</p>
       <nav class="connect-links" aria-label="Social links"><a href="https://www.linkedin.com/in/sebastianmacchia/">LinkedIn <span aria-hidden="true">↗</span></a><a href="https://youtube.com/@nobodyandthecomputer">YouTube <span aria-hidden="true">↗</span></a><a href="https://www.youtube.com/@unsupervisedlive/streams">Live show <span aria-hidden="true">↗</span></a></nav>
     </section>
-    <footer><a href="/cinema.html">A more cinematic introduction <span aria-hidden="true">↗</span></a><span>2026</span></footer>
+    <footer><a href="/myfilm/">A more cinematic introduction <span aria-hidden="true">↗</span></a><span>2026</span></footer>
   </main>
 </body>
 </html>

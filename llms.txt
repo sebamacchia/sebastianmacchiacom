@@ -31,6 +31,8 @@ His strengths include translating technical possibilities into understandable pr
 - **I Was Abducted Wearing Meta Glasses**: An experimental mockumentary
 - **Nobody And The Computer**: An ongoing channel and laboratory for AI-generated moving-image work
 - **AI Films**: Experimental films, mockumentaries, and generative moving-image work (Punk Sinatra, Where Is My Sock and more): https://youtube.com/@nobodyandthecomputer
+- **Fretmap**: A browser-based guitar sheet editor with chord diagrams and playback: https://sebastianmacchia.com/fretmap/
+- **My film**: A web-movie about his life, with sound, family photos and a narrator: https://sebastianmacchia.com/myfilm/
 
 ## Point of view
 
