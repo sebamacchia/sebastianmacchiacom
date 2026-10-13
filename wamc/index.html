@@ -305,7 +305,6 @@
 
     <div class="strip">
       <label for="aka">AKA <span class="quiet">Opcional</span></label>
-      <div id="akaChips" class="chips"></div>
       <input id="aka" type="text" placeholder="Conjuntito Carmen" maxlength="60" autocapitalize="sentences" enterkeyhint="next">
     </div>
 
@@ -634,7 +633,6 @@
     showPlacePhoto();
     chips($('typeChips'), suggestions('type', TYPES), typeInput);
     chips($('placeChips'), suggestions('place'), placeInput);
-    chips($('akaChips'), suggestions('aka'), akaInput);
     $('del').hidden = entry.id == null;
     $('sheetTitle').textContent = entry.id == null ? 'Nueva prenda' : 'Editar prenda';
     say($('formError'), '');
@@ -747,7 +745,6 @@
   placeInput.onkeydown = (e) => {
     if (e.key === 'Enter') { e.preventDefault(); akaInput.focus(); }
   };
-  akaInput.oninput = () => mark($('akaChips'), akaInput);
   akaInput.onkeydown = (e) => {
     if (e.key === 'Enter') { e.preventDefault(); colorInput.focus(); }
   };
