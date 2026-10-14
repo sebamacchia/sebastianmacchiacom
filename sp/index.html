@@ -5,88 +5,170 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <meta name="robots" content="noindex">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>SP404MK2 crate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
-<link rel="stylesheet" href="style.css?v=2.1.0">
-<script type="module" src="js/app.js?v=2.1.0"></script>
+<link rel="stylesheet" href="style.css?v=3.0.0">
+<script type="module" src="js/app.js?v=3.0.0"></script>
 </head>
 <body>
 <main class="app">
-  <!-- Home: masthead, search, projects (or search results) -->
+  <!-- Home: the sampler's memory. 16 slots, banks A-J, pads 1-16. -->
   <section id="home" hidden>
     <header class="strip masthead">
       <h1>SP404MK2<br>crate</h1>
-      <p>Sampler<br>projects<br><span id="count" class="quiet"></span></p>
+      <p>Sampler<br>memory<br><span id="count" class="quiet"></span></p>
     </header>
 
-    <div id="searchStrip" class="strip" hidden>
-      <input id="search" type="search" placeholder="Search samples" aria-label="Search samples and projects" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+    <div class="strip">
+      <input id="search" type="search" placeholder="Search memory and card" aria-label="Search samples in memory and on the card" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
     </div>
 
-    <ul id="list" class="list" aria-live="polite"></ul>
-    <p id="more" class="strip quiet" hidden></p>
-
-    <div id="empty" class="strip empty" hidden>
-      <h2 id="emptyTitle"></h2>
-      <p id="emptyText"></p>
-    </div>
-
-    <div id="homeActions" class="strip" hidden>
-      <div class="buttons">
-        <button id="readCard" class="primary" type="button">Read SD card</button>
-        <button id="newProject" type="button">New project</button>
+    <!-- Search results replace the memory view while the field has text -->
+    <div id="results" hidden>
+      <ul id="resultList" class="list" aria-live="polite"></ul>
+      <p id="more" class="strip quiet" hidden></p>
+      <div id="noResults" class="strip empty" hidden>
+        <h2>Nothing matches.</h2>
+        <p>Try another sample, pad or folder name.</p>
       </div>
     </div>
 
-    <div id="importStrip" class="strip" role="status" hidden>
-      <div id="importBusy" class="march" hidden></div>
-      <p id="importText"></p>
-      <ul id="importWarnings" class="warnings" hidden></ul>
+    <div id="memoryView">
+      <div class="strip slot-strip">
+        <label for="slotSelect">Memory slot</label>
+        <select id="slotSelect"></select>
+      </div>
+
+      <header class="strip">
+        <p id="slotLabel" class="label"></p>
+        <h2 id="slotName" class="poster" tabindex="-1"></h2>
+      </header>
+
+      <div class="strip tabs-strip">
+        <div id="tabs" class="tabs" role="tablist" aria-label="Banks"></div>
+      </div>
+
+      <p id="slotHint" class="strip quiet" hidden>This slot is empty. Tap a pad to write down what it holds, or load a project from the card.</p>
+
+      <ol id="pads" class="pads" role="tabpanel"></ol>
+
+      <div id="slotActions" class="strip">
+        <div class="buttons">
+          <button id="rename" type="button">Rename</button>
+          <button id="clearSlot" class="danger" type="button">Clear slot</button>
+        </div>
+        <p id="slotError" class="error second" role="alert" hidden></p>
+      </div>
+
+      <div id="confirmStrip" class="strip confirm" hidden>
+        <h2 id="confirmTitle"></h2>
+        <p id="confirmText" class="second-small"></p>
+        <div class="buttons second">
+          <button id="confirmClear" class="danger" type="button">Clear slot</button>
+          <button id="confirmCancel" type="button">Cancel</button>
+        </div>
+        <p id="confirmError" class="error second" role="alert" hidden></p>
+      </div>
     </div>
 
-    <div id="logoutStrip" class="strip" hidden>
+    <div class="strip">
+      <button id="openCard" class="big" type="button">
+        <span class="big-title">Projects</span>
+        <span id="openCardSub" class="big-sub"></span>
+      </button>
+    </div>
+
+    <div class="strip">
       <button id="logout" type="button">Sign out</button>
     </div>
   </section>
 
-  <!-- Project: name, bank tabs A-J in two rows of five, pads 1-16 in a 4x4 grid -->
-  <section id="project" hidden>
+  <!-- Card: what is on the SD card, browsed like the sampler's import menu -->
+  <section id="card" hidden>
     <nav class="strip back">
-      <button id="back" type="button">Projects</button>
+      <button id="cardBack" type="button"></button>
     </nav>
 
-    <header class="strip">
-      <p id="projectLabel" class="label"></p>
-      <h2 id="projectName" class="poster" tabindex="-1"></h2>
-    </header>
+    <!-- Menu: Sample, Project, Project (SX) -->
+    <div id="cardMenu" hidden>
+      <header class="strip">
+        <p id="cardStatus" class="label"></p>
+        <h2 id="cardTitle" class="poster" tabindex="-1">SD card</h2>
+      </header>
 
-    <div class="strip tabs-strip">
-      <div id="tabs" class="tabs" role="tablist" aria-label="Banks"></div>
+      <div class="strip">
+        <button id="readCard" class="primary" type="button">Read card folder</button>
+        <p id="playState" class="quiet second-small"></p>
+        <div id="importStrip" class="second" role="status" hidden>
+          <div id="importBusy" class="march" hidden></div>
+          <p id="importText"></p>
+          <ul id="importWarnings" class="warnings" hidden></ul>
+        </div>
+      </div>
+
+      <div id="loadAllStrip" class="strip" hidden>
+        <p id="loadAllText"></p>
+        <button id="loadAll" class="primary second" type="button">Load all projects into memory</button>
+        <div id="loadAllStatus" class="second" role="status" hidden>
+          <div id="loadAllBusy" class="march" hidden></div>
+          <p id="loadAllResult"></p>
+          <ul id="loadAllNotes" class="warnings" hidden></ul>
+        </div>
+      </div>
+
+      <ul class="oled" aria-label="Card menu">
+        <li><button id="menuSample" class="oled-row" type="button"><span class="oled-name">Sample</span><span id="menuSampleSub" class="oled-sub"></span></button></li>
+        <li><button id="menuProject" class="oled-row" type="button"><span class="oled-name">Project</span><span id="menuProjectSub" class="oled-sub"></span></button></li>
+        <li><button id="menuSx" class="oled-row" type="button"><span class="oled-name">Project (SX)</span><span id="menuSxSub" class="oled-sub"></span></button></li>
+      </ul>
     </div>
 
-    <p id="projectHint" class="strip quiet" hidden>Tap a pad to write down what it holds.</p>
-
-    <ol id="pads" class="pads" role="tabpanel"></ol>
-
-    <div id="projectActions" class="strip">
-      <div class="buttons">
-        <button id="rename" type="button">Rename project</button>
-        <button id="delete" class="danger" type="button">Delete project</button>
+    <!-- One list screen: sample folders, samples in a folder, card projects, SX projects -->
+    <div id="cardList" hidden>
+      <header class="strip">
+        <p id="listLabel" class="label"></p>
+        <h2 id="listTitle" class="poster" tabindex="-1"></h2>
+        <p id="listNote" class="quiet second-small" hidden></p>
+      </header>
+      <ul id="cardRows" class="list"></ul>
+      <div id="listEmpty" class="strip empty" hidden>
+        <h2 id="listEmptyTitle"></h2>
+        <p id="listEmptyText"></p>
       </div>
-      <p id="projectError" class="error second" role="alert" hidden></p>
     </div>
 
-    <div id="confirmStrip" class="strip confirm" hidden>
-      <h2 id="confirmTitle"></h2>
-      <p id="confirmText" class="second-small"></p>
-      <div class="buttons second">
-        <button id="confirmDelete" class="danger" type="button">Delete project</button>
-        <button id="confirmCancel" type="button">Cancel</button>
+    <!-- A card project: read-only banks and pads, and Load into memory -->
+    <div id="cardProject" hidden>
+      <header class="strip">
+        <p id="cpLabel" class="label"></p>
+        <h2 id="cpName" class="poster" tabindex="-1"></h2>
+        <p id="cpNote" class="quiet second-small" hidden></p>
+      </header>
+
+      <div class="strip tabs-strip">
+        <div id="cpTabs" class="tabs" role="tablist" aria-label="Banks"></div>
       </div>
-      <p id="confirmError" class="error second" role="alert" hidden></p>
+
+      <ol id="cpPads" class="pads" role="tabpanel"></ol>
+
+      <div id="cpActions" class="strip">
+        <button id="loadOpen" class="primary" type="button">Load into memory</button>
+        <p class="quiet second-small">Read only. Load the project into a memory slot to edit its pads.</p>
+      </div>
+
+      <div id="loadStrip" class="strip confirm" hidden>
+        <label for="loadSlot">Memory slot</label>
+        <select id="loadSlot"></select>
+        <p id="loadText" class="second"></p>
+        <div class="buttons second">
+          <button id="loadConfirm" class="primary" type="button"></button>
+          <button id="loadCancel" type="button">Cancel</button>
+        </div>
+        <p id="loadError" class="error second" role="alert" hidden></p>
+      </div>
     </div>
   </section>
 
@@ -97,6 +179,12 @@
 </main>
 
 <input id="sdInput" type="file" webkitdirectory multiple hidden>
+
+<!-- Now playing: one sound at a time -->
+<div id="playerBar" class="player" role="status" aria-live="polite" hidden>
+  <p id="playerText"></p>
+  <button id="playerStop" type="button">Stop</button>
+</div>
 
 <!-- Pad sheet -->
 <section id="padSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="padTitle" hidden>
@@ -117,9 +205,9 @@
     </div>
 
     <div id="padCardStrip" class="strip" hidden>
-      <p class="label">On the SD card</p>
+      <p class="label">From the card project</p>
       <p id="padCardValue"></p>
-      <button id="padUseCard" class="second" type="button" hidden>Use SD card value</button>
+      <button id="padUseCard" class="second" type="button" hidden>Use the project's value</button>
     </div>
 
     <div id="padClearStrip" class="strip" hidden>
@@ -136,7 +224,7 @@
   </form>
 </section>
 
-<!-- New project / rename project -->
+<!-- Rename slot -->
 <section id="nameSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="nameTitle" hidden>
   <form id="nameForm" autocomplete="off" novalidate>
     <div class="strip">
@@ -144,13 +232,13 @@
       <p id="nameText" class="second-small"></p>
     </div>
     <div class="strip">
-      <label for="nameInput">Project name</label>
+      <label for="nameInput">Slot name</label>
       <input id="nameInput" type="text" placeholder="Drum kits" maxlength="80" autocapitalize="sentences" enterkeyhint="done">
     </div>
     <p id="nameError" class="strip error" role="alert" hidden></p>
     <div class="actions">
       <button id="nameCancel" type="button">Cancel</button>
-      <button id="nameSave" class="primary" type="submit"></button>
+      <button id="nameSave" class="primary" type="submit">Save</button>
     </div>
   </form>
 </section>
@@ -160,7 +248,7 @@
   <form id="gateForm" novalidate>
     <header class="strip masthead">
       <h1>SP404MK2<br>crate</h1>
-      <p>Sampler<br>projects</p>
+      <p>Sampler<br>memory</p>
     </header>
     <div class="strip">
       <h2 id="gateTitle"></h2>

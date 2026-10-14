@@ -158,3 +158,49 @@ export function padLengths(pad, channels = 2) {
   const playSec = pad.end > pad.start ? (pad.end - pad.start) / bytesPerSec : fullSec;
   return { playSec, fullSec };
 }
+
+/**
+ * Decode the audio of a whole .SMP file into float channels for Web Audio.
+ *
+ * The PCM is 16-bit signed big-endian, interleaved (L R L R ...) when stereo,
+ * and starts right after the 512-byte header. `start` and `end` are the byte
+ * offsets from PADCONF.BIN (counted from the start of the file, header
+ * included); when both are given and end > start, only that region is decoded.
+ * Otherwise the whole sample is. Offsets are clamped to the data and rounded
+ * down to whole frames, so a damaged PADCONF never reads past the buffer.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} arrayBuffer  The whole .SMP file.
+ * @param {number} [start]  Start byte offset (PADCONF `start`).
+ * @param {number} [end]    End byte offset, exclusive (PADCONF `end`).
+ * @returns {{ sampleRate: number, channels: 1|2, left: Float32Array, right: Float32Array|null }}
+ *   `right` is null for mono. Values are in -1..1 (sample / 32768).
+ * @throws {Error} When the magic is not "RFWV" or the buffer is shorter than the header.
+ */
+export function decodeSmp(arrayBuffer, start, end) {
+  const view = toDataView(arrayBuffer);
+  if (view.byteLength < SMP_HEADER_BYTES) throw new Error('SMP file is too short');
+  const header = parseSmpHeader(view);
+  const channels = header.channels === 1 ? 1 : 2;
+  const sampleRate = header.sampleRate > 0 ? header.sampleRate : SAMPLE_RATE;
+  const frameBytes = 2 * channels;
+
+  const dataEnd = SMP_HEADER_BYTES + Math.floor((view.byteLength - SMP_HEADER_BYTES) / frameBytes) * frameBytes;
+  let from = SMP_HEADER_BYTES;
+  let to = dataEnd;
+  if (Number.isFinite(start) && Number.isFinite(end) && end > start) {
+    // Align to frames relative to the start of the PCM data.
+    const align = (offset) =>
+      SMP_HEADER_BYTES + Math.floor((offset - SMP_HEADER_BYTES) / frameBytes) * frameBytes;
+    from = Math.min(Math.max(align(start), SMP_HEADER_BYTES), dataEnd);
+    to = Math.min(Math.max(align(end), from), dataEnd);
+  }
+
+  const frames = (to - from) / frameBytes;
+  const left = new Float32Array(frames);
+  const right = channels === 2 ? new Float32Array(frames) : null;
+  for (let i = 0, o = from; i < frames; i++, o += frameBytes) {
+    left[i] = view.getInt16(o, false) / 32768;
+    if (right) right[i] = view.getInt16(o + 2, false) / 32768;
+  }
+  return { sampleRate, channels, left, right };
+}

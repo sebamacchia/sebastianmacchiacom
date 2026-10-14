@@ -1,37 +1,45 @@
 // app.js — the SP404MK2 crate front end.
-// The server (api.php) keeps the crate; this page shows it and sends changes.
+// The server (api.php) keeps the crate: the sampler's memory (16 slots) and the list of what
+// is on the SD card. This page shows both and sends changes. No audio is ever uploaded: a
+// sound plays only in a tab where the card folder was picked, straight from this computer.
 // All data goes into the page with textContent, never as HTML.
 
-import { findProjects } from './importer.js';
-import { getDisplayPads, listProjects, bankHasSamples } from './store.js';
-import { BANKS } from './padconf.js';
+import { readCard, findPadFile } from './importer.js';
+import { getDisplayPads, listSlots, bankHasSamples, searchAll } from './store.js';
+import { BANKS, decodeSmp } from './padconf.js';
 
 const BANK_LIST = BANKS.split('');
 const PAD_RE = /^[A-J](?:[1-9]|1[0-6])$/;
+const SLOTS = 16;
 const MAX_RESULTS = 200;
-const IMPORT_BATCH_CHARS = 1500000; // the server takes at most 2 MB per request
+const MAX_BODY_CHARS = 1950000; // the server takes at most 2 MB per request
+const LAST_SLOT_KEY = 'sp404crate.slot';
+const OTHER_KEY = '~other';
+const EXPORT_KEY = '~export';
 
 const $ = (id) => document.getElementById(id);
-const home = $('home'), project = $('project'), problemStrip = $('problem');
+const home = $('home'), cardScreen = $('card'), problemStrip = $('problem');
 const padSheet = $('padSheet'), nameSheet = $('nameSheet'), gate = $('gate');
-const search = $('search'), list = $('list'), tabs = $('tabs'), pads = $('pads');
+const search = $('search'), tabs = $('tabs'), pads = $('pads');
+const cpTabs = $('cpTabs'), cpPads = $('cpPads');
 
 /** The crate as the server last sent it. */
-let crate = { projects: {}, overrides: {}, names: {} };
-/** Every pad with a name, for search: { projectId, padId, bank, num, name, key }. */
-let index = [];
-/** What the project screen shows. `mark` is the pad painted yellow. */
-const view = { projectId: null, bank: 'A', mark: null };
+let crate = emptyCrate();
+/** The card folder picked in this tab: card path -> File. Never leaves this computer. */
+const session = { files: null };
+/** What the screens show. */
+const view = { route: null, slot: 1, bank: 'A', mark: null };
 /** The pad open in the pad sheet. */
 let editing = null;
-/** 'new' or 'rename' while the name sheet is open. */
-let nameMode = null;
 let gateMode = 'login';
-let homeScroll = 0;
 let returnFocus = null;
 // A sheet adds one history entry so the phone's back button closes it.
 let layerEntry = false;
 let afterLayerPop = null;
+/** Scroll positions by screen, restored when the back button returns to one. */
+const scrolls = new Map();
+/** The result of "Load all projects into memory", shown until the card menu is left. */
+let loadAllReport = null;
 
 // ── Server ──────────────────────────────────────────────────────────────────
 
@@ -55,34 +63,17 @@ async function api(action, body) {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
+function emptyCrate() {
+  return { memory: {}, overrides: {}, names: {}, card: null };
+}
+
 const own = (obj, key) => (obj && Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : undefined);
-
-/** Lower case without accents, so "cafe" finds "Café". */
-const plain = (text) => String(text).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const pad2 = (n) => String(n).padStart(2, '0');
+const slotKey = (n) => 'slot-' + pad2(n);
+const validSlot = (n) => Number.isInteger(n) && n >= 1 && n <= SLOTS;
 const plural = (n, one, many) => `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
-
-/** What store.js calls the state: just the parts it reads. */
-const storeState = () => ({ projects: crate.projects, overrides: crate.overrides });
-
-/** The name shown for a project: a rename wins over the name on the card. */
-function projectName(id) {
-  return own(crate.names, id) ?? own(crate.projects, id)?.name ?? id;
-}
-
-function slotOf(id) {
-  const p = own(crate.projects, id);
-  if (!p) return null;
-  if (Number.isInteger(p.slot)) return p.slot;
-  const m = /^slot-(\d+)$/.exec(id);
-  return m ? Number(m[1]) : null;
-}
-
-/** "Project 06" for a card slot, otherwise the project's name. */
-function projectRef(id) {
-  const slot = slotOf(id);
-  return slot == null ? projectName(id) : `Project ${String(slot).padStart(2, '0')}`;
-}
+const natural = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
 
 /** Seconds as m:ss.s (rounded to tenths first, so 59.96 s reads 1:00.0). */
 function formatLength(sec) {
@@ -106,6 +97,13 @@ function parseLength(text) {
   return min * 60 + sec;
 }
 
+/** "14 Oct 2026" */
+function formatDate(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 function say(el, message) {
   el.textContent = message || '';
   el.hidden = !message;
@@ -118,17 +116,336 @@ function make(tag, className, text) {
   return node;
 }
 
-/** A sample name that may break after _ - . (and anywhere else if it has to). */
+/** A sample name that may break after _ - . / (and anywhere else if it has to). */
 function breakable(text) {
   const frag = document.createDocumentFragment();
-  for (const part of String(text).split(/(?<=[_.\-])/)) {
+  for (const part of String(text).split(/(?<=[_.\-/])/)) {
     if (frag.childNodes.length) frag.append(document.createElement('wbr'));
     frag.append(part);
   }
   return frag;
 }
 
-// ── Layers and screens ──────────────────────────────────────────────────────
+function readLastSlot() {
+  try {
+    const n = Number(localStorage.getItem(LAST_SLOT_KEY));
+    return validSlot(n) ? n : 1;
+  } catch {
+    return 1;
+  }
+}
+
+function saveLastSlot(n) {
+  try {
+    localStorage.setItem(LAST_SLOT_KEY, String(n));
+  } catch {
+    // Per-device convenience only; nothing to do when storage is blocked.
+  }
+}
+
+// ── Crate ───────────────────────────────────────────────────────────────────
+
+function setCrate(next) {
+  const card = isObj(next?.card) ? next.card : null;
+  crate = {
+    memory: isObj(next?.memory) ? next.memory : {},
+    overrides: isObj(next?.overrides) ? next.overrides : {},
+    names: isObj(next?.names) ? next.names : {},
+    card: card && {
+      readAt: card.readAt ?? null,
+      samples: Array.isArray(card.samples) ? card.samples : [],
+      projects: Array.isArray(card.projects) ? card.projects : [],
+      sx: Array.isArray(card.sx) ? card.sx : [],
+    },
+  };
+  groupsCache = null;
+}
+
+async function load() {
+  const data = await api('list');
+  setCrate(data.crate);
+}
+
+/** Take the crate from a write's answer, or ask for it when the answer has none. */
+async function takeCrate(data) {
+  if (isObj(data?.crate)) setCrate(data.crate);
+  else await load();
+}
+
+/** The 16 memory slots with the names people see (a rename wins over the project's name). */
+function slots() {
+  const rows = listSlots(crate);
+  return Array.from({ length: SLOTS }, (_, i) => {
+    const slot = i + 1;
+    const id = slotKey(slot);
+    const row = rows.find((r) => r.id === id || r.slot === slot) ?? {};
+    const mem = own(crate.memory, id);
+    const name = own(crate.names, id) || mem?.name || row.name || '';
+    return { id, slot, name, source: mem?.source ?? row.source ?? null, padCount: row.padCount ?? 0, mem };
+  });
+}
+
+function slotInfo(n) {
+  return slots()[n - 1];
+}
+
+/** True when the slot holds anything at all: pads, edits or a name. */
+function slotUsed(n) {
+  const id = slotKey(n);
+  return Boolean(own(crate.memory, id) || Object.keys(own(crate.overrides, id) ?? {}).length || own(crate.names, id));
+}
+
+const slotLabel = (s) => `${pad2(s.slot)} ${s.name || 'Empty'}`;
+
+function cardProjects() {
+  return (crate.card?.projects ?? []).slice().sort((a, b) => {
+    const sa = validSlot(a.slot) ? a.slot : 99, sb = validSlot(b.slot) ? b.slot : 99;
+    return sa - sb || natural.compare(a.name || a.folder, b.name || b.folder);
+  });
+}
+
+const findCardProject = (id) => (crate.card?.projects ?? []).find((p) => p.id === id) ?? null;
+const cardProjectName = (p) => p.name || p.folder || p.id;
+
+// ── Sample folders ──────────────────────────────────────────────────────────
+
+let groupsCache = null;
+
+/** Which list a sample's folder belongs in: each IMPORT folder, the exported samples, or Other. */
+function groupOf(folder) {
+  const f = String(folder ?? '');
+  const imp = /^(?:.*\/)?IMPORT\/(.+)$/i.exec(f);
+  if (imp) return { key: f, label: imp[1], order: 0 };
+  if (/^(?:.*\/)?EXPORT\/SAMPLE$/i.test(f)) return { key: EXPORT_KEY, label: 'Exported samples', order: 1 };
+  const exp = /^(?:.*\/)?EXPORT\/SAMPLE\/(.+)$/i.exec(f);
+  if (exp) return { key: f, label: `Exported samples/${exp[1]}`, order: 1 };
+  return { key: OTHER_KEY, label: 'Other', order: 2 };
+}
+
+/** Sample folders in list order, each with its samples sorted by name (numbers in natural order). */
+function sampleGroups() {
+  if (groupsCache) return groupsCache;
+  const byKey = new Map();
+  for (const s of crate.card?.samples ?? []) {
+    if (!isObj(s) || typeof s.path !== 'string') continue;
+    const g = groupOf(s.folder);
+    if (!byKey.has(g.key)) byKey.set(g.key, { ...g, samples: [] });
+    byKey.get(g.key).samples.push(s);
+  }
+  const groups = [...byKey.values()];
+  for (const g of groups) g.samples.sort((a, b) => natural.compare(a.name ?? '', b.name ?? '') || natural.compare(a.path, b.path));
+  groups.sort((a, b) => a.order - b.order || natural.compare(a.label, b.label));
+  groupsCache = groups;
+  return groups;
+}
+
+// ── Card files picked in this tab ───────────────────────────────────────────
+
+function setFiles(files) {
+  session.files = files instanceof Map ? files : new Map(files ?? []);
+}
+
+/** The SMP file for a pad of the project in `folder`: SMPL/BANK<1-10>-<01-16>.SMP. */
+function smpFile(folder, padId) {
+  return session.files ? findPadFile(session.files, folder, padId) : null;
+}
+
+/** What to play for a pad, or null when this tab has no sound for it. */
+function padSound(folder, pad, padId, key, label) {
+  if (!pad) return null;
+  const file = smpFile(folder, padId);
+  if (!file) return null;
+  return { key, label, kind: 'smp', file, start: pad.start, end: pad.end };
+}
+
+function memorySound(slot, padId, label) {
+  const mem = own(crate.memory, slotKey(slot));
+  if (!mem || mem.source !== 'card') return null;
+  return padSound(mem.folder, own(mem.pads, padId), padId, `m:${slot}:${padId}`, label);
+}
+
+function cardPadSound(project, padId, label) {
+  return padSound(project.folder, own(project.pads, padId), padId, `c:${project.id}:${padId}`, label);
+}
+
+function sampleSound(sample) {
+  const file = session.files?.get(sample.path);
+  if (!file) return null;
+  return { key: 's:' + sample.path, label: sample.name || sample.path, kind: 'file', file, ext: String(sample.ext || '').toLowerCase() };
+}
+
+// ── Playback: one sound at a time ───────────────────────────────────────────
+
+const player = { key: null, label: '', audio: null, url: null, source: null, token: 0 };
+let audioCtx = null;
+let barTimer = 0;
+
+/** The Web Audio context, made and resumed inside the tap so the browser lets it play. */
+function audioContext() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) throw new Error("This browser can't play sounds.");
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+
+function stopPlayback({ keepBar = false } = {}) {
+  player.token++;
+  if (player.audio) {
+    const a = player.audio;
+    a.onended = a.onerror = null;
+    a.pause();
+    a.removeAttribute('src');
+    try { a.load(); } catch { /* already released */ }
+  }
+  if (player.url) URL.revokeObjectURL(player.url);
+  if (player.source) {
+    player.source.onended = null;
+    try { player.source.stop(); } catch { /* not started */ }
+    player.source.disconnect();
+  }
+  player.audio = player.url = player.source = null;
+  player.key = null;
+  syncPlayButtons();
+  if (!keepBar) hideBar();
+}
+
+async function togglePlay(sound) {
+  if (!sound) return;
+  if (player.key === sound.key) {
+    stopPlayback();
+    return;
+  }
+  stopPlayback({ keepBar: true });
+  const token = player.token;
+  player.key = sound.key;
+  player.label = sound.label;
+  syncPlayButtons();
+  showBar('Playing ' + sound.label);
+  try {
+    if (sound.kind === 'smp') await playSmp(sound, token);
+    else await playFile(sound, token);
+  } catch (err) {
+    if (token !== player.token) return;
+    stopPlayback({ keepBar: true });
+    showMessage(err.message || "This sound can't play.");
+  }
+}
+
+function playFile(sound, token) {
+  const aiff = sound.ext === 'aif' || sound.ext === 'aiff';
+  // Unlock Web Audio inside the tap too, in case the AIFF has to be decoded by hand.
+  if (aiff) audioContext();
+  const url = URL.createObjectURL(sound.file);
+  const audio = new Audio(url);
+  player.audio = audio;
+  player.url = url;
+  audio.onended = () => {
+    if (token === player.token) stopPlayback();
+  };
+  return audio.play().catch(async (err) => {
+    if (token !== player.token) return;
+    if (err && err.name === 'NotAllowedError') throw new Error('The browser blocked the sound. Tap play again.');
+    if (!aiff) throw new Error("This file can't play in this browser.");
+    // Not every browser plays AIFF in <audio>: release it and try Web Audio.
+    audio.onended = null;
+    audio.removeAttribute('src');
+    URL.revokeObjectURL(url);
+    player.audio = player.url = null;
+    const ctx = audioContext();
+    let buffer;
+    try {
+      buffer = await ctx.decodeAudioData(await sound.file.arrayBuffer());
+    } catch {
+      throw new Error("This file type can't play in this browser.");
+    }
+    playBuffer(ctx, buffer, token);
+  });
+}
+
+async function playSmp(sound, token) {
+  const ctx = audioContext();
+  const start = Number.isFinite(sound.start) ? sound.start : undefined;
+  const end = Number.isFinite(sound.end) ? sound.end : undefined;
+  const data = decodeSmp(await sound.file.arrayBuffer(), start, end);
+  if (token !== player.token) return;
+  if (!data.left.length) throw new Error('This pad has no sound between its start and end.');
+  const buffer = ctx.createBuffer(data.right ? 2 : 1, data.left.length, data.sampleRate || 48000);
+  buffer.copyToChannel(data.left, 0);
+  if (data.right) buffer.copyToChannel(data.right, 1);
+  playBuffer(ctx, buffer, token);
+}
+
+function playBuffer(ctx, buffer, token) {
+  if (token !== player.token) return;
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(ctx.destination);
+  source.onended = () => {
+    if (token === player.token) stopPlayback();
+  };
+  player.source = source;
+  source.start();
+}
+
+/** Every play button shows play or stop, and says which in its label. */
+function syncPlayButtons() {
+  for (const b of document.querySelectorAll('button.play')) {
+    const on = b.dataset.key === player.key;
+    b.classList.toggle('playing', on);
+    b.setAttribute('aria-label', (on ? 'Stop ' : 'Play ') + b.dataset.label);
+    b.title = on ? 'Stop' : 'Play';
+  }
+}
+
+function playButton(sound) {
+  const b = make('button', 'play');
+  b.type = 'button';
+  b.dataset.key = sound.key;
+  b.dataset.label = sound.label;
+  b.onclick = (e) => {
+    e.stopPropagation();
+    togglePlay(sound);
+  };
+  const on = sound.key === player.key;
+  b.classList.toggle('playing', on);
+  b.setAttribute('aria-label', (on ? 'Stop ' : 'Play ') + sound.label);
+  b.title = on ? 'Stop' : 'Play';
+  return b;
+}
+
+function showBar(text) {
+  clearTimeout(barTimer);
+  const bar = $('playerBar');
+  bar.classList.remove('message');
+  $('playerText').textContent = text;
+  $('playerStop').textContent = 'Stop';
+  bar.hidden = false;
+}
+
+function showMessage(text) {
+  clearTimeout(barTimer);
+  const bar = $('playerBar');
+  bar.classList.add('message');
+  $('playerText').textContent = text;
+  $('playerStop').textContent = 'OK';
+  bar.hidden = false;
+  barTimer = setTimeout(hideBar, 7000);
+}
+
+function hideBar() {
+  clearTimeout(barTimer);
+  $('playerBar').hidden = true;
+}
+
+$('playerStop').onclick = () => {
+  if (player.key) stopPlayback();
+  else hideBar();
+};
+
+// ── Layers (sheets) ─────────────────────────────────────────────────────────
 
 /** Only one full-screen layer is open at a time; the page behind must not scroll. */
 function show(layer) {
@@ -178,270 +495,332 @@ window.addEventListener('popstate', () => {
     return;
   }
   if (!gate.hidden) return;
-  route();
+  route({ restore: true });
 });
 
-function hashFor(projectId, bank, mark) {
-  const q = new URLSearchParams({ p: projectId, b: bank });
-  if (mark) q.set('pad', mark);
+// ── Routes ──────────────────────────────────────────────────────────────────
+//   #m=01&b=A[&pad=A7][&q=text]       memory slot, bank, marked pad, search
+//   #card                             the card menu
+//   #card/s                           sample folders
+//   #card/s/<folder>[&mark=<path>]    samples in one folder, one marked
+//   #card/p                           card projects
+//   #card/p/<id>&b=A[&pad=A2]         one card project
+//   #card/sx                          SP-404SX projects
+
+function parseRoute(hash) {
+  const h = String(hash || '').replace(/^#/, '');
+  if (h === 'card' || h.startsWith('card/') || h.startsWith('card&')) {
+    const amp = h.indexOf('&');
+    const path = amp === -1 ? h : h.slice(0, amp);
+    const q = new URLSearchParams(amp === -1 ? '' : h.slice(amp + 1));
+    const [, kind = '', ...rest] = path.split('/');
+    let arg = null;
+    if (rest.length) {
+      try {
+        arg = decodeURIComponent(rest.join('/'));
+      } catch {
+        arg = null;
+      }
+    }
+    if (kind === 's' && arg != null) return { screen: 'card', view: 'folder', key: arg, mark: q.get('mark') };
+    if (kind === 's') return { screen: 'card', view: 'samples' };
+    if (kind === 'p' && arg != null) return { screen: 'card', view: 'project', id: arg, bank: q.get('b'), pad: q.get('pad') };
+    if (kind === 'p') return { screen: 'card', view: 'projects' };
+    if (kind === 'sx') return { screen: 'card', view: 'sx' };
+    return { screen: 'card', view: 'menu' };
+  }
+  const q = new URLSearchParams(h);
+  const m = Number(q.get('m'));
+  return { screen: 'memory', slot: validSlot(m) ? m : null, bank: q.get('b'), pad: q.get('pad'), q: q.get('q') || '' };
+}
+
+function memoryHash(slot, bank, pad, query) {
+  const q = new URLSearchParams({ m: pad2(slot), b: bank });
+  if (pad) q.set('pad', pad);
+  if (query) q.set('q', query);
   return '#' + q.toString();
 }
 
-/** Show the screen the address asks for: #p=<id>&b=<bank>&pad=<pad>, or home. */
-function route() {
-  const q = new URLSearchParams(location.hash.slice(1));
-  const id = q.get('p');
-  if (id && own(crate.projects, id)) {
-    const fresh = view.projectId !== id;
-    view.projectId = id;
-    const b = q.get('b');
-    view.bank = BANK_LIST.includes(b) ? b : firstBank(id);
-    const pad = q.get('pad');
-    view.mark = pad && PAD_RE.test(pad) && pad[0] === view.bank ? pad : null;
-    if (fresh) hideConfirm();
-    renderProject();
-    home.hidden = true;
-    project.hidden = false;
-    const marked = view.mark && pads.querySelector(`[data-pad="${view.mark}"]`);
-    if (marked) {
-      marked.scrollIntoView({ block: 'center' });
-      marked.focus({ preventScroll: true });
-    } else if (fresh) {
-      window.scrollTo(0, 0);
-      $('projectName').focus({ preventScroll: true });
-    }
-    return;
+function cardHash(kind, arg, params) {
+  let h = '#card' + (kind ? '/' + kind : '') + (arg != null ? '/' + encodeURIComponent(arg) : '');
+  if (params) {
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) if (v) q.set(k, v);
+    const s = q.toString();
+    if (s) h += '&' + s;
   }
-  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-  const wasProject = !project.hidden;
-  view.projectId = null;
-  project.hidden = true;
-  home.hidden = false;
-  renderHome();
-  if (wasProject) window.scrollTo(0, homeScroll);
+  return h;
 }
 
-function openProject(id, bank, mark) {
-  homeScroll = window.scrollY;
-  history.pushState({ fromHome: true }, '', hashFor(id, bank ?? firstBank(id), mark));
+/** A screen's identity without its marks: two hashes with the same key are the same screen. */
+function routeKey(r) {
+  if (r.screen === 'memory') return r.q ? 'search' : 'memory';
+  return ['card', r.view, r.key ?? r.id ?? ''].join('/');
+}
+
+/** Where the in-page back button leads when the page was opened straight from an address. */
+function parentHash(r) {
+  if (r.screen === 'memory') return null;
+  if (r.view === 'menu') return memoryHash(view.slot, firstBank(view.slot));
+  if (r.view === 'folder') return cardHash('s');
+  if (r.view === 'project') return cardHash('p');
+  return cardHash();
+}
+
+function routeName(r) {
+  if (r.screen === 'memory') return r.q ? 'Search' : 'Memory';
+  if (r.view === 'menu') return 'SD card';
+  if (r.view === 'samples') return 'Sample';
+  if (r.view === 'projects') return 'Project';
+  if (r.view === 'sx') return 'Project (SX)';
+  if (r.view === 'folder') return sampleGroups().find((g) => g.key === r.key)?.label ?? 'Sample';
+  const p = findCardProject(r.id);
+  return p ? cardProjectName(p) : 'Project';
+}
+
+/** Go forward to another screen; the back button returns here. */
+function go(hash) {
+  if (view.route) scrolls.set(routeKey(view.route), window.scrollY);
+  history.pushState({ from: location.hash || '#' }, '', hash);
   route();
 }
 
-function goHome() {
-  if (history.state && history.state.fromHome) {
+/** The in-page back button: where this screen was opened from, or its parent. */
+function goBack() {
+  const from = history.state?.from;
+  if (from) {
     history.back();
-  } else {
-    history.replaceState(null, '', location.pathname + location.search);
-    route();
+    return;
+  }
+  const parent = parentHash(view.route);
+  if (!parent) return;
+  history.replaceState(null, '', parent);
+  route();
+}
+
+/** Show the screen the address asks for. `restore` is true when the back button brought us here. */
+function route({ restore = false } = {}) {
+  const r = parseRoute(location.hash);
+  const before = view.route;
+  const sameScreen = before && routeKey(before) === routeKey(r);
+  if (before && before.screen === 'card' && before.view === 'menu' && !(r.screen === 'card' && r.view === 'menu')) loadAllReport = null;
+  view.route = r;
+  problemStrip.hidden = true;
+  home.hidden = r.screen !== 'memory';
+  cardScreen.hidden = r.screen !== 'card';
+
+  if (!sameScreen) {
+    hideLoad();
+    hideConfirm();
+  }
+  let focusEl = null;
+  if (r.screen === 'memory') focusEl = showMemory(r);
+  else focusEl = showCard(r);
+
+  if (sameScreen) return;
+  const marked = document.querySelector('#home:not([hidden]) .marked, #card:not([hidden]) .marked');
+  if (marked) {
+    marked.scrollIntoView({ block: 'center' });
+    (marked.matches('button') ? marked : marked.querySelector('button') ?? marked).focus({ preventScroll: true });
+  } else if (restore && scrolls.has(routeKey(r))) {
+    window.scrollTo(0, scrolls.get(routeKey(r)));
+  } else if (before) {
+    window.scrollTo(0, 0);
+    if (focusEl) focusEl.focus({ preventScroll: true });
   }
 }
 
 /** The first bank with something in it, or A. */
-function firstBank(id) {
-  const has = bankHasSamples(storeState(), id);
+function firstBank(slot) {
+  const has = bankHasSamples(crate, slotKey(slot)) ?? {};
   return BANK_LIST.find((b) => has[b]) ?? 'A';
 }
 
-// ── Crate ───────────────────────────────────────────────────────────────────
+// ── Home: memory ────────────────────────────────────────────────────────────
 
-function setCrate(next) {
-  crate = {
-    projects: next?.projects && typeof next.projects === 'object' ? next.projects : {},
-    overrides: next?.overrides && typeof next.overrides === 'object' ? next.overrides : {},
-    names: next?.names && typeof next.names === 'object' ? next.names : {},
-  };
-  index = [];
-  for (const p of listProjects(storeState())) {
-    for (const bank of BANK_LIST) {
-      const shown = getDisplayPads(storeState(), p.id, bank);
-      for (let num = 1; num <= 16; num++) {
-        const pad = shown[bank + num];
-        if (pad && pad.name) index.push({ projectId: p.id, padId: bank + num, bank, num, name: pad.name, key: plain(pad.name) });
-      }
-    }
-  }
-}
-
-/** Projects in list order (slot, then name) with the names people see. */
-function projects() {
-  const rows = listProjects(storeState()).map((p) => ({ ...p, name: projectName(p.id) }));
-  rows.sort((a, b) => {
-    if (a.slot !== b.slot) {
-      if (a.slot == null) return 1;
-      if (b.slot == null) return -1;
-      return a.slot - b.slot;
-    }
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) || a.id.localeCompare(b.id);
-  });
-  return rows;
-}
-
-async function load() {
-  const data = await api('list');
-  setCrate(data.crate);
-}
-
-// ── Home ────────────────────────────────────────────────────────────────────
-
-function projectRow(p) {
-  const button = make('button', 'row');
-  button.type = 'button';
-  button.append(
-    make('span', 'num', p.slot == null ? '' : String(p.slot).padStart(2, '0')),
-  );
-  const text = make('span');
-  text.append(make('span', 'title', p.name), make('span', 'sub', plural(p.padCount, 'sample', 'samples')));
-  button.append(text);
-  button.onclick = () => openProject(p.id);
-  const li = make('li');
-  li.append(button);
-  return li;
-}
-
-function resultRow(hit) {
-  const button = make('button', 'row result');
-  button.type = 'button';
-  const text = make('span');
-  text.append(
-    make('span', 'title', hit.name),
-    make('span', 'sub', `${projectRef(hit.projectId)}, bank ${hit.bank}, pad ${hit.num}`),
-  );
-  button.append(text);
-  button.onclick = () => openProject(hit.projectId, hit.bank, hit.padId);
-  const li = make('li');
-  li.append(button);
-  return li;
+function showMemory(r) {
+  const slot = r.slot ?? view.slot ?? readLastSlot();
+  const bank = BANK_LIST.includes(r.bank) ? r.bank : firstBank(slot);
+  const mark = r.pad && PAD_RE.test(r.pad) && r.pad[0] === bank ? r.pad : null;
+  if (view.slot !== slot) hideConfirm();
+  view.slot = slot;
+  view.bank = bank;
+  view.mark = mark;
+  saveLastSlot(slot);
+  if (search.value !== r.q && document.activeElement !== search) search.value = r.q;
+  const canonical = memoryHash(slot, bank, mark, r.q);
+  if (location.hash !== canonical) history.replaceState(history.state, '', canonical);
+  renderHome();
+  return $('slotName');
 }
 
 function renderHome() {
-  const all = projects();
-  const samples = all.reduce((sum, p) => sum + p.padCount, 0);
-  $('count').textContent = all.length ? plural(samples, 'sample', 'samples') : '';
-  $('searchStrip').hidden = all.length === 0;
+  const all = slots();
+  const total = all.reduce((sum, s) => sum + s.padCount, 0);
+  $('count').textContent = total ? plural(total, 'sample', 'samples') : '';
+  $('openCardSub').textContent = crate.card?.readAt
+    ? `SD card, read ${formatDate(crate.card.readAt)}`
+    : 'SD card, not read yet';
 
-  const q = plain(search.value.trim());
-  let rows;
-  let more = '';
-  if (!q) {
-    rows = all.map(projectRow);
-  } else {
-    const order = new Map(all.map((p, i) => [p.id, i]));
-    const projectHits = all.filter((p) => plain(p.name).includes(q));
-    const padHits = index.filter((hit) => hit.key.includes(q));
-    padHits.sort((a, b) => order.get(a.projectId) - order.get(b.projectId) || a.bank.localeCompare(b.bank) || a.num - b.num);
-    rows = [...projectHits.map(projectRow), ...padHits.slice(0, MAX_RESULTS).map(resultRow)];
-    if (padHits.length > MAX_RESULTS) {
-      more = `Showing the first ${MAX_RESULTS} of ${plural(padHits.length, 'sample', 'samples')}. Type more of the name to narrow it down.`;
-    }
-  }
-  list.replaceChildren(...rows);
-  say($('more'), more);
-
-  $('empty').hidden = rows.length > 0;
-  $('emptyTitle').textContent = all.length ? 'Nothing matches.' : 'No projects yet.';
-  $('emptyText').textContent = all.length
-    ? 'Try another sample or project name.'
-    : 'Read the SP-404MKII folder from your SD card on a laptop, or add a project by hand.';
+  const q = search.value.trim();
+  $('results').hidden = !q;
+  $('memoryView').hidden = Boolean(q);
+  if (q) renderResults(q);
+  else renderMemory(all);
 }
 
-// ── Project ─────────────────────────────────────────────────────────────────
-
-function renderProject() {
-  const id = view.projectId;
-  const p = own(crate.projects, id);
-  if (!p) return;
-  const state = storeState();
-  const shownCount = listProjects(state).find((row) => row.id === id)?.padCount ?? 0;
-  const where = slotOf(id) != null ? projectRef(id) : p.source === 'manual' ? 'Added by hand' : `Folder ${p.folder || id}`;
-  $('projectLabel').textContent = `${where}, ${plural(shownCount, 'sample', 'samples')}`;
-  $('projectName').textContent = projectName(id);
-  $('projectHint').hidden = shownCount > 0;
-
-  const has = bankHasSamples(state, id);
-  tabs.replaceChildren(...BANK_LIST.map((b) => {
-    const tab = make('button', has[b] ? '' : 'none', b);
-    tab.type = 'button';
-    tab.id = 'tab-' + b;
-    tab.setAttribute('role', 'tab');
-    tab.setAttribute('aria-selected', String(b === view.bank));
-    tab.setAttribute('aria-controls', 'pads');
-    tab.setAttribute('aria-label', `Bank ${b}${has[b] ? '' : ', empty'}`);
-    tab.tabIndex = b === view.bank ? 0 : -1;
-    tab.onclick = () => setBank(b);
-    return tab;
+function renderMemory(all = slots()) {
+  const select = $('slotSelect');
+  select.replaceChildren(...all.map((s) => {
+    const o = make('option', null, slotLabel(s));
+    o.value = String(s.slot);
+    return o;
   }));
-  pads.setAttribute('aria-labelledby', 'tab-' + view.bank);
+  select.value = String(view.slot);
 
-  const shown = getDisplayPads(state, id, view.bank);
-  const cells = [];
-  for (let num = 1; num <= 16; num++) {
-    const padId = view.bank + num;
-    const pad = shown[padId];
-    const button = make('button', 'pad');
-    button.type = 'button';
-    button.dataset.pad = padId;
-    if (padId === view.mark) button.classList.add('marked');
-    if (!pad) button.classList.add('blank');
-    const name = pad ? pad.name || 'No name' : '';
-    const approx = pad && pad.approx && !own(own(crate.overrides, id), padId)?.playSec;
-    const length = pad && hasLength(pad.playSec) ? formatLength(pad.playSec) : '';
-    const title = make('span', 'title');
-    if (pad) title.append(breakable(name));
-    else title.textContent = '—';
-    const foot = make('span', 'foot');
-    if (pad && pad.edited) foot.append(make('span', 'edited', 'edited'));
-    if (length) foot.append(make('span', 'len', (approx ? '≈' : '') + length));
-    button.append(make('span', 'num', String(num)), title, foot);
-    // The cell may cut the name short, so the full name is in the label and the tooltip.
-    const label = [`Pad ${num}`, pad ? name : 'empty'];
-    if (length) label.push((approx ? 'about ' : '') + length);
-    if (pad && pad.edited) label.push('edited');
-    button.setAttribute('aria-label', label.join(', '));
-    if (pad) button.title = name;
-    button.onclick = () => openPad(padId);
-    const li = make('li');
-    li.append(button);
-    cells.push(li);
-  }
-  pads.replaceChildren(...cells);
-  // One cell is in the tab order; the arrow keys move between the others.
-  setPadStop(pads.querySelector('.marked') ?? pads.querySelector('.pad'));
-  say($('projectError'), '');
+  const s = all[view.slot - 1];
+  const parts = [`Slot ${pad2(s.slot)}`];
+  if (s.mem?.source === 'card') parts.push(`from card folder ${s.mem.folder || s.mem.name || ''}`.trim());
+  else if (s.mem || s.padCount) parts.push('written by hand');
+  if (s.padCount) parts.push(plural(s.padCount, 'sample', 'samples'));
+  $('slotLabel').textContent = parts.join(', ');
+  $('slotName').textContent = s.name || 'Empty';
+  $('slotName').classList.toggle('is-empty', !s.name);
+  $('slotHint').hidden = s.padCount > 0;
+  $('clearSlot').disabled = !slotUsed(s.slot);
+
+  const id = slotKey(view.slot);
+  renderTabs(tabs, bankHasSamples(crate, id) ?? {}, view.bank, 'pads', (b) => setBank(b));
+
+  const shown = getDisplayPads(crate, id, view.bank) ?? {};
+  const overrides = own(crate.overrides, id);
+  renderGrid(pads, {
+    bank: view.bank,
+    mark: view.mark,
+    pad: (padId) => own(shown, padId) ?? null,
+    approx: (padId, pad) => pad.approx && !hasLength(own(own(overrides, padId), 'playSec')),
+    sound: (padId, label) => memorySound(view.slot, padId, label),
+    open: openPad,
+  });
+  say($('slotError'), '');
 }
 
 function setBank(bank, focusTab = false) {
   if (!BANK_LIST.includes(bank)) return;
   view.bank = bank;
   view.mark = null;
-  history.replaceState(history.state, '', hashFor(view.projectId, bank));
-  renderProject();
-  if (focusTab) $('tab-' + bank).focus();
+  history.replaceState(history.state, '', memoryHash(view.slot, bank));
+  view.route = parseRoute(location.hash);
+  renderMemory();
+  if (focusTab) $('tab-pads-' + bank).focus();
+}
+
+$('slotSelect').onchange = (e) => {
+  const slot = Number(e.target.value);
+  if (!validSlot(slot)) return;
+  hideConfirm();
+  history.replaceState(history.state, '', memoryHash(slot, firstBank(slot)));
+  route();
+};
+
+// ── Banks and pads (memory and card projects share them) ────────────────────
+
+function renderTabs(container, has, current, gridId, onPick) {
+  container.replaceChildren(...BANK_LIST.map((b) => {
+    const tab = make('button', has[b] ? '' : 'none', b);
+    tab.type = 'button';
+    tab.id = `tab-${gridId}-${b}`;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', String(b === current));
+    tab.setAttribute('aria-controls', gridId);
+    tab.setAttribute('aria-label', `Bank ${b}${has[b] ? '' : ', empty'}`);
+    tab.tabIndex = b === current ? 0 : -1;
+    tab.onclick = () => onPick(b);
+    return tab;
+  }));
+  $(gridId).setAttribute('aria-labelledby', `tab-${gridId}-${current}`);
+}
+
+/**
+ * Pads 1-16 of one bank as a 4x4 grid. With `open`, each cell is a button that opens the pad
+ * sheet; without it the grid is read only. A pad with a sound in this tab gets a play button.
+ */
+function renderGrid(container, { bank, mark, pad: getPad, approx, sound, open }) {
+  const cells = [];
+  for (let num = 1; num <= 16; num++) {
+    const padId = bank + num;
+    const pad = getPad(padId);
+    const cell = make(open ? 'button' : 'div', 'pad');
+    if (open) {
+      cell.type = 'button';
+      cell.onclick = () => open(padId);
+    } else {
+      cell.classList.add('readonly');
+    }
+    cell.dataset.pad = padId;
+    if (padId === mark) {
+      cell.classList.add('marked');
+      if (!open) cell.tabIndex = -1;
+    }
+    if (!pad) cell.classList.add('blank');
+    const name = pad ? pad.name || 'No name' : '';
+    const isApprox = pad && approx(padId, pad);
+    const length = pad && hasLength(pad.playSec) ? formatLength(pad.playSec) : '';
+    const title = make('span', 'title');
+    if (pad) title.append(breakable(name));
+    else title.textContent = '—';
+    const foot = make('span', 'foot');
+    if (pad && pad.edited) foot.append(make('span', 'edited', 'edited'));
+    if (length) foot.append(make('span', 'len', (isApprox ? '≈' : '') + length));
+    cell.append(make('span', 'num', String(num)), title, foot);
+    // The cell may cut the name short, so the full name is in the label and the tooltip.
+    const label = [`Pad ${num}`, pad ? name : 'empty'];
+    if (length) label.push((isApprox ? 'about ' : '') + length);
+    if (pad && pad.edited) label.push('edited');
+    if (open) cell.setAttribute('aria-label', label.join(', '));
+    if (pad) cell.title = name;
+    const li = make('li');
+    li.append(cell);
+    const s = pad ? sound(padId, `pad ${num}, ${name}`) : null;
+    if (s) {
+      cell.classList.add('playable');
+      li.append(playButton(s));
+    }
+    cells.push(li);
+  }
+  container.replaceChildren(...cells);
+  // One cell is in the tab order; the arrow keys move between the others.
+  if (open) setPadStop(container, container.querySelector('.marked') ?? container.querySelector('.pad'));
 }
 
 // The banks sit in two rows of five, as on the sampler: left and right move along
 // the row, up and down jump to the bank above or below.
-tabs.addEventListener('keydown', (e) => {
-  const at = BANK_LIST.indexOf(view.bank);
-  const row = at - (at % 5);
-  let next = null;
-  if (e.key === 'ArrowRight') next = BANK_LIST[row + ((at % 5) + 1) % 5];
-  else if (e.key === 'ArrowLeft') next = BANK_LIST[row + ((at % 5) + 4) % 5];
-  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') next = BANK_LIST[(at + 5) % 10];
-  else if (e.key === 'Home') next = BANK_LIST[0];
-  else if (e.key === 'End') next = BANK_LIST[BANK_LIST.length - 1];
-  if (!next) return;
-  e.preventDefault();
-  setBank(next, true);
-});
+function bankKeys(container, current, pick) {
+  container.addEventListener('keydown', (e) => {
+    const at = BANK_LIST.indexOf(current());
+    const row = at - (at % 5);
+    let next = null;
+    if (e.key === 'ArrowRight') next = BANK_LIST[row + ((at % 5) + 1) % 5];
+    else if (e.key === 'ArrowLeft') next = BANK_LIST[row + ((at % 5) + 4) % 5];
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') next = BANK_LIST[(at + 5) % 10];
+    else if (e.key === 'Home') next = BANK_LIST[0];
+    else if (e.key === 'End') next = BANK_LIST[BANK_LIST.length - 1];
+    if (!next) return;
+    e.preventDefault();
+    pick(next);
+  });
+}
+bankKeys(tabs, () => view.bank, (b) => setBank(b, true));
+bankKeys(cpTabs, () => parseRoute(location.hash).bank ?? 'A', (b) => setCardBank(b, true));
 
 /** Make `cell` the one pad in the tab order. */
-function setPadStop(cell) {
+function setPadStop(container, cell) {
   if (!cell) return;
-  for (const each of pads.querySelectorAll('.pad')) each.tabIndex = each === cell ? 0 : -1;
+  for (const each of container.querySelectorAll('.pad')) each.tabIndex = each === cell ? 0 : -1;
 }
 
 pads.addEventListener('focusin', (e) => {
-  if (e.target.classList.contains('pad')) setPadStop(e.target);
+  if (e.target.classList.contains('pad')) setPadStop(pads, e.target);
 });
 
 // Arrow keys move across the 4x4 grid: left and right by one pad, up and down by a row.
@@ -463,21 +842,96 @@ pads.addEventListener('keydown', (e) => {
   if (target) target.focus();
 });
 
+// ── Rename and clear a slot ─────────────────────────────────────────────────
+
 function hideConfirm() {
   $('confirmStrip').hidden = true;
-  $('projectActions').hidden = false;
+  $('slotActions').hidden = false;
 }
+
+$('rename').onclick = () => {
+  const slot = view.slot;
+  const id = slotKey(slot);
+  const mem = own(crate.memory, id);
+  $('nameTitle').textContent = `Rename slot ${pad2(slot)}`;
+  $('nameText').textContent = mem?.source === 'card' && mem.name
+    ? `Leave it empty to use the project's own name, ${mem.name}. Loading another project into this slot removes the name.`
+    : 'Leave it empty to remove the name.';
+  $('nameInput').value = own(crate.names, id) ?? mem?.name ?? '';
+  say($('nameError'), '');
+  nameBusy(false);
+  openLayer(nameSheet, $('nameInput'));
+};
+
+function nameBusy(on) {
+  for (const button of nameSheet.querySelectorAll('button')) button.disabled = on;
+  $('nameSave').textContent = on ? 'Saving' : 'Save';
+}
+
+$('nameForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const name = $('nameInput').value.trim();
+  const slot = view.slot;
+  nameBusy(true);
+  try {
+    await takeCrate(await api('rename', { slot, name }));
+  } catch (err) {
+    if (!nameSheet.hidden) {
+      nameBusy(false);
+      say($('nameError'), err.message);
+    }
+    return;
+  }
+  closeLayer(() => {
+    renderHome();
+    $('slotName').focus({ preventScroll: true });
+  });
+};
+$('nameCancel').onclick = () => closeLayer();
+
+// Clearing a slot is asked in the page, never with confirm().
+$('clearSlot').onclick = () => {
+  const s = slotInfo(view.slot);
+  $('confirmTitle').textContent = `Clear slot ${pad2(s.slot)}${s.name ? ', ' + s.name : ''}?`;
+  $('confirmText').textContent = 'Its pads, your edits and its name are removed from memory. The SD card is not touched: you can load the project again from Projects.';
+  say($('confirmError'), '');
+  $('slotActions').hidden = true;
+  $('confirmStrip').hidden = false;
+  $('confirmCancel').focus();
+};
+$('confirmCancel').onclick = () => {
+  hideConfirm();
+  $('clearSlot').focus();
+};
+$('confirmClear').onclick = async () => {
+  const slot = view.slot;
+  $('confirmClear').disabled = $('confirmCancel').disabled = true;
+  try {
+    await takeCrate(await api('clear', { slot }));
+  } catch (err) {
+    say($('confirmError'), err.message);
+    return;
+  } finally {
+    $('confirmClear').disabled = $('confirmCancel').disabled = false;
+  }
+  stopPlayback();
+  hideConfirm();
+  history.replaceState(history.state, '', memoryHash(slot, 'A'));
+  route();
+  $('slotName').focus({ preventScroll: true });
+};
 
 // ── Pad sheet ───────────────────────────────────────────────────────────────
 
 function openPad(padId) {
-  const id = view.projectId;
-  const card = own(own(crate.projects, id)?.pads, padId) ?? null;
+  const slot = view.slot;
+  const id = slotKey(slot);
+  const card = own(own(crate.memory, id)?.pads, padId) ?? null;
   const edit = own(own(crate.overrides, id), padId) ?? null;
-  const shown = getDisplayPads(storeState(), id, padId[0])[padId] ?? null;
-  editing = { projectId: id, padId, card, edit };
+  const shown = own(getDisplayPads(crate, id, padId[0]) ?? {}, padId) ?? null;
+  editing = { slot, padId, card, edit };
 
-  $('padWhere').textContent = `${projectRef(id)}, bank ${padId[0]}, pad ${padId.slice(1)}`;
+  $('padWhere').textContent = `Memory ${pad2(slot)}, bank ${padId[0]}, pad ${padId.slice(1)}`;
   $('padTitle').textContent = shown?.name || (shown ? 'No name' : 'Empty pad');
   $('padName').value = shown?.name ?? '';
   $('padLength').value = shown && hasLength(shown.playSec) ? formatLength(shown.playSec) : '';
@@ -504,8 +958,7 @@ async function sendPad(body) {
   padBusy(true);
   say($('padError'), '');
   try {
-    const data = await api('pad', { projectId: target.projectId, padId: target.padId, ...body });
-    setCrate(data.crate);
+    await takeCrate(await api('pad', { slot: target.slot, padId: target.padId, ...body }));
   } catch (err) {
     if (!padSheet.hidden) {
       padBusy(false);
@@ -516,11 +969,12 @@ async function sendPad(body) {
   editing = null;
   closeLayer(() => {
     // The pad just changed is the current item: mark it and keep it in view.
-    if (view.projectId !== target.projectId) return;
+    if (view.slot !== target.slot || home.hidden) return;
     view.mark = target.padId;
     view.bank = target.padId[0];
-    history.replaceState(history.state, '', hashFor(view.projectId, view.bank, view.mark));
-    renderProject();
+    history.replaceState(history.state, '', memoryHash(view.slot, view.bank, view.mark));
+    view.route = parseRoute(location.hash);
+    renderHome();
     const cell = pads.querySelector(`[data-pad="${target.padId}"]`);
     if (cell) cell.focus({ preventScroll: true });
   });
@@ -538,7 +992,7 @@ $('padForm').onsubmit = (e) => {
     $('padLength').focus();
     return;
   }
-  // A value that is the same as on the card is not an edit, so it is not kept as one.
+  // A value that is the same as the loaded project's is not an edit, so it is not kept as one.
   const sameName = card && name === (card.name || '');
   const sameLength = card && (sec == null ? !hasLength(card.playSec) : hasLength(card.playSec) && typed.replace(/^≈/, '') === formatLength(card.playSec));
   const body = {
@@ -571,109 +1025,373 @@ $('padName').addEventListener('keydown', (e) => {
   $('padLength').focus();
 });
 
-// ── New project and rename ──────────────────────────────────────────────────
+// ── Search: memory and card ─────────────────────────────────────────────────
 
-function openName(mode) {
-  nameMode = mode;
-  const renaming = mode === 'rename';
-  $('nameTitle').textContent = renaming ? 'Rename project' : 'New project';
-  const fromCard = renaming && own(crate.projects, view.projectId)?.source !== 'manual';
-  $('nameText').textContent = !renaming
-    ? 'For a project you write in by hand, pad by pad.'
-    : fromCard
-      ? 'The new name stays when you read the SD card again. Leave it empty to use the name from the card.'
-      : 'Write the new name.';
-  $('nameInput').value = renaming ? projectName(view.projectId) : '';
-  $('nameSave').textContent = renaming ? 'Save' : 'Create project';
-  say($('nameError'), '');
-  nameBusy(false);
-  openLayer(nameSheet, $('nameInput'));
-}
-
-function nameBusy(on) {
-  for (const button of nameSheet.querySelectorAll('button')) button.disabled = on;
-}
-
-$('nameForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const name = $('nameInput').value.trim();
-  const fromCard = nameMode === 'rename' && own(crate.projects, view.projectId)?.source !== 'manual';
-  if (!name && !fromCard) {
-    say($('nameError'), 'Write a name for the project.');
-    $('nameInput').focus();
-    return;
+/** Where a search hit leads: the memory slot, the card folder or the card project, marked. */
+function hitHash(hit) {
+  const padId = typeof hit.padId === 'string' && PAD_RE.test(hit.padId) ? hit.padId : null;
+  const kind = hit.kind ?? hit.type;
+  if (kind === 'sample' || (!padId && typeof hit.path === 'string')) {
+    const sample = (crate.card?.samples ?? []).find((s) => s.path === hit.path);
+    return cardHash('s', groupOf(sample?.folder ?? hit.folder).key, { mark: hit.path });
   }
-  const mode = nameMode;
-  const projectId = view.projectId;
-  nameBusy(true);
-  let data;
+  if (!padId) return null;
+  const slotId = hit.slotId ?? (validSlot(hit.slot) ? slotKey(hit.slot) : null);
+  const m = /^slot-(\d{2})$/.exec(slotId ?? '');
+  if (kind === 'memory' || (m && !hit.projectId && !hit.cardProjectId)) {
+    return m ? memoryHash(Number(m[1]), padId[0], padId) : null;
+  }
+  const projectId = hit.cardProjectId ?? hit.projectId;
+  return projectId ? cardHash('p', projectId, { b: padId[0], pad: padId }) : null;
+}
+
+function renderResults(q) {
+  let hits = [];
   try {
-    data = mode === 'rename' ? await api('rename', { projectId, name }) : await api('project', { name });
-    setCrate(data.crate);
-  } catch (err) {
-    if (!nameSheet.hidden) {
-      nameBusy(false);
-      say($('nameError'), err.message);
+    hits = searchAll(crate, q) ?? [];
+  } catch {
+    hits = [];
+  }
+  const rows = [];
+  for (const hit of hits.slice(0, MAX_RESULTS)) {
+    const target = hitHash(hit);
+    const button = make('button', 'row result');
+    button.type = 'button';
+    const text = make('span');
+    const title = make('span', 'title');
+    title.append(breakable(hit.name || 'No name'));
+    text.append(title, make('span', 'sub', hit.where || ''));
+    button.append(text);
+    if (target) button.onclick = () => go(target);
+    else button.disabled = true;
+    const li = make('li');
+    li.append(button);
+    rows.push(li);
+  }
+  $('resultList').replaceChildren(...rows);
+  say($('more'), hits.length > MAX_RESULTS
+    ? `Showing the first ${MAX_RESULTS} of ${plural(hits.length, 'result', 'results')}. Type more of the name to narrow it down.`
+    : '');
+  $('noResults').hidden = hits.length > 0;
+}
+
+search.addEventListener('input', () => {
+  const q = search.value.trim();
+  history.replaceState(history.state, '', memoryHash(view.slot, view.bank, null, q));
+  view.route = parseRoute(location.hash);
+  view.mark = null;
+  renderHome();
+});
+
+// ── Card ────────────────────────────────────────────────────────────────────
+
+function showCard(r) {
+  for (const id of ['cardMenu', 'cardList', 'cardProject']) $(id).hidden = true;
+  const from = history.state?.from ? parseRoute(history.state.from) : null;
+  const back = from ?? (parentHash(r) ? parseRoute(parentHash(r)) : null);
+  $('cardBack').textContent = back ? routeName(back) : 'Memory';
+  if (r.view === 'menu') return renderCardMenu();
+  if (r.view === 'project') return renderCardProject(r);
+  return renderCardList(r);
+}
+
+function cardSummary() {
+  const c = crate.card;
+  if (!c) return 'Not read yet';
+  return [`Read ${formatDate(c.readAt)}`, plural(c.samples.length, 'sample', 'samples'), plural(c.projects.length, 'project', 'projects')].join(', ');
+}
+
+function renderCardMenu() {
+  $('cardMenu').hidden = false;
+  $('cardStatus').textContent = cardSummary();
+  $('playState').textContent = session.files
+    ? "Playing from this computer's card folder."
+    : 'Playing works on this computer after you read the card folder.';
+  const c = crate.card;
+  const groups = sampleGroups();
+  $('menuSampleSub').textContent = c ? `${plural(c.samples.length, 'sample', 'samples')}, ${plural(groups.length, 'folder', 'folders')}` : '';
+  $('menuProjectSub').textContent = c ? plural(c.projects.length, 'project', 'projects') : '';
+  $('menuSxSub').textContent = c ? (c.sx.length ? plural(c.sx.length, 'project', 'projects') : 'None') : '';
+  renderLoadAll();
+  return $('cardTitle');
+}
+
+function renderCardList(r) {
+  $('cardList').hidden = false;
+  const c = crate.card;
+  const rows = [];
+  let label = cardSummary(), title = '', note = '', emptyTitle = '', emptyText = '';
+
+  if (r.view === 'samples') {
+    title = 'Sample';
+    for (const g of sampleGroups()) {
+      const button = make('button', 'row result');
+      button.type = 'button';
+      const text = make('span');
+      const t = make('span', 'title');
+      t.append(breakable(g.label));
+      text.append(t, make('span', 'sub', plural(g.samples.length, 'sample', 'samples')));
+      button.append(text);
+      button.onclick = () => go(cardHash('s', g.key));
+      rows.push(wrapLi(button));
     }
-    return;
-  }
-  nameMode = null;
-  if (mode === 'rename') {
-    closeLayer(() => {
-      renderProject();
-      $('projectName').focus({ preventScroll: true });
-    });
+    emptyTitle = 'No samples.';
+    emptyText = c ? 'The card has no WAV or AIFF files outside its projects.' : 'Read the card folder first.';
+  } else if (r.view === 'folder') {
+    const g = sampleGroups().find((each) => each.key === r.key);
+    title = g ? g.label : 'Not on the card';
+    label = g ? `${groupPath(g)}, ${plural(g.samples.length, 'sample', 'samples')}` : 'Sample';
+    if (g) {
+      if (!session.files) note = 'Read the card folder on this computer to play these.';
+      for (const s of g.samples) rows.push(sampleRow(s, s.path === r.mark));
+    }
+    emptyTitle = 'Nothing here.';
+    emptyText = 'This folder is not in the card list. Read the card folder again.';
+  } else if (r.view === 'projects') {
+    title = 'Project';
+    for (const p of cardProjects()) {
+      const button = make('button', 'row');
+      button.type = 'button';
+      button.append(make('span', 'num', validSlot(p.slot) ? pad2(p.slot) : ''));
+      const text = make('span');
+      const t = make('span', 'title');
+      t.append(breakable(cardProjectName(p)));
+      text.append(t, make('span', 'sub', `${plural(Object.keys(p.pads ?? {}).length, 'sample', 'samples')}, folder ${p.folder}`));
+      button.append(text);
+      button.onclick = () => go(cardHash('p', p.id));
+      rows.push(wrapLi(button));
+    }
+    emptyTitle = 'No projects.';
+    emptyText = c ? 'The card has no project folders with a PADCONF.BIN.' : 'Read the card folder first.';
   } else {
-    closeLayer(() => {
-      if (data.projectId && own(crate.projects, data.projectId)) openProject(data.projectId, 'A');
-      else renderHome();
-    });
+    title = 'Project (SX)';
+    for (const p of c?.sx ?? []) {
+      const li = make('li', 'row-wrap');
+      const text = make('span', 'text');
+      const t = make('span', 'title');
+      t.append(breakable(p.name || p.folder || ''));
+      text.append(t, make('span', 'sub', p.folder ? `Folder ${p.folder}` : ''));
+      li.append(text);
+      rows.push(li);
+    }
+    emptyTitle = 'None.';
+    emptyText = c ? 'No SP-404SX projects on this card.' : 'Read the card folder first.';
   }
-};
-$('nameCancel').onclick = () => {
-  nameMode = null;
-  closeLayer();
-};
 
-// ── Delete project (asked in the page, never with confirm()) ────────────────
+  $('listLabel').textContent = label;
+  $('listTitle').textContent = title;
+  say($('listNote'), note);
+  $('cardRows').replaceChildren(...rows);
+  $('listEmpty').hidden = rows.length > 0;
+  $('listEmptyTitle').textContent = emptyTitle;
+  $('listEmptyText').textContent = emptyText;
+  return $('listTitle');
+}
 
-$('delete').onclick = () => {
-  const id = view.projectId;
-  const fromCard = own(crate.projects, id)?.source !== 'manual';
-  $('confirmTitle').textContent = `Delete ${projectName(id)}?`;
-  $('confirmText').textContent = fromCard
-    ? 'Its pads and your edits are removed from the crate. The SD card is not touched, and reading it again brings the project back without your edits.'
-    : 'Its pads are removed from the crate and cannot be recovered.';
-  say($('confirmError'), '');
-  $('projectActions').hidden = true;
-  $('confirmStrip').hidden = false;
-  $('confirmCancel').focus();
+/** Where a sample folder is on the card, for the label over its name. */
+function groupPath(g) {
+  if (g.key === EXPORT_KEY) return 'EXPORT/SAMPLE';
+  if (g.key === OTHER_KEY) return 'Outside IMPORT and EXPORT';
+  return g.key;
+}
+
+function wrapLi(node) {
+  const li = make('li');
+  li.append(node);
+  return li;
+}
+
+function sampleRow(s, marked) {
+  const li = make('li', 'row-wrap');
+  li.dataset.path = s.path;
+  if (marked) {
+    li.classList.add('marked');
+    li.tabIndex = -1;
+  }
+  const text = make('span', 'text');
+  const t = make('span', 'title');
+  t.append(breakable(s.name || s.path));
+  const len = hasLength(s.sec) ? formatLength(s.sec) : 'Length unknown';
+  text.append(t, make('span', 'sub len-sub', [len, String(s.ext || '').toUpperCase()].filter(Boolean).join(', ')));
+  li.append(text);
+  const sound = sampleSound(s);
+  if (sound) li.append(playButton(sound));
+  return li;
+}
+
+// ── A card project ──────────────────────────────────────────────────────────
+
+function renderCardProject(r) {
+  $('cardProject').hidden = false;
+  const p = findCardProject(r.id);
+  if (!p) {
+    $('cpLabel').textContent = 'Card project';
+    $('cpName').textContent = 'Not on the card';
+    cpTabs.replaceChildren();
+    cpPads.replaceChildren();
+    $('cpActions').hidden = $('loadStrip').hidden = true;
+    return $('cpName');
+  }
+  const has = {};
+  for (const id of Object.keys(p.pads ?? {})) if (PAD_RE.test(id)) has[id[0]] = true;
+  const bank = BANK_LIST.includes(r.bank) ? r.bank : BANK_LIST.find((b) => has[b]) ?? 'A';
+  const mark = r.pad && PAD_RE.test(r.pad) && r.pad[0] === bank ? r.pad : null;
+  const canonical = cardHash('p', p.id, { b: bank, pad: mark });
+  if (location.hash !== canonical) history.replaceState(history.state, '', canonical);
+  view.route = parseRoute(location.hash);
+
+  const count = Object.keys(p.pads ?? {}).length;
+  $('cpLabel').textContent = [validSlot(p.slot) ? `Card, slot ${pad2(p.slot)}` : 'Card', `folder ${p.folder}`, plural(count, 'sample', 'samples')].join(', ');
+  $('cpName').textContent = cardProjectName(p);
+  say($('cpNote'), session.files ? '' : 'Read the card folder on this computer to play these.');
+
+  renderTabs(cpTabs, has, bank, 'cpPads', (b) => setCardBank(b));
+  renderGrid(cpPads, {
+    bank,
+    mark,
+    pad: (padId) => own(p.pads, padId) ?? null,
+    approx: (padId, pad) => Boolean(pad.approx),
+    sound: (padId, label) => cardPadSound(p, padId, label),
+    open: null,
+  });
+  if ($('loadStrip').hidden) $('cpActions').hidden = false;
+  return $('cpName');
+}
+
+function setCardBank(bank, focusTab = false) {
+  const r = parseRoute(location.hash);
+  if (r.view !== 'project' || !BANK_LIST.includes(bank)) return;
+  history.replaceState(history.state, '', cardHash('p', r.id, { b: bank }));
+  route();
+  if (focusTab) $('tab-cpPads-' + bank).focus();
+}
+
+function hideLoad() {
+  $('loadStrip').hidden = true;
+  $('cpActions').hidden = false;
+}
+
+function loadSlotText() {
+  const slot = Number($('loadSlot').value);
+  const s = slotInfo(slot);
+  $('loadText').textContent = slotUsed(slot)
+    ? `This replaces memory slot ${pad2(slot)} (${s.name || 'no name'}) and its edits.`
+    : `Memory slot ${pad2(slot)} is empty.`;
+  $('loadConfirm').textContent = `Load into slot ${pad2(slot)}`;
+}
+
+$('loadOpen').onclick = () => {
+  const p = findCardProject(view.route?.id);
+  if (!p) return;
+  const all = slots();
+  $('loadSlot').replaceChildren(...all.map((s) => {
+    const o = make('option', null, slotLabel(s));
+    o.value = String(s.slot);
+    return o;
+  }));
+  const firstEmpty = all.find((s) => !slotUsed(s.slot))?.slot ?? 1;
+  $('loadSlot').value = String(validSlot(p.slot) ? p.slot : firstEmpty);
+  loadSlotText();
+  say($('loadError'), '');
+  $('cpActions').hidden = true;
+  $('loadStrip').hidden = false;
+  $('loadSlot').focus();
 };
-$('confirmCancel').onclick = () => {
-  hideConfirm();
-  $('delete').focus();
+$('loadSlot').onchange = loadSlotText;
+$('loadCancel').onclick = () => {
+  hideLoad();
+  $('loadOpen').focus();
 };
-$('confirmDelete').onclick = async () => {
-  const id = view.projectId;
-  $('confirmDelete').disabled = $('confirmCancel').disabled = true;
+$('loadConfirm').onclick = async () => {
+  const p = findCardProject(view.route?.id);
+  const slot = Number($('loadSlot').value);
+  if (!p || !validSlot(slot)) return;
+  $('loadConfirm').disabled = $('loadCancel').disabled = true;
   try {
-    const data = await api('delete', { projectId: id });
-    setCrate(data.crate);
+    await takeCrate(await api('load', { cardProjectId: p.id, slot }));
   } catch (err) {
-    say($('confirmError'), err.message);
+    say($('loadError'), err.message);
     return;
   } finally {
-    $('confirmDelete').disabled = $('confirmCancel').disabled = false;
+    $('loadConfirm').disabled = $('loadCancel').disabled = false;
   }
-  hideConfirm();
-  goHome();
+  hideLoad();
+  search.value = '';
+  go(memoryHash(slot, firstBank(slot)));
 };
 
-$('rename').onclick = () => openName('rename');
-$('newProject').onclick = () => openName('new');
-$('back').onclick = goHome;
+// ── Load all projects into memory (first time) ──────────────────────────────
 
-// ── Read SD card ────────────────────────────────────────────────────────────
+function renderLoadAll() {
+  const projects = crate.card?.projects ?? [];
+  const memoryEmpty = Object.keys(crate.memory).length === 0;
+  const offer = projects.length > 0 && memoryEmpty;
+  $('loadAllStrip').hidden = !offer && !loadAllReport;
+  $('loadAll').hidden = !offer;
+  $('loadAllText').textContent = offer
+    ? `Memory is empty. Load each card project into the slot its folder names, like P1_ for slot 01.`
+    : '';
+  $('loadAllText').hidden = !offer;
+  const st = $('loadAllStatus');
+  st.hidden = !loadAllReport;
+  if (loadAllReport) {
+    $('loadAllBusy').hidden = !loadAllReport.busy;
+    $('loadAllResult').textContent = loadAllReport.text;
+    $('loadAllResult').className = loadAllReport.error ? 'error' : '';
+    const notes = $('loadAllNotes');
+    notes.replaceChildren(...loadAllReport.notes.map((n) => make('li', null, n)));
+    notes.hidden = loadAllReport.notes.length === 0;
+  }
+}
+
+/** One card project per slot; when two folders claim a slot, the newer one wins. */
+function loadAllPlan() {
+  const bySlot = new Map();
+  const notes = [];
+  for (const p of cardProjects()) {
+    if (!validSlot(p.slot)) {
+      notes.push(`Not loaded: ${p.folder} has no slot number. Open it under Project to load it into a slot.`);
+      continue;
+    }
+    const current = bySlot.get(p.slot);
+    if (!current) {
+      bySlot.set(p.slot, p);
+      continue;
+    }
+    const newer = (p.modified ?? 0) > (current.modified ?? 0) ? p : current;
+    const older = newer === p ? current : p;
+    bySlot.set(p.slot, newer);
+    notes.push(`Skipped ${older.folder}: slot ${pad2(p.slot)} takes the newer ${newer.folder}.`);
+  }
+  return { picks: [...bySlot.entries()].sort((a, b) => a[0] - b[0]), notes };
+}
+
+$('loadAll').onclick = async () => {
+  const { picks, notes } = loadAllPlan();
+  $('loadAll').disabled = true;
+  const done = [];
+  loadAllReport = { busy: true, text: `Loading ${plural(picks.length, 'project', 'projects')} into memory.`, notes, error: false };
+  renderLoadAll();
+  try {
+    for (const [slot, p] of picks) {
+      await takeCrate(await api('load', { cardProjectId: p.id, slot }));
+      done.push(`${pad2(slot)} ${cardProjectName(p)}`);
+    }
+    loadAllReport = { busy: false, text: `Loaded ${plural(done.length, 'project', 'projects')} into memory: ${done.join(', ')}.`, notes, error: false };
+  } catch (err) {
+    loadAllReport = {
+      busy: false,
+      text: `Stopped: ${err.message}${done.length ? ` Loaded so far: ${done.join(', ')}.` : ''}`,
+      notes,
+      error: true,
+    };
+  } finally {
+    $('loadAll').disabled = false;
+  }
+  renderCardMenu();
+};
+
+// ── Read card folder ────────────────────────────────────────────────────────
 
 function importStatus(text, { busy = false, warnings = [], error = false } = {}) {
   $('importStrip').hidden = false;
@@ -682,50 +1400,38 @@ function importStatus(text, { busy = false, warnings = [], error = false } = {})
   p.textContent = text;
   p.className = error ? 'error' : '';
   const ul = $('importWarnings');
-  ul.replaceChildren(...warnings.map((w) => make('li', null, w)));
+  ul.replaceChildren(...warnings.slice(0, 50).map((w) => make('li', null, String(w))));
+  if (warnings.length > 50) ul.append(make('li', null, `And ${plural(warnings.length - 50, 'more warning', 'more warnings')}.`));
   ul.hidden = warnings.length === 0;
-}
-
-/** Split the projects so no request is bigger than the server accepts. */
-function batches(found) {
-  const out = [];
-  let current = [];
-  let size = 0;
-  for (const p of found) {
-    const n = JSON.stringify(p).length;
-    if (current.length && size + n > IMPORT_BATCH_CHARS) {
-      out.push(current);
-      current = [];
-      size = 0;
-    }
-    current.push(p);
-    size += n;
-  }
-  if (current.length) out.push(current);
-  return out;
 }
 
 $('readCard').onclick = () => $('sdInput').click();
 $('sdInput').onchange = async (e) => {
-  const files = e.target.files;
-  if (!files || files.length === 0) return;
+  const list = e.target.files;
+  if (!list || list.length === 0) return;
   $('readCard').disabled = true;
-  importStatus(`Reading ${plural(files.length, 'file', 'files')} from the card.`, { busy: true });
+  importStatus(`Reading ${plural(list.length, 'file', 'files')} from the card.`, { busy: true });
   try {
-    const { projects: found = [], warnings = [] } = await findProjects(files);
-    if (found.length === 0) {
-      importStatus('No projects found in that folder. Choose the SP-404MKII folder on the card, the one that holds the PROJECT folders.', { warnings, error: true });
+    const { card, files, warnings = [] } = await readCard(list);
+    const samples = card?.samples ?? [], projects = card?.projects ?? [], sx = card?.sx ?? [];
+    if (samples.length + projects.length + sx.length === 0) {
+      importStatus('No samples or projects in that folder. Choose the SD card itself, or the folder that holds EXPORT and IMPORT.', { warnings, error: true });
       return;
     }
-    importStatus(`Saving ${plural(found.length, 'project', 'projects')} to the crate.`, { busy: true });
-    for (const group of batches(found)) {
-      const data = await api('import', { projects: group });
-      setCrate(data.crate);
+    const body = { card: { samples, projects, sx } };
+    const size = JSON.stringify(body).length;
+    if (size > MAX_BODY_CHARS) {
+      importStatus(`The card list is too big to save (${(size / 1e6).toFixed(1)} MB; the most is 2 MB).`, { warnings, error: true });
+      return;
     }
-    const samples = found.reduce((sum, p) => sum + Object.keys(p.pads || {}).length, 0);
-    const names = found.map((p) => `${projectName(p.id)} (${Object.keys(p.pads || {}).length})`).join(', ');
-    importStatus(`Read ${plural(found.length, 'project', 'projects')} and ${plural(samples, 'sample', 'samples')} from the card: ${names}.`, { warnings });
-    renderHome();
+    importStatus(`Saving the card list: ${plural(samples.length, 'sample', 'samples')}, ${plural(projects.length, 'project', 'projects')}.`, { busy: true });
+    const data = await api('card', body);
+    stopPlayback();
+    setFiles(files);
+    loadAllReport = null;
+    await takeCrate(data);
+    importStatus(`Read ${plural(samples.length, 'sample', 'samples')} and ${plural(projects.length, 'project', 'projects')}. The sounds stay on this computer.`, { warnings });
+    route();
   } catch (err) {
     importStatus(`The card was not read. ${err.message || err}`, { error: true });
   } finally {
@@ -734,7 +1440,11 @@ $('sdInput').onchange = async (e) => {
   }
 };
 
-search.addEventListener('input', renderHome);
+$('openCard').onclick = () => go(cardHash());
+$('cardBack').onclick = goBack;
+$('menuSample').onclick = () => go(cardHash('s'));
+$('menuProject').onclick = () => go(cardHash('p'));
+$('menuSx').onclick = () => go(cardHash('sx'));
 
 // ── Gate ────────────────────────────────────────────────────────────────────
 
@@ -743,7 +1453,7 @@ function showGate(mode) {
   const setup = mode === 'setup';
   $('gateTitle').textContent = setup ? 'Create the password.' : 'Enter the password.';
   $('gateText').textContent = setup
-    ? 'It protects your crate. Only someone who knows it can see or change your projects. At least 8 characters.'
+    ? 'It protects your crate. Only someone who knows it can see or change your memory and card lists. At least 8 characters.'
     : 'This device will remember it for 3 months.';
   $('repeatWrap').hidden = !setup;
   $('password').autocomplete = setup ? 'new-password' : 'current-password';
@@ -752,10 +1462,10 @@ function showGate(mode) {
   $('password').value = $('password2').value = '';
   say($('gateError'), '');
   editing = null;
-  nameMode = null;
   layerEntry = false;
   afterLayerPop = null;
-  home.hidden = project.hidden = true;
+  stopPlayback();
+  home.hidden = cardScreen.hidden = true;
   show(gate);
 }
 
@@ -782,18 +1492,18 @@ $('gateForm').onsubmit = async (e) => {
 async function enter() {
   show(null);
   problemStrip.hidden = true;
-  $('homeActions').hidden = $('logoutStrip').hidden = false;
   try {
     await load();
   } catch (err) {
     if (gate.hidden) problem(err.message);
     return;
   }
+  view.route = null;
   route();
 }
 
 function problem(message) {
-  home.hidden = project.hidden = true;
+  home.hidden = cardScreen.hidden = true;
   problemStrip.hidden = false;
   $('problemText').textContent = message;
 }
@@ -805,23 +1515,28 @@ $('logout').onclick = async () => {
     return problem(err.message);
   }
   setCrate(null);
+  session.files = null;
   search.value = '';
+  loadAllReport = null;
   $('importStrip').hidden = true;
   history.replaceState(null, '', location.pathname + location.search);
   showGate('login');
 };
 
-// Escape closes an open sheet.
+// Escape closes an open sheet, or the question under the grid.
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!padSheet.hidden) $('padCancel').click();
   else if (!nameSheet.hidden) $('nameCancel').click();
+  else if (!$('loadStrip').hidden && !cardScreen.hidden) $('loadCancel').click();
+  else if (!$('confirmStrip').hidden && !home.hidden) $('confirmCancel').click();
 });
 
 // ── Start ───────────────────────────────────────────────────────────────────
 
 // A leftover sheet entry (after a reload) is just a plain page.
 if (history.state && history.state.layer) history.replaceState({ ...history.state, layer: false }, '');
+view.slot = readLastSlot();
 
 api('state')
   .then((state) => {

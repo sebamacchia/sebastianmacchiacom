@@ -1,63 +1,50 @@
-// store.js — app state, overrides, JSON export/import, localStorage persistence.
-// Pure state functions take and return plain objects (no DOM, no storage) so the
-// Node tests can import them. Only load() and save() touch localStorage.
+// store.js — pure helpers over the crate the server returns:
+//   { memory: {"slot-NN": Slot}, overrides: {"slot-NN": {padId: {name?, playSec?}}},
+//     names: {"slot-NN": string}, card: null | {readAt, samples, projects, sx} }
+// No DOM, no storage, no network: the Node tests import this file directly.
 
 import { BANKS } from './padconf.js';
 
-/** localStorage key for the whole state document. */
-export const STORAGE_KEY = 'sp404vault.v1';
-
-/** Current state schema version. */
-export const STATE_VERSION = 1;
+/** Number of project slots in the SP-404MKII memory. */
+export const SLOT_COUNT = 16;
 
 /** Valid pad ids: bank letter A..J + pad number 1..16. */
 const PAD_ID_RE = /^[A-J](?:[1-9]|1[0-6])$/;
 
-/** Keys never copied from untrusted JSON (prototype pollution guard). */
-const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
-
 /**
  * @typedef {Object} Pad
  * @property {string} name
- * @property {number} playSec
- * @property {number} fullSec
- * @property {number} channels
+ * @property {number|null} playSec
+ * @property {number|null} fullSec
+ * @property {1|2|null} channels
  * @property {boolean} approx
+ * @property {number} [start]  SMP byte offset (card pads only).
+ * @property {number} [end]    SMP byte offset (card pads only).
  */
 
 /**
- * @typedef {Object} Project
- * @property {string} id
+ * @typedef {Object} Slot
+ * @property {string} id         "slot-01".."slot-16"
+ * @property {number} slot       1..16
  * @property {string} name
- * @property {string} folder
- * @property {"sd"|"manual"} source
- * @property {string} importedAt  ISO date.
- * @property {number|null} slot   NN from a PROJECT_NN folder, otherwise null.
- * @property {Object<string, Pad>} pads  Only loaded pads, keyed "A1".."J16".
+ * @property {string} folder     Card project folder it was loaded from ("" when manual).
+ * @property {"card"|"manual"} source
+ * @property {string} loadedAt   ISO date.
+ * @property {Object<string, Pad>} pads
  */
 
-/**
- * @typedef {Object} State
- * @property {1} version
- * @property {Object<string, Project>} projects
- * @property {Object<string, Object<string, {name?: string, playSec?: number}>>} overrides
- * @property {{ projectId: string|null, bank: string }} ui
- */
+// ---------- Small helpers ----------
 
-// ---------- Helpers ----------
-
-function isObject(v) {
-  return v !== null && typeof v === 'object' && !Array.isArray(v);
+/** "slot-07" for 7. */
+export function slotId(slot) {
+  return `slot-${String(slot).padStart(2, '0')}`;
 }
 
-function isLength(v) {
-  return typeof v === 'number' && Number.isFinite(v) && v >= 0;
-}
-
-/** Slot number from a "slot-NN" project id, else null. */
-function slotFromId(id) {
-  const m = /^slot-(\d+)$/.exec(id);
-  return m ? Number(m[1]) : null;
+/** 7 for "slot-07"; null when not a slot id. */
+function slotNumber(id) {
+  const m = /^slot-(\d{2})$/.exec(String(id));
+  const n = m ? Number(m[1]) : 0;
+  return n >= 1 && n <= SLOT_COUNT ? n : null;
 }
 
 /** Pad ids of one bank, "A1".."A16". */
@@ -67,138 +54,51 @@ function bankPadIds(bank) {
   return ids;
 }
 
-/** Shallow-copy every level of state we might change. */
-function cloneState(state) {
-  const projects = {};
-  for (const [id, p] of Object.entries(state.projects ?? {})) projects[id] = { ...p, pads: { ...p.pads } };
-  const overrides = {};
-  for (const [id, o] of Object.entries(state.overrides ?? {})) {
-    overrides[id] = {};
-    for (const [padId, f] of Object.entries(o)) overrides[id][padId] = { ...f };
-  }
-  return {
-    version: STATE_VERSION,
-    projects,
-    overrides,
-    ui: { projectId: state.ui?.projectId ?? null, bank: state.ui?.bank ?? 'A' },
-  };
+/** Lower case, accents removed: "Cúmbia" -> "cumbia". */
+export function plain(text) {
+  return String(text ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
-// ---------- Pure state functions ----------
-
-/**
- * Create an empty state document.
- * @returns {State}
- */
-export function createStore() {
-  return { version: STATE_VERSION, projects: {}, overrides: {}, ui: { projectId: null, bank: 'A' } };
+/** A card project by its id ("card-P1_OLD"), or undefined. */
+function cardProject(crate, id) {
+  const list = crate?.card?.projects;
+  return Array.isArray(list) ? list.find((p) => p && p.id === id) : undefined;
 }
 
 /**
- * Merge imported projects into state. Replaces `projects[id].pads` for each
- * imported project; never touches `overrides`.
- * Sets `ui.projectId` to the first imported project when none is selected
- * (or the selected one no longer exists).
- * @param {State} state
- * @param {import('./importer.js').ImportedProject[]} projects
- * @returns {State} New state.
+ * Pads and overrides for a memory slot ("slot-01") or a card project ("card-P1_OLD").
+ * Card projects are read-only, so they never have overrides.
  */
-export function applyImport(state, projects) {
-  const next = cloneState(state);
-  const now = new Date().toISOString();
-  for (const p of projects ?? []) {
-    const pads = {};
-    for (const [padId, pad] of Object.entries(p.pads ?? {})) pads[padId] = { ...pad };
-    next.projects[p.id] = {
-      id: p.id,
-      name: p.name,
-      folder: p.folder,
-      source: 'sd',
-      importedAt: p.importedAt ?? now,
-      slot: p.slot ?? slotFromId(p.id),
-      pads,
-    };
+function padsAndOverrides(crate, id) {
+  if (typeof id === 'string' && id.startsWith('card-')) {
+    return { pads: cardProject(crate, id)?.pads ?? {}, overrides: {} };
   }
-  const current = next.ui.projectId;
-  if ((current == null || !next.projects[current]) && projects && projects.length > 0) {
-    next.ui.projectId = projects[0].id;
-  }
-  return next;
+  return { pads: crate?.memory?.[id]?.pads ?? {}, overrides: crate?.overrides?.[id] ?? {} };
 }
 
-/**
- * Set a manual override for one pad. A manual edit wins over the SD value.
- * Field rules: `name: ''` (or null/undefined given explicitly) clears the name
- * override; `playSec: undefined|null|''` given explicitly clears the length
- * override. A key that is absent from `fields` keeps its current override.
- * When no field is left, the override entry is removed.
- * @param {State} state
- * @param {string} projectId
- * @param {string} padId  e.g. "A1"
- * @param {{ name?: string, playSec?: number }} fields
- * @returns {State} New state.
- * @throws {Error} On an invalid pad id or a negative / non-numeric length.
- */
-export function setOverride(state, projectId, padId, fields) {
-  if (!PAD_ID_RE.test(padId)) throw new Error(`Invalid pad "${padId}"`);
-  const f = fields ?? {};
-  const next = cloneState(state);
-  const entry = { ...(next.overrides[projectId]?.[padId] ?? {}) };
-
-  if ('name' in f) {
-    const name = f.name == null ? '' : String(f.name).trim();
-    if (name === '') delete entry.name;
-    else entry.name = name;
-  }
-  if ('playSec' in f) {
-    const v = f.playSec;
-    if (v === undefined || v === null || v === '') delete entry.playSec;
-    else if (isLength(v)) entry.playSec = v;
-    else throw new Error('Length must be zero or a positive number of seconds');
-  }
-
-  const projectOverrides = { ...(next.overrides[projectId] ?? {}) };
-  if (Object.keys(entry).length > 0) projectOverrides[padId] = entry;
-  else delete projectOverrides[padId];
-
-  if (Object.keys(projectOverrides).length > 0) next.overrides[projectId] = projectOverrides;
-  else delete next.overrides[projectId];
-  return next;
-}
-
-/**
- * Remove the manual override for one pad (Reset to SD value).
- * @param {State} state
- * @param {string} projectId
- * @param {string} padId
- * @returns {State} New state.
- */
-export function clearOverride(state, projectId, padId) {
-  const next = cloneState(state);
-  const projectOverrides = next.overrides[projectId];
-  if (projectOverrides) {
-    delete projectOverrides[padId];
-    if (Object.keys(projectOverrides).length === 0) delete next.overrides[projectId];
-  }
-  return next;
-}
+// ---------- Display ----------
 
 /**
  * Pads to display for one bank: `{ ...pads[id], ...overrides[id] }`, plus an
- * `edited` flag when an override exists and a `fromSd` flag when the pad has an
- * imported value (so "Reset to SD value" can be offered).
- * A pad that only has an override (manual project, or an empty pad typed in by
- * hand) appears with `fullSec`/`channels` = null and `playSec` = null unless set.
- * @param {State} state
- * @param {string} projectId
- * @param {string} bank  "A".."J"
+ * `edited` flag when an override exists and `fromSd` when the pad came from the
+ * card (so "Use SD card value" can be offered). A pad that only has an override
+ * (an empty pad written in by hand) appears with `fullSec`/`channels` = null and
+ * `playSec` = null unless set.
+ *
+ * `slotId` may also be a card project id ("card-P1_OLD") to show its read-only grid.
+ *
+ * @param {object} crate
+ * @param {string} slotId  "slot-01".."slot-16" or a card project id.
+ * @param {string} bank    "A".."J"
  * @returns {Object<string, Pad & { edited: boolean, fromSd: boolean }>} Keyed by pad id, only non-empty pads.
  */
-export function getDisplayPads(state, projectId, bank) {
+export function getDisplayPads(crate, slotId, bank) {
   const out = {};
-  if (projectId == null || !BANKS.includes(bank) || bank.length !== 1) return out;
-  const pads = state.projects?.[projectId]?.pads ?? {};
-  const overrides = state.overrides?.[projectId] ?? {};
+  if (slotId == null || typeof bank !== 'string' || bank.length !== 1 || !BANKS.includes(bank)) return out;
+  const { pads, overrides } = padsAndOverrides(crate, slotId);
   for (const padId of bankPadIds(bank)) {
     const base = pads[padId];
     const ov = overrides[padId];
@@ -210,213 +110,206 @@ export function getDisplayPads(state, projectId, bank) {
 }
 
 /**
- * Add an empty manual project (`source: "manual"`, id `manual-<timestamp>`)
- * and select it (`ui.projectId`, bank A).
- * @param {State} state
- * @param {string} name
- * @param {number} [now=Date.now()]  Injected for tests.
- * @returns {{ state: State, projectId: string }}
- */
-export function addManualProject(state, name, now = Date.now()) {
-  const next = cloneState(state);
-  let projectId = `manual-${now}`;
-  for (let n = 2; next.projects[projectId]; n++) projectId = `manual-${now}-${n}`;
-  const clean = String(name ?? '').trim() || 'Untitled project';
-  next.projects[projectId] = {
-    id: projectId,
-    name: clean,
-    folder: '',
-    source: 'manual',
-    importedAt: new Date(now).toISOString(),
-    slot: null,
-    pads: {},
-  };
-  next.ui = { projectId, bank: 'A' };
-  return { state: next, projectId };
-}
-
-/**
- * Change the remembered view (selected project and/or bank).
- * @param {State} state
- * @param {{ projectId?: string|null, bank?: string }} view
- * @returns {State} New state.
- */
-export function setView(state, view) {
-  const next = cloneState(state);
-  if (view && 'projectId' in view) next.ui.projectId = view.projectId ?? null;
-  if (view && typeof view.bank === 'string' && view.bank.length === 1 && BANKS.includes(view.bank)) {
-    next.ui.bank = view.bank;
-  }
-  return next;
-}
-
-/**
- * Projects for the selector, sorted by slot number (slotless last), then name.
- * `padCount` counts every pad that would be displayed (imported or edited).
- * @param {State} state
- * @returns {{ id: string, name: string, folder: string, source: "sd"|"manual", slot: number|null, padCount: number }[]}
- */
-export function listProjects(state) {
-  const list = Object.values(state.projects ?? {}).map((p) => {
-    const ids = new Set([...Object.keys(p.pads ?? {}), ...Object.keys(state.overrides?.[p.id] ?? {})]);
-    const slot = p.slot ?? slotFromId(p.id);
-    return { id: p.id, name: p.name, folder: p.folder ?? '', source: p.source, slot, padCount: ids.size };
-  });
-  list.sort((a, b) => {
-    if (a.slot !== b.slot) {
-      if (a.slot == null) return 1;
-      if (b.slot == null) return -1;
-      return a.slot - b.slot;
-    }
-    return String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }) || a.id.localeCompare(b.id);
-  });
-  return list;
-}
-
-/**
- * Which banks hold anything to show: an imported pad or a manual edit
- * (same rule as getDisplayPads, so a bank is never dimmed while showing a pad).
- * @param {State} state
- * @param {string} projectId
+ * Which banks hold anything to show: a pad or a hand edit (same rule as
+ * getDisplayPads, so a bank is never dimmed while showing a pad).
+ * Works for a memory slot id or a card project id.
+ * @param {object} crate
+ * @param {string} slotId
  * @returns {Object<string, boolean>} { A: bool, ..., J: bool }
  */
-export function bankHasSamples(state, projectId) {
+export function bankHasSamples(crate, slotId) {
   const result = {};
   for (const b of BANKS) result[b] = false;
-  const ids = [
-    ...Object.keys(state.projects?.[projectId]?.pads ?? {}),
-    ...Object.keys(state.overrides?.[projectId] ?? {}),
-  ];
-  for (const id of ids) if (id[0] in result) result[id[0]] = true;
+  const { pads, overrides } = padsAndOverrides(crate, slotId);
+  for (const id of [...Object.keys(pads), ...Object.keys(overrides)]) {
+    if (PAD_ID_RE.test(id)) result[id[0]] = true;
+  }
   return result;
 }
 
 /**
- * Serialize state for the JSON export download.
- * @param {State} state
- * @returns {string} JSON text.
+ * All 16 memory slots, in order, for the slot picker.
+ * `name` is the rename (names) if any, else the slot's name, else "".
+ * `source` is null for a slot with nothing in memory.
+ * `padCount` counts every pad that would be displayed (from the card or edited).
+ * @param {object} crate
+ * @returns {{ id: string, slot: number, name: string, source: "card"|"manual"|null, padCount: number }[]}
  */
-export function toJSON(state) {
-  return JSON.stringify(cloneState(state), null, 2);
+export function listSlots(crate) {
+  const list = [];
+  for (let n = 1; n <= SLOT_COUNT; n++) {
+    const id = slotId(n);
+    const entry = crate?.memory?.[id];
+    const ids = new Set([...Object.keys(entry?.pads ?? {}), ...Object.keys(crate?.overrides?.[id] ?? {})]);
+    const name = crate?.names?.[id] || entry?.name || '';
+    list.push({ id, slot: n, name, source: entry?.source ?? null, padCount: ids.size });
+  }
+  return list;
 }
 
-/**
- * Validate a parsed state document and return a clean copy.
- * Unknown keys are dropped; malformed pads and overrides are skipped.
- * @param {unknown} data
- * @returns {State}
- * @throws {Error} With a user-readable message.
- */
-function normalizeState(data) {
-  if (!isObject(data)) throw new Error('This file is not an SP404Vault export.');
-  if (data.version !== STATE_VERSION) {
-    throw new Error(
-      data.version === undefined
-        ? 'This file is not an SP404Vault export (no version).'
-        : `This export has version ${JSON.stringify(data.version)}; this app reads version ${STATE_VERSION}.`,
-    );
-  }
-  if (!isObject(data.projects)) throw new Error('This export has no project list.');
-  if (data.overrides !== undefined && !isObject(data.overrides)) throw new Error('This export has invalid manual edits.');
+// ---------- Search ----------
 
-  const state = createStore();
-  for (const [id, p] of Object.entries(data.projects)) {
-    if (UNSAFE_KEYS.has(id)) continue;
-    if (!isObject(p)) throw new Error(`Project "${id}" in this export is invalid.`);
-    const pads = {};
-    for (const [padId, pad] of Object.entries(isObject(p.pads) ? p.pads : {})) {
-      if (!PAD_ID_RE.test(padId) || !isObject(pad)) continue;
-      pads[padId] = {
-        name: typeof pad.name === 'string' ? pad.name : '',
-        playSec: isLength(pad.playSec) ? pad.playSec : null,
-        fullSec: isLength(pad.fullSec) ? pad.fullSec : null,
-        channels: pad.channels === 1 || pad.channels === 2 ? pad.channels : 2,
-        approx: Boolean(pad.approx),
-      };
+/**
+ * @typedef {Object} MemoryHit
+ * @property {"memory"} kind
+ * @property {string} name      Shown name (with the hand edit).
+ * @property {string} where     "Memory 01, bank C, pad 7"
+ * @property {string} slotId    "slot-01"
+ * @property {number} slot      1
+ * @property {string} bank      "C"
+ * @property {string} padId     "C7"
+ * @property {number|null} sec  playSec
+ */
+
+/**
+ * @typedef {Object} SampleHit
+ * @property {"sample"} kind
+ * @property {string} name     Sample name (file name without extension).
+ * @property {string} where    Its folder, "IMPORT/drums-loops" ("SD card" at the root).
+ * @property {string} path     Card path, key of readCard's `files` map.
+ * @property {string} folder
+ * @property {number|null} sec
+ */
+
+/**
+ * @typedef {Object} CardPadHit
+ * @property {"card"} kind
+ * @property {string} name
+ * @property {string} where      "Card project OLD, bank A, pad 2"
+ * @property {string} projectId  "card-P1_OLD"
+ * @property {string} bank
+ * @property {string} padId
+ * @property {number|null} sec   playSec
+ */
+
+/**
+ * Search memory pads, card samples and card-project pads by name, ignoring
+ * case and accents. Results come in that order: memory (slot, bank, pad), then
+ * card samples (card order), then card-project pads (card order, bank, pad).
+ * An empty or blank query returns [].
+ *
+ * @param {object} crate
+ * @param {string} query
+ * @param {number} [limit=Infinity]  Stop after this many results.
+ * @returns {(MemoryHit|SampleHit|CardPadHit)[]}
+ */
+export function searchAll(crate, query, limit = Infinity) {
+  const q = plain(query).trim();
+  const hits = [];
+  if (q === '') return hits;
+  const full = () => hits.length >= limit;
+  const matches = (name) => plain(name).includes(q);
+  const two = (n) => String(n).padStart(2, '0');
+
+  // Memory, with hand edits applied.
+  for (const s of listSlots(crate)) {
+    if (s.padCount === 0) continue;
+    for (const bank of BANKS) {
+      const pads = getDisplayPads(crate, s.id, bank);
+      for (const [padId, pad] of Object.entries(pads)) {
+        if (!matches(pad.name)) continue;
+        const where = `Memory ${two(s.slot)}, bank ${bank}, pad ${padId.slice(1)}`;
+        hits.push({ kind: 'memory', name: pad.name, where, slotId: s.id, slot: s.slot, bank, padId, sec: pad.playSec ?? null });
+        if (full()) return hits;
+      }
     }
-    state.projects[id] = {
-      id,
-      name: typeof p.name === 'string' && p.name !== '' ? p.name : id,
-      folder: typeof p.folder === 'string' ? p.folder : '',
-      source: p.source === 'manual' ? 'manual' : 'sd',
-      importedAt: typeof p.importedAt === 'string' ? p.importedAt : '',
-      slot: Number.isInteger(p.slot) ? p.slot : slotFromId(id),
-      pads,
-    };
   }
-  for (const [projectId, o] of Object.entries(data.overrides ?? {})) {
-    if (UNSAFE_KEYS.has(projectId) || !isObject(o)) continue;
-    const clean = {};
-    for (const [padId, f] of Object.entries(o)) {
-      if (!PAD_ID_RE.test(padId) || !isObject(f)) continue;
-      const entry = {};
-      if (typeof f.name === 'string' && f.name !== '') entry.name = f.name;
-      if (isLength(f.playSec)) entry.playSec = f.playSec;
-      if (Object.keys(entry).length > 0) clean[padId] = entry;
+
+  const card = crate?.card;
+  for (const sample of Array.isArray(card?.samples) ? card.samples : []) {
+    if (!sample || !matches(sample.name)) continue;
+    hits.push({
+      kind: 'sample',
+      name: sample.name,
+      where: sample.folder || 'SD card',
+      path: sample.path,
+      folder: sample.folder ?? '',
+      sec: sample.sec ?? null,
+    });
+    if (full()) return hits;
+  }
+
+  for (const project of Array.isArray(card?.projects) ? card.projects : []) {
+    if (!project) continue;
+    for (const bank of BANKS) {
+      for (const padId of bankPadIds(bank)) {
+        const pad = project.pads?.[padId];
+        if (!pad || !matches(pad.name)) continue;
+        hits.push({
+          kind: 'card',
+          name: pad.name,
+          where: `Card project ${project.name || project.folder}, bank ${bank}, pad ${padId.slice(1)}`,
+          projectId: project.id,
+          bank,
+          padId,
+          sec: pad.playSec ?? null,
+        });
+        if (full()) return hits;
+      }
     }
-    if (Object.keys(clean).length > 0) state.overrides[projectId] = clean;
   }
-  if (isObject(data.ui)) {
-    const pid = data.ui.projectId;
-    state.ui.projectId = typeof pid === 'string' && state.projects[pid] ? pid : null;
-    if (typeof data.ui.bank === 'string' && data.ui.bank.length === 1 && BANKS.includes(data.ui.bank)) {
-      state.ui.bank = data.ui.bank;
-    }
+  return hits;
+}
+
+// ---------- Overrides (same rules as api.php `pad`) ----------
+
+function cloneOverrides(crate) {
+  const overrides = {};
+  for (const [id, o] of Object.entries(crate?.overrides ?? {})) {
+    overrides[id] = {};
+    for (const [padId, f] of Object.entries(o)) overrides[id][padId] = { ...f };
   }
-  if (state.ui.projectId === null) state.ui.projectId = listProjects(state)[0]?.id ?? null;
-  return state;
+  return overrides;
 }
 
 /**
- * Parse and validate an imported JSON export. Replaces all state.
- * @param {string} text
- * @returns {State}
- * @throws {Error} When the JSON is invalid or `version` is not supported.
+ * Set a hand edit on one pad of a memory slot (an optimistic copy of what the
+ * server does). `name: ''`/null clears the name, `playSec: null|''` clears the
+ * length, a key left out keeps its value, an empty edit is removed.
+ * @param {object} crate
+ * @param {string} slotId
+ * @param {string} padId
+ * @param {{ name?: string|null, playSec?: number|null }} fields
+ * @returns {object} New crate (memory, names and card shared with the input).
+ * @throws {Error} On an invalid slot or pad id, or a negative / non-numeric length.
  */
-export function fromJSON(text) {
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error('This file is not valid JSON.');
+export function setOverride(crate, slotId, padId, fields) {
+  if (slotNumber(slotId) === null) throw new Error(`Invalid slot "${slotId}"`);
+  if (!PAD_ID_RE.test(padId)) throw new Error(`Invalid pad "${padId}"`);
+  const f = fields ?? {};
+  const overrides = cloneOverrides(crate);
+  const entry = { ...(overrides[slotId]?.[padId] ?? {}) };
+  if ('name' in f) {
+    const name = f.name == null ? '' : String(f.name).trim();
+    if (name === '') delete entry.name;
+    else entry.name = name;
   }
-  return normalizeState(data);
-}
-
-// ---------- localStorage access (browser only) ----------
-
-/**
- * Load state from localStorage. Every access is wrapped in try/catch; on
- * failure returns a fresh store and `ok: false` so the UI can warn.
- * Nothing saved yet (first visit) is `ok: true` with a fresh store.
- * @param {Storage} [storage] defaults to globalThis.localStorage (read inside the try)
- * @returns {{ state: State, ok: boolean }}
- */
-export function load(storage) {
-  try {
-    // Resolved inside the try: reading globalThis.localStorage throws
-    // SecurityError when site data is blocked.
-    const s = storage ?? globalThis.localStorage;
-    const raw = s.getItem(STORAGE_KEY);
-    if (raw === null || raw === undefined) return { state: createStore(), ok: true };
-    return { state: fromJSON(raw), ok: true };
-  } catch {
-    return { state: createStore(), ok: false };
+  if ('playSec' in f) {
+    const v = f.playSec;
+    if (v === undefined || v === null || v === '') delete entry.playSec;
+    else if (typeof v === 'number' && Number.isFinite(v) && v >= 0) entry.playSec = v;
+    else throw new Error('Length must be zero or a positive number of seconds');
   }
+  const slotOverrides = { ...(overrides[slotId] ?? {}) };
+  if (Object.keys(entry).length > 0) slotOverrides[padId] = entry;
+  else delete slotOverrides[padId];
+  if (Object.keys(slotOverrides).length > 0) overrides[slotId] = slotOverrides;
+  else delete overrides[slotId];
+  return { ...crate, overrides };
 }
 
 /**
- * Save state to localStorage (try/catch wrapped).
- * @param {State} state
- * @param {Storage} [storage] defaults to globalThis.localStorage (read inside the try)
- * @returns {boolean} true when saved.
+ * Remove the hand edit of one pad (Use SD card value / Clear pad).
+ * @param {object} crate
+ * @param {string} slotId
+ * @param {string} padId
+ * @returns {object} New crate.
  */
-export function save(state, storage) {
-  try {
-    const s = storage ?? globalThis.localStorage;
-    s.setItem(STORAGE_KEY, JSON.stringify(state));
-    return true;
-  } catch {
-    return false;
+export function clearOverride(crate, slotId, padId) {
+  const overrides = cloneOverrides(crate);
+  if (overrides[slotId]) {
+    delete overrides[slotId][padId];
+    if (Object.keys(overrides[slotId]).length === 0) delete overrides[slotId];
   }
+  return { ...crate, overrides };
 }

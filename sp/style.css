@@ -67,7 +67,7 @@ h2 { font-size: 30px; overflow-wrap: anywhere; }
 .masthead p { font-weight: 600; text-align: right; }
 
 /* ── Controls ── */
-button, input { font: inherit; color: inherit; }
+button, input, select { font: inherit; color: inherit; }
 button {
   border: 2px solid var(--black);
   border-radius: 0;
@@ -123,7 +123,27 @@ input:focus {
   outline-offset: 2px;
   box-shadow: 0 0 0 2px var(--black);
 }
+/* Select: square, 2px rule, a small black triangle drawn with gradients. */
+select {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 40px 10px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid var(--black);
+  border-radius: 0;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--black) 50%) no-repeat calc(100% - 20px) 50% / 7px 7px,
+    linear-gradient(-45deg, transparent 50%, var(--black) 50%) no-repeat calc(100% - 13px) 50% / 7px 7px,
+    var(--white);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+select:focus { outline: 3px solid var(--mark); outline-offset: 2px; box-shadow: 0 0 0 2px var(--black); }
 input[type='search']::-webkit-search-decoration { -webkit-appearance: none; }
+input[type='search']::-webkit-search-cancel-button { filter: grayscale(1) brightness(0); cursor: pointer; }
 label, .label { display: block; margin-bottom: 10px; font-weight: 600; }
 label .quiet { margin-left: 6px; font-weight: 400; }
 .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -196,6 +216,7 @@ label .quiet { margin-left: 6px; font-weight: 400; }
   overflow-wrap: anywhere;
 }
 .poster:focus { outline: none; }
+.poster.is-empty { color: var(--grey); }
 
 /* Bank tabs: A-E over F-J, as on the sampler. One 2px outline; the black parent shows through
    a 2px gap as the dividers, so rules stay right in both rows. Active bank filled black, empty banks grey. */
@@ -335,3 +356,155 @@ label .quiet { margin-left: 6px; font-weight: 400; }
   font-size: 18px;
 }
 #padCardValue { overflow-wrap: anywhere; }
+
+
+/* ── v3: memory and card ── */
+
+/* Play / stop: a square button with a drawn triangle or square, so no font turns it into an emoji. */
+.play {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  padding: 0;
+  border: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+}
+.play::before {
+  content: '';
+  width: 14px;
+  height: 16px;
+  margin-left: 3px;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.play.playing { background: var(--black); color: var(--white); }
+.play.playing::before { width: 13px; height: 13px; margin-left: 0; clip-path: none; }
+@media (hover: hover) {
+  .play:hover { background: var(--black); color: var(--white); }
+}
+.play:active { background: var(--mark); color: var(--black); }
+
+/* A pad cell with a sound: the play button sits in the top-right corner, over the number row. */
+.pads li { position: relative; }
+.pads .play {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 36px;
+  border-width: 0 0 2px 2px;
+}
+.pads .play::before { width: 11px; height: 13px; margin-left: 2px; }
+.pads .play.playing::before { width: 11px; height: 11px; margin-left: 0; }
+.pad.playable .num { min-height: 30px; }
+.pad.playable .title { -webkit-line-clamp: 2; line-clamp: 2; }
+.pad.readonly { cursor: default; }
+.pad.readonly:active { background: var(--white); }
+.pad.readonly.marked, .pad.readonly.marked:active { background: var(--mark); }
+@media (hover: hover) {
+  .pad.readonly:hover { box-shadow: none; }
+}
+@media (min-width: 527px) {
+  .pads .play { width: 44px; height: 40px; }
+  .pad.playable .num { min-height: 34px; }
+  .pad.playable .title { -webkit-line-clamp: 3; line-clamp: 3; }
+}
+
+/* Slot picker */
+.slot-strip { padding-bottom: 14px; }
+
+/* The big Projects button: the way from memory to the card. */
+button.big {
+  display: block;
+  width: 100%;
+  padding: 16px 16px 15px;
+  background: var(--black);
+  color: var(--white);
+  text-align: left;
+}
+.big-title {
+  display: block;
+  font-size: clamp(44px, 14vw, 64px);
+  font-weight: 800;
+  font-stretch: 62%;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+}
+.big-sub { display: block; margin-top: 8px; font-size: 13px; font-weight: 400; }
+button.big:active { background: var(--mark); color: var(--black); }
+@media (hover: hover) { button.big:hover { background: var(--mark); color: var(--black); } }
+
+/* The card menu reads like the sampler's screen: white type on a black panel, one row per item. */
+.oled {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--black);
+  border-bottom: var(--rule) solid var(--black);
+}
+.oled li + li { border-top: 1.5px solid var(--white); }
+.oled-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 0;
+  padding: 16px var(--pad) 15px;
+  border: 0;
+  background: var(--black);
+  color: var(--white);
+  text-align: left;
+}
+.oled-name {
+  font-size: 40px;
+  font-weight: 800;
+  font-stretch: 62%;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+}
+.oled-sub { font-size: 13px; font-weight: 400; text-align: right; }
+.oled-row:active { background: var(--mark); color: var(--black); }
+@media (hover: hover) {
+  .oled-row:hover { background: var(--white); color: var(--black); }
+}
+.oled-row:focus-visible { outline-offset: -5px; box-shadow: inset 0 0 0 2px var(--white); }
+
+/* A row with a play button on the right: samples in a folder, and search results. */
+.row-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--pad) 12px;
+  border-bottom: var(--rule) solid var(--black);
+}
+.row-wrap .text { flex: 1; min-width: 0; }
+.row-wrap .title { font-size: 21px; }
+.row-wrap.marked { background: var(--mark); }
+.len-sub { font-variant-numeric: tabular-nums; }
+
+/* Now playing: a black bar at the foot of the column. */
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 5;
+  width: min(100%, var(--col));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px var(--pad) calc(8px + env(safe-area-inset-bottom));
+  background: var(--black);
+  color: var(--white);
+}
+.player p { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.player.message p { color: var(--mark); white-space: normal; }
+.player button { border-color: var(--white); background: var(--black); color: var(--white); }
+.player button:active { background: var(--mark); color: var(--black); border-color: var(--mark); }
+@media (hover: hover) { .player button:hover { background: var(--white); color: var(--black); } }
+body.locked .player { display: none; }

@@ -1,14 +1,17 @@
 <?php
-// SP404MK2 crate server: one password, and the list of SP-404MKII projects,
-// banks and samples kept on the hosting. Nothing here is secret. The password
-// hash and all data live in the data folder, which is created on the server and
+// SP404MK2 crate server: one password, the SP-404MKII memory (16 project slots
+// with banks and pads) and the index of the SD card (names, lengths and paths
+// only; no audio is ever uploaded). Nothing here is secret. The password hash
+// and all data live in the data folder, which is created on the server and
 // never committed.
 //
-// crate.json = { projects: {id: Project}, overrides: {id: {padId: {name?, playSec?}}},
-//                names: {id: name} }
+// crate.json = { memory: {"slot-NN": Slot}, overrides: {"slot-NN": {padId: {name?, playSec?}}},
+//                names: {"slot-NN": name}, card: null | {readAt, samples, projects, sx} }
+// Slot = {id, slot, name, folder, source: "card"|"manual", loadedAt, pads: {padId: Pad}}
+// Pad  = {name, playSec, fullSec, channels, approx, start?, end?}
 // The override rules are the same as setOverride/clearOverride in js/store.js, so
 // the page can show the crate with those pure functions. A rename lives in
-// `names`, so reading the SD card again never undoes it.
+// `names`; loading a card project into a slot clears that slot's overrides and name.
 
 // array_is_list is PHP 8.1+; the hosting's PHP version is not pinned.
 if (!function_exists('array_is_list')) {
@@ -18,11 +21,20 @@ if (!function_exists('array_is_list')) {
     }
 }
 
-const MAX_PROJECTS = 300;
+const SLOT_COUNT = 16;
 const MAX_BODY_BYTES = 2097152; // 2 MB
 const MAX_NAME = 80;
 const MAX_FOLDER = 255;
-const MAX_SECONDS = 7200;
+const MAX_SECONDS = 7200;       // a length typed by hand, or a pad length from the card
+const MAX_SAMPLE_SECONDS = 36000; // a card sample's length
+const MAX_PATH = 400;
+const MAX_CARD_ID = 300;
+const MAX_SAMPLES = 5000;
+const MAX_CARD_PROJECTS = 64;
+const MAX_SX = 64;
+const MAX_OFFSET = 4294967295;  // SMP byte offsets are u32
+const MAX_MODIFIED = 4102444800000; // 2100-01-01 in ms
+const SAMPLE_EXTS = ['wav', 'aif', 'aiff', 'smp'];
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 1000;
 const MAX_FAILS = 5;
@@ -30,8 +42,8 @@ const LOCK_SECONDS = 900;
 const SESSION_SECONDS = 7776000; // 90 days
 const COOKIE = 'sp404crate';
 const PAD_ID = '/^[A-J]([1-9]|1[0-6])$/';
-const PAD_FIELDS = ['name', 'playSec', 'fullSec', 'channels', 'approx'];
-// Keys the page never copies from data (see UNSAFE_KEYS in js/store.js).
+const SLOT_ID = '/^slot-(0[1-9]|1[0-6])$/';
+// Keys the page never copies from data (see UNSAFE_KEYS in js/store.js v2).
 const UNSAFE_IDS = ['__proto__', 'constructor', 'prototype'];
 const JSON_OUT = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP;
 
@@ -260,12 +272,33 @@ function clean_name($value): string
     return clean_text($value, MAX_NAME);
 }
 
-function check_project_id($id): string
+
+function has_control_chars(string $value): bool
 {
-    if (!is_string($id) || $id === '' || mb_strlen($id) > 80 || preg_match('/[\p{Cc}]/u', $id) || in_array($id, UNSAFE_IDS, true)) {
-        fail(400, 'Unknown project.');
+    return (bool) preg_match('/[\p{Cc}\p{Zl}\p{Zp}]/u', $value);
+}
+
+function is_number($value): bool
+{
+    return (is_int($value) || is_float($value)) && is_finite((float) $value);
+}
+
+// "slot-07" for 7.
+function slot_key(int $slot): string
+{
+    return sprintf('slot-%02d', $slot);
+}
+
+// A slot from the page: 1..16, or "slot-01".."slot-16". Returns the slot number.
+function check_slot($value): int
+{
+    if (is_int($value) && $value >= 1 && $value <= SLOT_COUNT) {
+        return $value;
     }
-    return $id;
+    if (is_string($value) && preg_match(SLOT_ID, $value, $m)) {
+        return (int) $m[1];
+    }
+    fail(400, 'Unknown memory slot.');
 }
 
 function check_pad_id($id): string
@@ -276,10 +309,9 @@ function check_pad_id($id): string
     return $id;
 }
 
-function is_seconds($value): bool
+function is_seconds($value, int $max = MAX_SECONDS): bool
 {
-    return (is_int($value) || is_float($value)) && is_finite((float) $value)
-        && $value >= 0 && $value <= MAX_SECONDS;
+    return is_number($value) && $value >= 0 && $value <= $max;
 }
 
 // A length typed in the pad sheet: null (or '') clears it, otherwise 0..7200 seconds.
@@ -294,13 +326,70 @@ function clean_seconds($value)
     return $value;
 }
 
-// One pad read from the SD card. Fields the app does not know are dropped. A
-// length the card reports outside 0..7200 seconds is kept as unknown (null),
-// so one damaged pad does not stop the whole import.
-function clean_imported_pad($pad, string $project, string $padId): array
+function iso_now(): string
 {
-    $bad = "Project $project, pad $padId is not valid.";
-    if (!is_array($pad) || array_is_list($pad) && $pad !== []) {
+    return (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.v\Z');
+}
+
+// ── The card index ──
+
+// A path relative to the card root: 1..400 characters, no ".." part, no
+// leading "/", no control characters. It is only ever shown and used as a key
+// in the page; the server never opens it.
+function is_card_path($path, bool $allowEmpty = false): bool
+{
+    if (!is_string($path)) {
+        return false;
+    }
+    if ($path === '') {
+        return $allowEmpty;
+    }
+    return mb_strlen($path) <= MAX_PATH
+        && $path[0] !== '/'
+        && !in_array('..', explode('/', $path), true)
+        && !has_control_chars($path);
+}
+
+function is_list_of($value, int $max): bool
+{
+    return is_array($value) && array_is_list($value) && count($value) <= $max;
+}
+
+// A map from the page ({} in JSON): an array that is not a non-empty list.
+function is_map($value): bool
+{
+    return is_array($value) && (!array_is_list($value) || $value === []);
+}
+
+function clean_card_sample($sample, int $i): array
+{
+    $bad = 'Sample ' . ($i + 1) . ' in the card index is not valid.';
+    if (!is_map($sample) || !is_card_path($sample['path'] ?? null)) {
+        fail(400, $bad);
+    }
+    $path = $sample['path'];
+    $ext = $sample['ext'] ?? null;
+    $name = $sample['name'] ?? null;
+    $sec = $sample['sec'] ?? null;
+    if (!is_string($ext) || !in_array(strtolower($ext), SAMPLE_EXTS, true) || !is_string($name)
+        || ($sec !== null && !is_seconds($sec, MAX_SAMPLE_SECONDS))) {
+        fail(400, $bad);
+    }
+    $cut = strrpos($path, '/');
+    $folder = $cut === false ? '' : substr($path, 0, $cut);
+    $name = clean_text($name, MAX_FOLDER);
+    if ($name === '') {
+        $name = clean_text($cut === false ? $path : substr($path, $cut + 1), MAX_FOLDER);
+    }
+    return ['path' => $path, 'folder' => $folder, 'name' => $name, 'ext' => strtolower($ext), 'sec' => $sec];
+}
+
+// One pad of a card project. A length outside 0..7200 s is kept as unknown
+// (null), so one damaged pad does not stop the whole card.
+function clean_card_pad($pad, string $label, string $padId): array
+{
+    $bad = "Project $label, pad $padId is not valid.";
+    if (!is_map($pad)) {
         fail(400, $bad);
     }
     $name = $pad['name'] ?? '';
@@ -312,92 +401,193 @@ function clean_imported_pad($pad, string $project, string $padId): array
     $clean = ['name' => clean_text($name, MAX_NAME)];
     foreach (['playSec', 'fullSec'] as $field) {
         $value = $pad[$field] ?? null;
-        if ($value !== null && !is_int($value) && !is_float($value)) {
+        if ($value !== null && !is_number($value)) {
             fail(400, $bad);
         }
         $clean[$field] = is_seconds($value) ? $value : null;
     }
     $clean['channels'] = $channels;
     $clean['approx'] = $approx;
-    return array_intersect_key($clean, array_flip(PAD_FIELDS));
-}
-
-function iso_now(): string
-{
-    return (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.v\Z');
-}
-
-// One project read from the SD card (ImportedProject in js/importer.js).
-function clean_imported_project($project): array
-{
-    if (!is_array($project)) {
-        fail(400, 'A project in this import is not valid.');
+    foreach (['start', 'end'] as $field) {
+        if (!array_key_exists($field, $pad)) {
+            continue;
+        }
+        $value = $pad[$field];
+        if (!is_int($value) || $value < 0 || $value > MAX_OFFSET) {
+            fail(400, $bad);
+        }
+        $clean[$field] = $value;
     }
-    $id = check_project_id($project['id'] ?? null);
-    $label = clean_text($id, MAX_NAME);
-    $name = $project['name'] ?? '';
-    $folder = $project['folder'] ?? '';
+    return $clean;
+}
+
+function clean_card_project($project, int $i): array
+{
+    $bad = 'Project ' . ($i + 1) . ' in the card index is not valid.';
+    if (!is_map($project)) {
+        fail(400, $bad);
+    }
+    $id = $project['id'] ?? null;
+    $folder = $project['folder'] ?? null;
     $slot = $project['slot'] ?? null;
-    $importedAt = $project['importedAt'] ?? null;
+    $name = $project['name'] ?? '';
+    $modified = $project['modified'] ?? 0;
     $pads = $project['pads'] ?? [];
-    if (!is_string($name) || !is_string($folder) || !is_array($pads)
-        || ($slot !== null && (!is_int($slot) || $slot < 0 || $slot > 999))) {
-        fail(400, "Project $label is not valid.");
+    if (!is_string($id) || strncmp($id, 'card-', 5) !== 0 || mb_strlen($id) > MAX_CARD_ID || has_control_chars($id)
+        || !is_string($folder) || $folder === '' || mb_strlen($folder) > MAX_FOLDER || has_control_chars($folder)
+        || strpos($folder, '/') !== false || $folder === '..'
+        || ($slot !== null && (!is_int($slot) || $slot < 1 || $slot > SLOT_COUNT))
+        || !is_string($name) || !is_number($modified) || $modified < 0 || $modified > MAX_MODIFIED
+        || !is_map($pads) || count($pads) > 160) {
+        fail(400, $bad);
     }
-    if (preg_match('/^slot-(\d+)$/', $id, $m) && $slot === null) {
-        $slot = (int) $m[1];
-    }
-    if (!is_string($importedAt) || !preg_match('/^\d{4}-\d{2}-\d{2}T[0-9:.]{5,15}(Z|[+-]\d{2}:\d{2})$/', $importedAt)) {
-        $importedAt = iso_now();
-    }
-    if (count($pads) > 160) {
-        fail(400, "Project $label is not valid.");
-    }
+    $label = clean_text($folder, MAX_NAME);
     $cleanPads = [];
     foreach ($pads as $padId => $pad) {
         $padId = check_pad_id((string) $padId);
-        $cleanPads[$padId] = clean_imported_pad($pad, $label, $padId);
+        $cleanPads[$padId] = clean_card_pad($pad, $label, $padId);
     }
     $name = clean_text($name, MAX_NAME);
     return [
         'id' => $id,
-        'name' => $name !== '' ? $name : $label,
-        'folder' => clean_text($folder, MAX_FOLDER),
-        'source' => 'sd',
-        'importedAt' => $importedAt,
+        'folder' => $folder,
         'slot' => $slot,
+        'name' => $name !== '' ? $name : $label,
+        'modified' => (int) $modified,
         'pads' => $cleanPads,
     ];
 }
 
+function clean_card_sx($sx, int $i): array
+{
+    $folder = is_map($sx) ? ($sx['folder'] ?? null) : null;
+    $name = is_map($sx) ? ($sx['name'] ?? '') : null;
+    if (!is_card_path($folder, true) || !is_string($name)) {
+        fail(400, 'SP-404SX project ' . ($i + 1) . ' in the card index is not valid.');
+    }
+    $name = clean_text($name, MAX_NAME);
+    return ['folder' => $folder, 'name' => $name !== '' ? $name : clean_text($folder, MAX_NAME)];
+}
+
+// The whole card index from readCard() in js/importer.js. Everything is checked
+// before anything is written; fields the app does not know are dropped.
+function clean_card($card): array
+{
+    if (!is_map($card) || $card === []) {
+        fail(400, 'The card index is not valid.');
+    }
+    $samples = $card['samples'] ?? [];
+    $projects = $card['projects'] ?? [];
+    $sx = $card['sx'] ?? [];
+    if (!is_list_of($samples, PHP_INT_MAX) || !is_list_of($projects, PHP_INT_MAX) || !is_list_of($sx, PHP_INT_MAX)) {
+        fail(400, 'The card index is not valid.');
+    }
+    if (count($samples) > MAX_SAMPLES) {
+        fail(400, 'The card index holds at most ' . MAX_SAMPLES . ' samples.');
+    }
+    if (count($projects) > MAX_CARD_PROJECTS) {
+        fail(400, 'The card index holds at most ' . MAX_CARD_PROJECTS . ' projects.');
+    }
+    if (count($sx) > MAX_SX) {
+        fail(400, 'The card index holds at most ' . MAX_SX . ' SP-404SX projects.');
+    }
+    $cleanProjects = [];
+    $ids = [];
+    foreach ($projects as $i => $project) {
+        $clean = clean_card_project($project, $i);
+        if (isset($ids[$clean['id']])) {
+            fail(400, 'Project ' . ($i + 1) . ' in the card index is listed twice.');
+        }
+        $ids[$clean['id']] = true;
+        $cleanProjects[] = $clean;
+    }
+    $cleanSamples = [];
+    foreach ($samples as $i => $sample) {
+        $cleanSamples[] = clean_card_sample($sample, $i);
+    }
+    $cleanSx = [];
+    foreach ($sx as $i => $one) {
+        $cleanSx[] = clean_card_sx($one, $i);
+    }
+    return ['readAt' => iso_now(), 'samples' => $cleanSamples, 'projects' => $cleanProjects, 'sx' => $cleanSx];
+}
+
 // ── The crate ──
 
-// Every map goes out as a JSON object, even when empty or keyed by numbers.
+function slot_out(array $entry): array
+{
+    $entry['pads'] = (object) ($entry['pads'] ?? []);
+    return $entry;
+}
+
+// Every map goes out as a JSON object, even when empty; every list as an array.
 function crate_out(array $crate): array
 {
-    $projects = [];
-    foreach ($crate['projects'] as $id => $project) {
-        $project['pads'] = (object) ($project['pads'] ?? []);
-        $projects[(string) $id] = $project;
+    $memory = [];
+    foreach ($crate['memory'] as $id => $entry) {
+        $memory[(string) $id] = slot_out($entry);
     }
     $overrides = [];
     foreach ($crate['overrides'] as $id => $pads) {
         $overrides[(string) $id] = (object) $pads;
     }
+    $card = null;
+    if (is_array($crate['card'])) {
+        $card = $crate['card'];
+        foreach (['samples', 'projects', 'sx'] as $list) {
+            $card[$list] = is_array($card[$list] ?? null) ? array_values($card[$list]) : [];
+        }
+        $card['projects'] = array_map('slot_out', $card['projects']);
+    }
     return [
-        'projects' => (object) $projects,
+        'memory' => (object) $memory,
         'overrides' => (object) $overrides,
         'names' => (object) $crate['names'],
+        'card' => $card,
     ];
 }
 
+// v2 kept `projects`; the slots among them become memory. manual-<ms> and
+// folder-named projects are dropped (v3 has only the 16 slots).
+function migrate_v2_projects(array $projects): array
+{
+    $memory = [];
+    foreach ($projects as $id => $project) {
+        if (!is_array($project) || !preg_match(SLOT_ID, (string) $id, $m)) {
+            continue;
+        }
+        $memory[(string) $id] = [
+            'id' => (string) $id,
+            'slot' => (int) $m[1],
+            'name' => is_string($project['name'] ?? null) ? $project['name'] : '',
+            'folder' => is_string($project['folder'] ?? null) ? $project['folder'] : '',
+            'source' => ($project['source'] ?? '') === 'manual' ? 'manual' : 'card',
+            'loadedAt' => is_string($project['importedAt'] ?? null) ? $project['importedAt'] : iso_now(),
+            'pads' => is_array($project['pads'] ?? null) ? $project['pads'] : [],
+        ];
+    }
+    return $memory;
+}
+
+// Keep only what v3 knows: slot-01..slot-16 keys and a card index or null.
 function crate_shape(array &$crate): void
 {
-    foreach (['projects', 'overrides', 'names'] as $key) {
-        if (!is_array($crate[$key] ?? null)) {
-            $crate[$key] = [];
-        }
+    if (!is_array($crate['memory'] ?? null) && is_array($crate['projects'] ?? null)) {
+        $crate['memory'] = migrate_v2_projects($crate['projects']);
     }
+    unset($crate['projects']);
+    foreach (['memory', 'overrides', 'names'] as $key) {
+        $map = is_array($crate[$key] ?? null) ? $crate[$key] : [];
+        // memory and overrides hold maps; names holds strings.
+        $wantMap = $key !== 'names';
+        $crate[$key] = array_filter($map, function ($value, $id) use ($wantMap) {
+            return preg_match(SLOT_ID, (string) $id) && ($wantMap ? is_array($value) : is_string($value));
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+    if (!is_array($crate['card'] ?? null)) {
+        $crate['card'] = null;
+    }
+    $crate = array_intersect_key($crate, array_flip(['memory', 'overrides', 'names', 'card']));
 }
 
 function read_crate(): array
@@ -417,41 +607,59 @@ function update_crate(callable $change): array
     });
 }
 
-function require_project(array $crate, string $id): void
+// Replaces the card index. Memory is never touched.
+function save_card($card): array
 {
-    if (!array_key_exists($id, $crate['projects'])) {
-        fail(404, 'That project no longer exists.');
-    }
+    $clean = clean_card($card);
+    [$crate] = update_crate(function (array &$crate) use ($clean) {
+        $crate['card'] = $clean;
+    });
+    return $crate;
 }
 
-// Replaces projects[id] for each imported project. Overrides and names stay.
-function import_projects($list): array
+// Copies a card project into a memory slot, like loading a project on the SP:
+// the slot is replaced, so its overrides and its name go too.
+function load_project(array $body): array
 {
-    if (!is_array($list) || !array_is_list($list)) {
-        fail(400, 'The import is not valid.');
+    $projectId = $body['cardProjectId'] ?? null;
+    if (!is_string($projectId) || $projectId === '') {
+        fail(400, 'Unknown card project.');
     }
-    if (count($list) > MAX_PROJECTS) {
-        fail(409, 'The crate holds at most ' . MAX_PROJECTS . ' projects.');
-    }
-    $projects = array_map('clean_imported_project', $list);
-    [$crate] = update_crate(function (array &$crate) use ($projects) {
-        foreach ($projects as $project) {
-            $crate['projects'][$project['id']] = $project;
+    $slot = check_slot($body['slot'] ?? null);
+    $key = slot_key($slot);
+    [$crate] = update_crate(function (array &$crate) use ($projectId, $slot, $key) {
+        $found = null;
+        foreach ($crate['card']['projects'] ?? [] as $project) {
+            if (($project['id'] ?? null) === $projectId) {
+                $found = $project;
+                break;
+            }
         }
-        // fail() stops before anything is written.
-        if (count($crate['projects']) > MAX_PROJECTS) {
-            fail(409, 'The crate holds at most ' . MAX_PROJECTS . ' projects. Delete some first.');
+        if ($found === null) {
+            fail(404, 'That card project is not in the card index. Read the card again.');
         }
+        $crate['memory'][$key] = [
+            'id' => $key,
+            'slot' => $slot,
+            'name' => $found['name'] ?? '',
+            'folder' => $found['folder'] ?? '',
+            'source' => 'card',
+            'loadedAt' => iso_now(),
+            'pads' => is_array($found['pads'] ?? null) ? $found['pads'] : [],
+        ];
+        unset($crate['overrides'][$key], $crate['names'][$key]);
     });
-    return [$crate, count($projects)];
+    return $crate;
 }
 
 // Same rules as setOverride in js/store.js: a field left out keeps its override,
 // name '' or null and playSec null clear that field, an empty override is removed.
-// With clear: true the whole override goes (clearOverride).
+// With clear: true the whole override goes (clearOverride). An edit on an empty
+// slot creates it as a manual slot; a manual slot left with nothing is removed.
 function set_pad(array $body): array
 {
-    $projectId = check_project_id($body['projectId'] ?? null);
+    $slot = check_slot($body['slot'] ?? null);
+    $key = slot_key($slot);
     $padId = check_pad_id($body['padId'] ?? null);
     $clear = ($body['clear'] ?? false) === true;
     $fields = [];
@@ -463,10 +671,9 @@ function set_pad(array $body): array
             $fields['playSec'] = clean_seconds($body['playSec']);
         }
     }
-    [$crate] = update_crate(function (array &$crate) use ($projectId, $padId, $clear, $fields) {
-        require_project($crate, $projectId);
-        $projectOverrides = is_array($crate['overrides'][$projectId] ?? null) ? $crate['overrides'][$projectId] : [];
-        $entry = is_array($projectOverrides[$padId] ?? null) ? $projectOverrides[$padId] : [];
+    [$crate] = update_crate(function (array &$crate) use ($slot, $key, $padId, $clear, $fields) {
+        $slotOverrides = is_array($crate['overrides'][$key] ?? null) ? $crate['overrides'][$key] : [];
+        $entry = is_array($slotOverrides[$padId] ?? null) ? $slotOverrides[$padId] : [];
         if ($clear) {
             $entry = [];
         }
@@ -485,70 +692,55 @@ function set_pad(array $body): array
             }
         }
         if ($entry) {
-            $projectOverrides[$padId] = $entry;
+            $slotOverrides[$padId] = $entry;
         } else {
-            unset($projectOverrides[$padId]);
+            unset($slotOverrides[$padId]);
         }
-        if ($projectOverrides) {
-            $crate['overrides'][$projectId] = $projectOverrides;
+        if ($slotOverrides) {
+            $crate['overrides'][$key] = $slotOverrides;
         } else {
-            unset($crate['overrides'][$projectId]);
+            unset($crate['overrides'][$key]);
+        }
+
+        $memory = $crate['memory'][$key] ?? null;
+        if (!is_array($memory) && $slotOverrides) {
+            $crate['memory'][$key] = [
+                'id' => $key,
+                'slot' => $slot,
+                'name' => '',
+                'folder' => '',
+                'source' => 'manual',
+                'loadedAt' => iso_now(),
+                'pads' => [],
+            ];
+        } elseif (is_array($memory) && ($memory['source'] ?? '') === 'manual' && !$slotOverrides && empty($memory['pads'])) {
+            unset($crate['memory'][$key]);
         }
     });
     return $crate;
 }
 
-// Same as addManualProject in js/store.js: id manual-<ms>, empty pads.
-function add_project($name): array
+// The slot's name goes in `names`. An empty name removes it, and the name of
+// the loaded project shows again.
+function rename_slot(array $body): array
 {
-    $clean = clean_name($name);
-    if ($clean === '') {
-        $clean = 'Untitled project';
-    }
-    $now = (int) floor(microtime(true) * 1000);
-    return update_crate(function (array &$crate) use ($clean, $now) {
-        if (count($crate['projects']) >= MAX_PROJECTS) {
-            fail(409, 'The crate holds at most ' . MAX_PROJECTS . ' projects. Delete one first.');
-        }
-        $id = "manual-$now";
-        for ($n = 2; array_key_exists($id, $crate['projects']); $n++) {
-            $id = "manual-$now-$n";
-        }
-        $crate['projects'][$id] = [
-            'id' => $id,
-            'name' => $clean,
-            'folder' => '',
-            'source' => 'manual',
-            'importedAt' => iso_now(),
-            'slot' => null,
-            'pads' => [],
-        ];
-        return $id;
-    });
-}
-
-// The new name goes in `names`, so reading the card again keeps it.
-// An empty name removes the rename and the card's name shows again.
-function rename_project(array $body): array
-{
-    $projectId = check_project_id($body['projectId'] ?? null);
+    $key = slot_key(check_slot($body['slot'] ?? null));
     $name = clean_name($body['name'] ?? null);
-    [$crate] = update_crate(function (array &$crate) use ($projectId, $name) {
-        require_project($crate, $projectId);
+    [$crate] = update_crate(function (array &$crate) use ($key, $name) {
         if ($name === '') {
-            unset($crate['names'][$projectId]);
+            unset($crate['names'][$key]);
         } else {
-            $crate['names'][$projectId] = $name;
+            $crate['names'][$key] = $name;
         }
     });
     return $crate;
 }
 
-function delete_project(array $body): array
+function clear_slot(array $body): array
 {
-    $projectId = check_project_id($body['projectId'] ?? null);
-    [$crate] = update_crate(function (array &$crate) use ($projectId) {
-        unset($crate['projects'][$projectId], $crate['overrides'][$projectId], $crate['names'][$projectId]);
+    $key = slot_key(check_slot($body['slot'] ?? null));
+    [$crate] = update_crate(function (array &$crate) use ($key) {
+        unset($crate['memory'][$key], $crate['overrides'][$key], $crate['names'][$key]);
     });
     return $crate;
 }
@@ -558,7 +750,7 @@ function delete_project(array $body): array
 $action = (string) ($_GET['a'] ?? '');
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $reads = ['state', 'list'];
-$writes = ['setup', 'login', 'logout', 'import', 'pad', 'project', 'rename', 'delete'];
+$writes = ['setup', 'login', 'logout', 'card', 'load', 'pad', 'rename', 'clear'];
 
 // A custom header cannot be sent by another site's form or image tag.
 if ($method === 'POST' && ($_SERVER['HTTP_X_CRATE'] ?? '') !== '1') {
@@ -626,20 +818,18 @@ switch ($action) {
     case 'list':
         ok(['crate' => crate_out(read_crate())]);
 
-    case 'import':
-        [$crate, $count] = import_projects($body['projects'] ?? null);
-        ok(['crate' => crate_out($crate), 'imported' => $count]);
+    case 'card':
+        ok(['crate' => crate_out(save_card($body['card'] ?? null))]);
+
+    case 'load':
+        ok(['crate' => crate_out(load_project($body))]);
 
     case 'pad':
         ok(['crate' => crate_out(set_pad($body))]);
 
-    case 'project':
-        [$crate, $projectId] = add_project($body['name'] ?? null);
-        ok(['crate' => crate_out($crate), 'projectId' => $projectId]);
-
     case 'rename':
-        ok(['crate' => crate_out(rename_project($body))]);
+        ok(['crate' => crate_out(rename_slot($body))]);
 
-    case 'delete':
-        ok(['crate' => crate_out(delete_project($body))]);
+    case 'clear':
+        ok(['crate' => crate_out(clear_slot($body))]);
 }
