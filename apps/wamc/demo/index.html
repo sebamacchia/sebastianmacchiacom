@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'">
+<title>WAMC demo · Where Are My Clothes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<style>
+  /* Ink Brutalist: black ink on white paper, heavy rules, one typeface, yellow for attention only. */
+  :root {
+    --white: #ffffff;
+    --black: #000000;
+    --grey: #767676;
+    --mark: #ffe500;
+    --error: #e4002b;
+    --rule: 3px;
+    --pad: 16px;
+    --col: 520px; /* phone column; wider screens show the same layout centred */
+    --font: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--white);
+    color: var(--black);
+    font: 400 15px/1.4 var(--font);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+  body.locked { overflow: hidden; }
+  p { margin: 0; }
+  [hidden] { display: none !important; }
+
+  .app {
+    max-width: var(--col);
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+    overflow-x: clip;
+  }
+  @media (min-width: 527px) {
+    .app, .sheet { border-inline: var(--rule) solid var(--black); }
+  }
+  .strip {
+    padding: 16px var(--pad);
+    border-bottom: var(--rule) solid var(--black);
+  }
+
+  /* ── Type ── */
+  h1, h2, .item b {
+    margin: 0;
+    font-weight: 800;
+    font-stretch: 62%;
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+  }
+  h1 {
+    font-size: clamp(64px, 26vw, 132px);
+    line-height: 0.82;
+    letter-spacing: -0.02em;
+  }
+  h2 { font-size: 30px; }
+  .quiet { color: var(--grey); font-size: 13px; }
+  .error { color: var(--error); font-weight: 600; }
+
+  .masthead { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .masthead p { font-weight: 600; text-align: right; }
+
+  /* ── Controls ── */
+  button, input { font: inherit; color: inherit; }
+  button {
+    border: 2px solid var(--black);
+    border-radius: 0;
+    background: var(--white);
+    min-height: 44px;
+    padding: 9px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  button.primary,
+  button:active {
+    background: var(--black);
+    color: var(--white);
+  }
+  button[aria-pressed='true'],
+  button.primary:active {
+    background: var(--mark);
+    color: var(--black);
+  }
+  @media (hover: hover) {
+    button:hover { background: var(--black); color: var(--white); }
+    button[aria-pressed='true']:hover,
+    button.primary:hover { background: var(--mark); color: var(--black); }
+  }
+  :focus-visible {
+    outline: 3px solid var(--mark);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--black);
+  }
+  input[type='search'],
+  input[type='text'],
+  input[type='date'],
+  input[type='password'] {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 11px 12px;
+    font-size: 16px; /* below 16px iOS zooms the page on focus */
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input::placeholder { color: var(--grey); opacity: 1; }
+  input:focus {
+    outline: 3px solid var(--mark);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--black);
+  }
+  label, .label { display: block; margin-bottom: 10px; font-weight: 600; }
+  label .quiet, .label .quiet { margin-left: 6px; font-weight: 400; }
+
+  /* ── Garments: a ruled sheet, one cell per garment ── */
+  /* every cell draws its right rule; the last column's is pushed off the edge and clipped */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-right: calc(-1 * var(--rule));
+  }
+  .item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-right: var(--rule) solid var(--black);
+    border-bottom: var(--rule) solid var(--black);
+    background: var(--white);
+    color: var(--black);
+    text-align: left;
+    font-weight: 400;
+  }
+  .item:active { background: var(--mark); color: var(--black); }
+  @media (hover: hover) { .item:hover { background: var(--mark); color: var(--black); } }
+  .item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-bottom: 1.5px solid var(--black);
+  }
+  .item div { padding: 10px var(--pad) 14px; overflow-wrap: anywhere; }
+  .item span { display: block; margin-bottom: 6px; font-size: 13px; }
+  .item b { display: block; font-size: 24px; }
+
+  .empty h2 { margin-bottom: 10px; }
+
+  .add {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    width: min(100%, var(--col));
+    transform: translateX(-50%);
+    padding: 20px var(--pad) calc(20px + env(safe-area-inset-bottom));
+    border-width: var(--rule) 0 0;
+    font-size: 18px;
+    text-align: left;
+  }
+
+  /* ── Garment sheet ── */
+  .sheet {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: min(100%, var(--col));
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--white);
+    padding-top: env(safe-area-inset-top);
+  }
+  .sheet > form, .sheet-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+  .sheet-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .thumb {
+    display: block;
+    flex: none;
+    width: 132px;
+    height: 132px;
+    object-fit: cover;
+    border: 2px solid var(--black);
+  }
+  .row { display: flex; align-items: flex-end; gap: 8px; }
+  .row input { flex: 1; min-width: 0; }
+  .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .strip .second { margin-top: 16px; }
+  .uses:empty + .second { margin-top: 0; }
+
+  /* ── Garment detail: the place is the answer, so it is the poster ── */
+  .poster {
+    margin-top: 8px;
+    font-size: clamp(44px, 15vw, 76px);
+    line-height: 0.86;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+  .full { display: block; width: 100%; border-bottom: var(--rule) solid var(--black); }
+  .strip .full { border: 2px solid var(--black); }
+  .fact { font-size: 24px; font-weight: 800; font-stretch: 62%; line-height: 1; overflow-wrap: anywhere; }
+  .facts { display: flex; gap: 28px; }
+  .uses { list-style: none; margin: 0; padding: 0; }
+  .uses li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1.5px solid var(--black);
+  }
+  .uses .fact + p { margin-top: 4px; }
+  .gate h2 { margin-bottom: 10px; }
+  .gate #repeatWrap, .gate .error { margin-top: 16px; }
+  button:disabled { border-color: var(--grey); color: var(--grey); cursor: default; }
+  button.primary:disabled { background: var(--grey); color: var(--white); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips:not(:empty) { margin-bottom: 10px; }
+  .actions {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    gap: 2px;
+    margin-top: auto;
+    background: var(--black);
+    border-top: var(--rule) solid var(--black);
+  }
+  .actions button {
+    flex: 1;
+    border: 0;
+    padding: 20px 10px calc(20px + env(safe-area-inset-bottom));
+    font-size: 18px;
+  }
+  .actions .danger { flex: 0 0 auto; padding-inline: 18px; color: var(--error); }
+  .actions .danger:active { background: var(--error); color: var(--white); }
+  @media (hover: hover) { .actions .danger:hover { background: var(--error); color: var(--white); } }
+  /* ── Demo only ── */
+  .demo-note { background: var(--mark); font-size: 13px; font-weight: 600; }
+  .demo-note a { color: inherit; }
+</style>
+</head>
+<body>
+<main class="app">
+  <p class="strip demo-note">Demo with sample data. Nothing is saved: reload to start again. <a href="/apps/wamc/">About this app</a></p>
+  <header class="strip masthead">
+    <h1>WAMC</h1>
+    <p>Where are<br>my clothes<br><span id="count" class="quiet"></span></p>
+  </header>
+
+  <div id="searchStrip" class="strip" hidden>
+    <input id="search" type="search" placeholder="Search garment, AKA, colour or place" aria-label="Search garment, AKA, colour or place" autocomplete="off" enterkeyhint="search">
+  </div>
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="strip empty" hidden>
+    <h2 id="emptyTitle"></h2>
+    <p id="emptyText"></p>
+  </div>
+  <div id="logoutStrip" class="strip" hidden>
+    <button id="logout" type="button">Sign out</button>
+  </div>
+</main>
+
+<button id="add" class="add primary" type="button" hidden>Add garment</button>
+<input id="camera" type="file" accept="image/*" capture="environment" hidden>
+<input id="placeCamera" type="file" accept="image/*" capture="environment" hidden>
+
+<section id="sheet" class="sheet" hidden>
+  <form id="form" autocomplete="off">
+    <div class="strip sheet-head">
+      <h2 id="sheetTitle"></h2>
+      <img id="preview" class="thumb" alt="Photo of the garment">
+    </div>
+
+    <div class="strip">
+      <label for="type">Type of garment</label>
+      <div id="typeChips" class="chips"></div>
+      <input id="type" type="text" placeholder="T-shirt, trousers" maxlength="40" autocapitalize="sentences" enterkeyhint="next" required>
+    </div>
+
+    <div class="strip">
+      <label for="place">Where it is</label>
+      <div id="placeChips" class="chips"></div>
+      <input id="place" type="text" placeholder="Wardrobe, drawer 2, suitcase" maxlength="60" autocapitalize="sentences" enterkeyhint="next" required>
+    </div>
+
+    <div class="strip">
+      <label for="aka">AKA <span class="quiet">Optional</span></label>
+      <input id="aka" type="text" placeholder="The wedding outfit" maxlength="60" autocapitalize="sentences" enterkeyhint="next">
+    </div>
+
+    <div class="strip">
+      <label for="color">Color <span class="quiet">Optional</span></label>
+      <div id="colorChips" class="chips"></div>
+      <input id="color" type="text" placeholder="Pink, navy blue" maxlength="30" autocapitalize="sentences" enterkeyhint="next">
+    </div>
+
+    <div class="strip">
+      <label for="fabric">Fabric <span class="quiet">Optional</span></label>
+      <div id="fabricChips" class="chips"></div>
+      <input id="fabric" type="text" placeholder="Linen, cotton" maxlength="30" autocapitalize="sentences" enterkeyhint="next">
+    </div>
+
+    <div class="strip">
+      <p class="label">Photo of the place <span class="quiet">Optional</span></p>
+      <div class="row">
+        <img id="placePreview" class="thumb" alt="Photo of the place" hidden>
+        <div class="stack">
+          <button id="placeShot" type="button">Photograph the place</button>
+          <button id="placeRemove" type="button" hidden>Remove photo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <p class="label">When I wore it <span class="quiet">Optional</span></p>
+      <ul id="wornList" class="uses"></ul>
+      <label for="wornDate" class="second">Date</label>
+      <div class="row">
+        <input id="wornDate" type="date">
+        <button id="wornToday" type="button">Today</button>
+      </div>
+      <label for="wornPlace" class="second">Where I wore it</label>
+      <input id="wornPlace" type="text" placeholder="Wedding, office, trip" maxlength="60" autocapitalize="sentences" enterkeyhint="done">
+      <button id="wornAdd" class="second" type="button">Add another time</button>
+    </div>
+
+    <p id="formError" class="strip error" role="alert" hidden></p>
+
+    <div class="actions">
+      <button id="del" class="danger" type="button" hidden>Delete</button>
+      <button id="cancel" type="button">Cancel</button>
+      <button id="save" class="primary" type="submit">Save</button>
+    </div>
+  </form>
+</section>
+
+<section id="detail" class="sheet" hidden>
+  <div class="sheet-body">
+    <div class="strip">
+      <p id="detailType" class="label"></p>
+      <h2 id="detailPlace" class="poster"></h2>
+    </div>
+    <img id="detailPhoto" class="full" alt="">
+    <div id="detailAkaStrip" class="strip" hidden>
+      <p class="label">AKA</p>
+      <p id="detailAka" class="fact"></p>
+    </div>
+    <div id="detailFacts" class="strip facts" hidden>
+      <div id="detailColorBox">
+        <p class="label">Color</p>
+        <p id="detailColor" class="fact"></p>
+      </div>
+      <div id="detailFabricBox">
+        <p class="label">Fabric</p>
+        <p id="detailFabric" class="fact"></p>
+      </div>
+    </div>
+    <div id="detailPlaceStrip" class="strip" hidden>
+      <p class="label">Photo of the place</p>
+      <img id="detailPlacePhoto" class="full" alt="Photo of the place">
+    </div>
+    <div id="detailWornStrip" class="strip" hidden>
+      <p class="label">When I wore it</p>
+      <ul id="detailWorn" class="uses"></ul>
+    </div>
+    <div class="actions">
+      <button id="detailClose" type="button">Close</button>
+      <button id="detailEdit" class="primary" type="button">Edit</button>
+    </div>
+  </div>
+</section>
+
+<section id="gate" class="sheet gate" hidden>
+  <form id="gateForm">
+    <header class="strip masthead">
+      <h1>WAMC</h1>
+      <p>Where are<br>my clothes</p>
+    </header>
+    <div class="strip">
+      <h2 id="gateTitle"></h2>
+      <p id="gateText"></p>
+    </div>
+    <div class="strip">
+      <label for="password">Password</label>
+      <input id="password" type="password" minlength="8" maxlength="200" autocomplete="current-password" required>
+      <div id="repeatWrap" hidden>
+        <label for="password2">Repeat the password</label>
+        <input id="password2" type="password" maxlength="200" autocomplete="new-password">
+      </div>
+      <p id="gateError" class="error" role="alert" hidden></p>
+    </div>
+    <div class="actions">
+      <button id="enter" class="primary" type="submit">Enter</button>
+    </div>
+  </form>
+</section>
+
+<script>
+(() => {
+  const TYPES = ['T-shirt', 'Shirt', 'Sweater', 'Trousers', 'Skirt', 'Dress', 'Jacket', 'Coat', 'Shoes', 'Accessory'];
+  const COLORS = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow', 'Pink', 'Orange', 'Purple', 'Brown', 'Beige'];
+  const FABRICS = ['Cotton', 'Linen', 'Wool', 'Silk', 'Denim', 'Polyester', 'Knit', 'Leather'];
+  const MAX_SIDE = 1000;
+
+  const $ = (id) => document.getElementById(id);
+  const grid = $('grid'), empty = $('empty'), search = $('search');
+  const sheet = $('sheet'), detail = $('detail'), gate = $('gate');
+  const typeInput = $('type'), placeInput = $('place'), preview = $('preview');
+  const akaInput = $('aka'), colorInput = $('color'), fabricInput = $('fabric');
+
+  let items = [];
+  let editing = null; // a saved garment being edited, or { blob } for a new one; placeBlob / removePlacePhoto track the place photo
+  let viewing = null;
+  let gateMode = 'login';
+
+  // --- demo server: the real app talks to api.php; this demo keeps sample garments in the page ---
+  const DEMO = [
+    { id: 1, type: 'T-shirt', place: 'Drawer 2', aka: '', color: 'White', fabric: 'Cotton', photo: 'white-tshirt.jpg', placePhoto: 'place-drawers.jpg', worn: [{ date: '2026-10-02', place: 'Office' }] },
+    { id: 2, type: 'Trousers', place: 'Wardrobe, left side', aka: '', color: 'Blue', fabric: 'Denim', photo: 'jeans.jpg', placePhoto: 'place-closet.jpg', worn: [{ date: '2026-09-20', place: 'Concert' }, { date: '2026-08-30', place: '' }] },
+    { id: 3, type: 'Sweater', place: 'Trunk in the attic', aka: "Grandma's sweater", color: 'Red', fabric: 'Wool', photo: 'nordic-sweater.jpg', placePhoto: 'place-trunks.jpg', worn: [{ date: '2025-12-24', place: 'Christmas dinner' }] },
+    { id: 4, type: 'Jacket', place: 'Hall closet', aka: '', color: 'Brown', fabric: 'Leather', photo: 'leather-jacket.jpg', placePhoto: 'place-walk-in.jpg', worn: [{ date: '2026-10-10', place: 'Dinner downtown' }] },
+    { id: 5, type: 'Accessory', place: 'Winter box, top shelf', aka: 'The long scarf', color: 'White', fabric: 'Wool', photo: 'white-scarf.jpg', placePhoto: '', worn: [] },
+    { id: 6, type: 'Sweater', place: 'Suitcase under the bed', aka: 'Ski trip sweater', color: 'Navy blue', fabric: 'Wool', photo: 'norwegian-sweater.jpg', placePhoto: 'place-suitcase.jpg', worn: [{ date: '2026-01-15', place: 'Mountain trip' }] },
+  ];
+  const SPARE_GARMENTS = ['navy-sweater.jpg', 'red-leather-jacket.jpg', 'dark-jeans.jpg'];
+  const SPARE_PLACES = ['place-closet.jpg', 'place-drawers.jpg', 'place-trunks.jpg'];
+  let store = DEMO.map((it) => ({ ...it, worn: it.worn.map((use) => ({ ...use })) }));
+  let nextId = 100;
+
+  async function api(action, body) {
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    if (action === 'state') return { auth: true };
+    if (action === 'list') return { items: store.map((it) => ({ ...it, worn: it.worn.map((use) => ({ ...use })) })) };
+    if (action === 'save') {
+      const id = body.get('id');
+      let item = id != null ? store.find((it) => String(it.id) === String(id)) : null;
+      if (!item) {
+        item = { id: nextId++, photo: URL.createObjectURL(body.get('photo')), placePhoto: '' };
+        store.push(item);
+      }
+      Object.assign(item, {
+        type: body.get('type'), place: body.get('place'), aka: body.get('aka'), color: body.get('color'), fabric: body.get('fabric'),
+        worn: newestFirst(JSON.parse(body.get('worn') || '[]')),
+      });
+      if (body.get('placePhoto')) item.placePhoto = URL.createObjectURL(body.get('placePhoto'));
+      else if (body.get('removePlacePhoto')) item.placePhoto = '';
+      return { item };
+    }
+    if (action === 'delete') {
+      store = store.filter((it) => it.id !== body.id);
+      return {};
+    }
+    return {};
+  }
+
+  const photoUrl = (name) => name.startsWith('blob:') ? name : 'samples/' + name;
+
+  // There is no camera in a demo on a laptop, so "taking a photo" hands over the next sample picture.
+  async function samplePhoto(list) {
+    const name = list.shift();
+    if (list.length === 0) list.push(name);
+    else list.push(name);
+    return (await fetch('samples/' + name)).blob();
+  }
+
+  // Show a freshly taken photo (Blob), a saved one (name), or nothing.
+  function setImage(img, source) {
+    if (img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
+    if (!source) img.removeAttribute('src');
+    else img.src = source instanceof Blob ? URL.createObjectURL(source) : photoUrl(source);
+  }
+
+  // Only one full-screen layer is open at a time; the page behind must not scroll.
+  function show(layer) {
+    for (const each of [sheet, detail, gate]) each.hidden = each !== layer;
+    document.body.classList.toggle('locked', Boolean(layer));
+    if (layer) layer.scrollTop = 0;
+  }
+
+  // Lower case without accents, so "marron" finds "Marrón".
+  const plain = (text) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  function today() {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+  }
+
+  function longDate(iso) {
+    const [year, month, day] = iso.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  async function load() {
+    items = (await api('list')).items.reverse(); // the server keeps them oldest first
+    render();
+  }
+
+  // --- photo ---
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read the photo. Try taking it again.')); };
+      img.src = url;
+    });
+  }
+
+  async function shrink(file) {
+    const img = await loadImage(file);
+    const scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Could not prepare the photo.')), 'image/jpeg', 0.8);
+    });
+  }
+
+  // --- ui ---
+  function say(el, message) {
+    el.textContent = message || '';
+    el.hidden = !message;
+  }
+
+  function chips(container, values, input) {
+    container.replaceChildren(...values.map((value) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = value;
+      b.onclick = () => {
+        input.value = b.getAttribute('aria-pressed') === 'true' ? '' : value; // tapping the selected one clears it
+        mark(container, input);
+      };
+      return b;
+    }));
+    mark(container, input);
+  }
+
+  function mark(container, input) {
+    const current = input.value.trim().toLowerCase();
+    for (const chip of container.children) {
+      chip.setAttribute('aria-pressed', String(chip.textContent.toLowerCase() === current));
+    }
+  }
+
+  // Values already used for a field, newest first, then any starter suggestions not yet used.
+  function suggestions(field, starters = []) {
+    const seen = new Map();
+    for (const value of [...items.map((it) => it[field]), ...starters]) {
+      if (!value) continue;
+      const key = value.toLowerCase();
+      if (!seen.has(key)) seen.set(key, value);
+    }
+    return [...seen.values()].slice(0, 16);
+  }
+
+  function showPlacePhoto() {
+    const source = editing.placeBlob || (!editing.removePlacePhoto && editing.placePhoto) || null;
+    setImage($('placePreview'), source);
+    $('placePreview').hidden = $('placeRemove').hidden = !source;
+    $('placeShot').textContent = source ? 'Change photo' : 'Photograph the place';
+  }
+
+  // One line of the "when I wore it" list; with onRemove it gets a remove button.
+  function useRow(use, onRemove) {
+    const row = document.createElement('li');
+    const text = document.createElement('div');
+    const main = document.createElement('p');
+    main.className = 'fact';
+    main.textContent = use.date ? longDate(use.date) : use.place;
+    text.append(main);
+    if (use.date && use.place) {
+      const where = document.createElement('p');
+      where.textContent = use.place;
+      text.append(where);
+    }
+    row.append(text);
+    if (onRemove) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.onclick = onRemove;
+      row.append(remove);
+    }
+    return row;
+  }
+
+  function pendingUse() {
+    const date = $('wornDate').value, place = $('wornPlace').value.trim();
+    return date || place ? { date, place } : null;
+  }
+
+  function newestFirst(uses) {
+    return uses.sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  function showUses() {
+    $('wornList').replaceChildren(...editing.worn.map((use) => useRow(use, () => {
+      editing.worn.splice(editing.worn.indexOf(use), 1);
+      showUses();
+    })));
+  }
+
+  function openDetail(item) {
+    viewing = item;
+    $('detailType').textContent = item.type;
+    $('detailPlace').textContent = item.place;
+    setImage($('detailPhoto'), item.photo);
+    $('detailPhoto').alt = item.type;
+    $('detailPlaceStrip').hidden = !item.placePhoto;
+    setImage($('detailPlacePhoto'), item.placePhoto);
+    $('detailAkaStrip').hidden = !item.aka;
+    $('detailAka').textContent = item.aka;
+    $('detailFacts').hidden = !item.color && !item.fabric;
+    $('detailColorBox').hidden = !item.color;
+    $('detailFabricBox').hidden = !item.fabric;
+    $('detailColor').textContent = item.color;
+    $('detailFabric').textContent = item.fabric;
+    $('detailWornStrip').hidden = item.worn.length === 0;
+    $('detailWorn').replaceChildren(...item.worn.map((use) => useRow(use)));
+    show(detail);
+  }
+
+  function openSheet(entry) {
+    editing = entry;
+    setImage(preview, entry.blob || entry.photo);
+    typeInput.value = entry.type || '';
+    placeInput.value = entry.place || '';
+    akaInput.value = entry.aka || '';
+    colorInput.value = entry.color || '';
+    fabricInput.value = entry.fabric || '';
+    chips($('colorChips'), suggestions('color', COLORS), colorInput);
+    chips($('fabricChips'), suggestions('fabric', FABRICS), fabricInput);
+    entry.worn = (entry.worn || []).map((use) => ({ ...use }));
+    $('wornDate').value = $('wornPlace').value = '';
+    showUses();
+    showPlacePhoto();
+    chips($('typeChips'), suggestions('type', TYPES), typeInput);
+    chips($('placeChips'), suggestions('place'), placeInput);
+    $('del').hidden = entry.id == null;
+    $('sheetTitle').textContent = entry.id == null ? 'New garment' : 'Edit garment';
+    say($('formError'), '');
+    busy(false);
+    show(sheet);
+  }
+
+  function closeSheet() {
+    show(null);
+    setImage(preview, null);
+    setImage($('placePreview'), null);
+    editing = null;
+  }
+
+  function busy(on) {
+    for (const button of sheet.querySelectorAll('button')) button.disabled = on;
+    $('save').textContent = on ? 'Saving' : 'Save';
+  }
+
+  function showGate(mode) {
+    gateMode = mode;
+    const setup = mode === 'setup';
+    $('gateTitle').textContent = setup ? 'Create the password.' : 'Type the password.';
+    $('gateText').textContent = setup
+      ? 'Protect your wardrobe. Only someone who knows it can see, add or delete garments. At least 8 characters.'
+      : 'This phone will remember it for 3 months.';
+    $('repeatWrap').hidden = !setup;
+    $('password').autocomplete = setup ? 'new-password' : 'current-password';
+    $('password2').required = setup;
+    $('enter').textContent = setup ? 'Create password' : 'Enter';
+    $('password').value = $('password2').value = '';
+    say($('gateError'), '');
+    if (!sheet.hidden) closeSheet();
+    $('add').hidden = true;
+    show(gate);
+  }
+
+  async function enter() {
+    show(null);
+    $('add').hidden = false;
+    try {
+      await load();
+    } catch (err) {
+      if (gate.hidden) problem(err.message);
+    }
+  }
+
+  function problem(message) {
+    grid.replaceChildren();
+    $('searchStrip').hidden = true;
+    empty.hidden = false;
+    $('emptyTitle').textContent = 'Could not load.';
+    $('emptyText').textContent = message;
+  }
+
+  function render() {
+    const q = plain(search.value.trim());
+    const shown = q
+      ? items.filter((it) => plain([it.type, it.aka, it.place, it.color, it.fabric, ...it.worn.map((use) => use.place)].join(' ')).includes(q))
+      : items;
+
+    grid.replaceChildren(...shown.map((it) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'item';
+      const img = document.createElement('img');
+      img.src = photoUrl(it.photo);
+      img.alt = it.type;
+      img.loading = 'lazy';
+      const info = document.createElement('div');
+      const type = document.createElement('span');
+      type.textContent = [it.aka || it.type, it.color].filter(Boolean).join(', ');
+      const place = document.createElement('b');
+      place.textContent = it.place;
+      info.append(type, place);
+      card.append(img, info);
+      card.onclick = () => openDetail(it);
+      return card;
+    }));
+
+    $('searchStrip').hidden = items.length === 0;
+    $('count').textContent = items.length === 1 ? '1 garment' : items.length ? items.length + ' garments' : '';
+    empty.hidden = shown.length > 0;
+    $('emptyTitle').textContent = items.length ? 'Nothing matches.' : 'Photograph your first garment.';
+    $('emptyText').textContent = items.length
+      ? 'Try another type of garment, AKA or place.'
+      : 'Then note what it is and where you keep it.';
+  }
+
+  // --- events ---
+  $('add').onclick = async () => openSheet({ blob: await samplePhoto(SPARE_GARMENTS) });
+
+  $('camera').onchange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      openSheet({ blob: await shrink(file) });
+    } catch (err) {
+      problem(err.message);
+    }
+  };
+
+  typeInput.oninput = () => mark($('typeChips'), typeInput);
+  typeInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); placeInput.focus(); }
+  };
+  placeInput.oninput = () => mark($('placeChips'), placeInput);
+  placeInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); akaInput.focus(); }
+  };
+  akaInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); colorInput.focus(); }
+  };
+  colorInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); fabricInput.focus(); }
+  };
+  fabricInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); fabricInput.blur(); }
+  };
+  colorInput.oninput = () => mark($('colorChips'), colorInput);
+  fabricInput.oninput = () => mark($('fabricChips'), fabricInput);
+  search.oninput = render;
+  $('cancel').onclick = closeSheet;
+  $('detailClose').onclick = () => show(null);
+  $('detailEdit').onclick = () => openSheet({ ...viewing });
+
+  $('placeShot').onclick = async () => {
+    if (!editing) return;
+    editing.placeBlob = await samplePhoto(SPARE_PLACES);
+    showPlacePhoto();
+  };
+  $('placeCamera').onchange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !editing) return;
+    try {
+      editing.placeBlob = await shrink(file);
+      showPlacePhoto();
+      say($('formError'), '');
+    } catch (err) {
+      say($('formError'), err.message);
+    }
+  };
+  $('placeRemove').onclick = () => {
+    editing.placeBlob = null;
+    editing.removePlacePhoto = true;
+    showPlacePhoto();
+  };
+  $('wornToday').onclick = () => { $('wornDate').value = today(); };
+  $('wornAdd').onclick = () => {
+    const use = pendingUse();
+    if (!use) return $('wornDate').focus();
+    editing.worn.push(use);
+    newestFirst(editing.worn);
+    $('wornDate').value = $('wornPlace').value = '';
+    showUses();
+  };
+
+  $('form').onsubmit = async (e) => {
+    e.preventDefault();
+    const type = typeInput.value.trim();
+    const place = placeInput.value.trim();
+    if (!type || !place || !editing) return;
+    const body = new FormData();
+    body.set('type', type);
+    body.set('place', place);
+    body.set('aka', akaInput.value.trim());
+    body.set('color', colorInput.value.trim());
+    body.set('fabric', fabricInput.value.trim());
+    // A use typed in but not yet added to the list is saved too.
+    body.set('worn', JSON.stringify(editing.worn.concat(pendingUse() || [])));
+    if (editing.id != null) body.set('id', editing.id);
+    else body.set('photo', editing.blob, 'photo.jpg');
+    if (editing.placeBlob) body.set('placePhoto', editing.placeBlob, 'place.jpg');
+    else if (editing.removePlacePhoto) body.set('removePlacePhoto', '1');
+    busy(true);
+    try {
+      await api('save', body);
+      closeSheet();
+      await load();
+    } catch (err) {
+      if (!sheet.hidden) { busy(false); say($('formError'), err.message); }
+    }
+  };
+
+  $('del').onclick = async () => {
+    if (!confirm('Delete this garment? In the real app the photo is removed from the server for good.')) return;
+    busy(true);
+    try {
+      await api('delete', { id: editing.id });
+      closeSheet();
+      await load();
+    } catch (err) {
+      if (!sheet.hidden) { busy(false); say($('formError'), err.message); }
+    }
+  };
+
+  $('gateForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const password = $('password').value;
+    if (gateMode === 'setup' && password !== $('password2').value) {
+      say($('gateError'), 'The two passwords do not match.');
+      return;
+    }
+    $('enter').disabled = true;
+    try {
+      await api(gateMode, { password });
+      await enter();
+    } catch (err) {
+      say($('gateError'), err.message);
+    } finally {
+      $('enter').disabled = false;
+    }
+  };
+
+  $('logout').onclick = async () => {
+    try {
+      await api('logout', {});
+    } catch (err) {
+      return problem(err.message);
+    }
+    items = [];
+    render();
+    $('logoutStrip').hidden = true;
+    showGate('login');
+  };
+
+  api('state')
+    .then((state) => state.auth ? enter() : showGate(state.setup ? 'setup' : 'login'))
+    .catch((err) => problem(err.message));
+})();
+</script>
+</body>
+</html>

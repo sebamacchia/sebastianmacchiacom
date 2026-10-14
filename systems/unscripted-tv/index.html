@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unscripted TV · Sebastian Macchia</title>
+  <meta name="description" content="How Unscripted TV works: a live AI studio where an AI character streams on YouTube, reads the chat and answers with a lip-synced face, all on one Mac.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://sebastianmacchia.com/systems/unscripted-tv/">
+  <link rel="stylesheet" href="/portfolio.css?v=1">
+  <style>
+    .back { margin: 0 0 40px; font-size: 13px; color: var(--muted); }
+    .back a { text-decoration: none; }
+    .back a:hover { color: var(--ink); }
+    figure { margin: 0 0 12px; }
+    figure img { display: block; width: 100%; height: auto; }
+    figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
+    .flow { list-style: none; margin: 0; padding: 0; }
+    .flow li { padding: 14px 0 14px 18px; border-left: 1px solid var(--line); }
+    .flow li + li { margin-top: 0; }
+    .flow b { font-weight: 500; }
+    .flow span { display: block; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <main id="main" class="page">
+    <header>
+      <nav class="back" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/systems/">Systems</a></nav>
+      <h1>Unscripted TV</h1>
+      <p class="intro">A live AI studio. An AI character streams on YouTube, reads the live chat and answers with a lip-synced talking face. The first show is Nietzsche, live from his study.</p>
+      <p>Everything runs on one Mac, with no cloud GPU and no paid service, so a show costs about nothing to run.</p>
+    </header>
+
+    <figure>
+      <img src="on-air.jpg" width="1456" height="816" alt="Nietzsche on screen during a live stream, sitting at his desk and looking at the camera.">
+      <figcaption>Nietzsche on air.</figcaption>
+    </figure>
+    <p class="detail"><a href="https://www.youtube.com/@unsupervisedlive/streams" target="_blank" rel="noopener">Watch the streams on YouTube <span aria-hidden="true">↗</span></a></p>
+
+    <section class="text-section" aria-labelledby="how-title">
+      <h2 id="how-title">How it works</h2>
+      <ol class="flow">
+        <li><b>Chat</b><span>Messages arrive from YouTube and Twitch. Each one is sorted by what it tries to do: ask, joke, or steer the show.</span></li>
+        <li><b>Show</b><span>A runtime decides what happens next: answer a viewer, comment on fresh news, or go deeper into one topic.</span></li>
+        <li><b>Brain</b><span>A language model writes the reply in the character's voice, one sentence at a time. It runs locally by default and can be switched mid-show.</span></li>
+        <li><b>Voice</b><span>Each sentence becomes speech with a local text-to-speech model.</span></li>
+        <li><b>Face</b><span>Wav2Lip moves the mouth over the character's blinking loop, so the face speaks in sync.</span></li>
+        <li><b>On air</b><span>The video goes to OBS or straight to YouTube and Twitch. When nobody is speaking, an idle loop keeps the stream alive.</span></li>
+      </ol>
+    </section>
+
+    <section class="text-section" aria-labelledby="director-title">
+      <h2 id="director-title">The director</h2>
+      <p>A control room in the browser lets me run the show while it is live. I can send the character hidden notes that it follows without saying so on air, start a deep dive on a topic, or open a theme show that lasts hours.</p>
+      <p>The world comes in through news wires, trends, Reddit, Wikipedia and "on this day" history, each refreshed on its own clock, so the character reacts to things that are minutes old.</p>
+    </section>
+
+    <section class="text-section" aria-labelledby="platform-title">
+      <h2 id="platform-title">A platform, not one character</h2>
+      <p>A performer is data, not code. The character, the set, the show format and the audience are separate files. A second performer, Bach, was added with two files and no change to the program.</p>
+    </section>
+
+    <footer><a href="/systems/"><span aria-hidden="true">←</span> All systems</a><span>2026</span></footer>
+  </main>
+</body>
+</html>

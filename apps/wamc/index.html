@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WAMC · Where Are My Clothes · Sebastian Macchia</title>
+  <meta name="description" content="WAMC is a phone app that remembers where each garment is kept. Design, scope and how it is built, with a demo you can try.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://sebastianmacchia.com/apps/wamc/">
+  <link rel="stylesheet" href="/portfolio.css?v=1">
+  <style>
+    .back { margin: 0 0 40px; font-size: 13px; color: var(--muted); }
+    .back a { text-decoration: none; }
+    .back a:hover { color: var(--ink); }
+    .try { display: inline-block; margin: 4px 0 8px; padding: 10px 18px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; }
+    .try:hover { background: var(--ink); color: #fff; }
+    .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 20px; margin: 0; }
+    .shots figure { margin: 0; }
+    .shots img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+    .shots figcaption { margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+    .flow { list-style: none; margin: 0; padding: 0; }
+    .flow li { padding: 14px 0 14px 18px; border-left: 1px solid var(--line); }
+    .flow b { font-weight: 500; }
+    .flow span { display: block; color: var(--muted); }
+    .credits { margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.7; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <main id="main" class="page">
+    <header>
+      <nav class="back" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/apps/">Apps</a></nav>
+      <h1>WAMC · Where Are My Clothes</h1>
+      <p class="intro">A phone app that remembers where each garment is kept. I photograph it, write where it goes, and later search instead of opening every drawer.</p>
+      <p><a class="try" href="demo/">Try the demo</a></p>
+      <p class="detail">Sample clothes, runs in your browser, nothing is saved.</p>
+    </header>
+
+    <section class="text-section" aria-labelledby="journey-title">
+      <h2 id="journey-title">The journey</h2>
+      <div class="shots">
+        <figure>
+          <img src="shots/1-list.jpg" width="390" height="780" alt="The WAMC home screen: a grid of garment photos, each with its place written in large letters." loading="lazy">
+          <figcaption>Every garment is a photo and a place. The place is printed big, because it is the answer.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/2-add.jpg" width="390" height="780" alt="Adding a new sweater: the photo at the top, then buttons for garment types and for places already used." loading="lazy">
+          <figcaption>Adding one starts with the camera. Types and places already used come back as one-tap buttons.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/3-detail.jpg" width="390" height="780" alt="A sweater's page: 'Trunk in the attic' in large letters above the photo, and its nickname below." loading="lazy">
+          <figcaption>A garment's page leads with where it is, then the photo and its nickname.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/4-place.jpg" width="390" height="780" alt="A photo of two trunks in a corner, and below it the date the sweater was last worn." loading="lazy">
+          <figcaption>A photo of the place itself, and a log of when and where I wore it.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/5-search.jpg" width="390" height="780" alt="The search box with the word 'wool' and four wool garments found." loading="lazy">
+          <figcaption>Search looks through type, nickname, colour, fabric, place and where I wore it.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="text-section" aria-labelledby="design-title">
+      <h2 id="design-title">Design</h2>
+      <p>Black ink on white paper, heavy rules, one condensed typeface, and yellow only for what needs attention. It is made for one hand on a phone: every button is at least 44 pixels tall, and text fields use 16-pixel type so the iPhone does not zoom in.</p>
+    </section>
+
+    <section class="text-section" aria-labelledby="scope-title">
+      <h2 id="scope-title">Scope</h2>
+      <p>One person, one wardrobe. It is a web page, so there is no app store and nothing to install. It keeps up to 2,000 garments, each with up to 200 dates of use. It does not plan outfits, share with other people or work offline.</p>
+    </section>
+
+    <section class="text-section" aria-labelledby="built-title">
+      <h2 id="built-title">How it is built</h2>
+      <ol class="flow">
+        <li><b>The page</b><span>One HTML file with plain JavaScript: no framework and no build step. Photos are shrunk on the phone before they are sent.</span></li>
+        <li><b>The server</b><span>One PHP file on ordinary shared hosting.</span></li>
+        <li><b>The data</b><span>No database. The list is a JSON file, written under a file lock so two saves cannot collide. Photos sit in a folder the web cannot open, and only a signed-in phone gets them.</span></li>
+        <li><b>The lock</b><span>One password, stored hashed. The first visitor after installing chooses it. Five wrong tries lock the app for 15 minutes, and a sign-in lasts 90 days.</span></li>
+        <li><b>The demo</b><span>The same page in English, with the server swapped for a pretend one inside the page, so anyone can try it without seeing my real wardrobe.</span></li>
+      </ol>
+    </section>
+
+    <section class="text-section" aria-labelledby="credits-title">
+      <h2 id="credits-title">Photo credits</h2>
+      <p class="detail">The sample photos in the demo come from Wikimedia Commons.</p>
+      <ul class="credits">
+        <li><a href="https://commons.wikimedia.org/wiki/File:10_years_of_polish_Wikipedia,_event_T-shirt_front_side.JPG" target="_blank" rel="noopener">White T-shirt</a>, Juandev, CC BY-SA 3.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:%22WIN%22_patterned_sweater.JPG" target="_blank" rel="noopener">Patterned sweater</a>, unknown author, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Dale_of_Norway_sweater.jpg" target="_blank" rel="noopener">Norwegian sweater</a>, Menswear Market, CC BY 2.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Bead_embroidery_jeans.jpg" target="_blank" rel="noopener">Jeans</a>, Durova, CC BY-SA 3.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Leather_jacket_golden_era.jpg" target="_blank" rel="noopener">Leather jacket</a>, kreativgarasch, CC0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:2016-366-334_Always_Count_on_Mom%27s_Scarf_(30960879140).jpg" target="_blank" rel="noopener">White scarf</a>, cogdogblog, CC0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:AWASQA_MAKI_61.jpg" target="_blank" rel="noopener">Navy sweater</a>, AWASQA MAKI, CC BY-SA 4.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Nepal_made_Leather_Jacket.jpg" target="_blank" rel="noopener">Red leather jacket</a>, Gaurav Dhwaj Khadka, CC BY-SA 4.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Acne_Jeans_Nye_cowboybukser.jpg" target="_blank" rel="noopener">Dark jeans</a>, Jane Mejdahl, CC BY-SA 2.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Boy_closet.jpg" target="_blank" rel="noopener">Closet</a>, Aavindraa, CC0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Attic_1780s_House_9_Mile_Point_Closet.JPG" target="_blank" rel="noopener">Walk-in closet</a>, Infrogmation of New Orleans, CC BY-SA 3.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:0027Hb._St._Petersburg._Alexander_Blok_Memorial_Apartment.jpg" target="_blank" rel="noopener">Trunks</a>, Александровы АГ, CC BY-SA 4.0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:HeritagehallsdormBYU.JPG" target="_blank" rel="noopener">Drawers</a>, Intothewoods29, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Americantouristerwheels.JPG" target="_blank" rel="noopener">Suitcase</a>, ArtSkillCraft, CC BY-SA 3.0</li>
+      </ul>
+    </section>
+
+    <footer><a href="/apps/"><span aria-hidden="true">←</span> All apps</a><span>2026</span></footer>
+  </main>
+</body>
+</html>

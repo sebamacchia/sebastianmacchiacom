@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My records · Sebastian Macchia</title>
+  <meta name="description" content="My records is a phone app for a vinyl collection: photograph a record and OpenAI fills in the details. Design, scope and how it is built, with a demo you can try.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://sebastianmacchia.com/apps/myrecords/">
+  <link rel="stylesheet" href="/portfolio.css?v=1">
+  <style>
+    .back { margin: 0 0 40px; font-size: 13px; color: var(--muted); }
+    .back a { text-decoration: none; }
+    .back a:hover { color: var(--ink); }
+    .try { display: inline-block; margin: 4px 0 8px; padding: 10px 18px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; }
+    .try:hover { background: var(--ink); color: #fff; }
+    .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 20px; margin: 0; }
+    .shots figure { margin: 0; }
+    .shots img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+    .shots figcaption { margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+    .flow { list-style: none; margin: 0; padding: 0; }
+    .flow li { padding: 14px 0 14px 18px; border-left: 1px solid var(--line); }
+    .flow b { font-weight: 500; }
+    .flow span { display: block; color: var(--muted); }
+    .credits { margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.7; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <main id="main" class="page">
+    <header>
+      <nav class="back" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/apps/">Apps</a></nav>
+      <h1>My records</h1>
+      <p class="intro">A phone app for my vinyl collection. I photograph the front and back of a record, and OpenAI fills in the artist, album, year, label, edition and a short text about it. Then I note where it is on the shelf and when I listened to it.</p>
+      <p><a class="try" href="demo/">Try the demo</a></p>
+      <p class="detail">Sample records, runs in your browser, nothing is saved. OpenAI's answers in the demo are pre-recorded.</p>
+    </header>
+
+    <section class="text-section" aria-labelledby="journey-title">
+      <h2 id="journey-title">The journey</h2>
+      <div class="shots">
+        <figure>
+          <img src="shots/1-list.jpg" width="390" height="780" alt="The My records home screen: a grid of record labels and covers with the album titles in large letters." loading="lazy">
+          <figcaption>The collection, one cover per record, with a search box on top.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/2-back.jpg" width="390" height="780" alt="After the front photo, a screen asks for the back cover, with Skip and Take photo buttons." loading="lazy">
+          <figcaption>After the front, it asks for the back, which usually shows the label, edition and track list.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/3-filled.jpg" width="390" height="780" alt="The new record form with the note 'Filled in by OpenAI. Check it before saving.' and the artist filled in." loading="lazy">
+          <figcaption>OpenAI reads both photos and fills in only the empty fields. I check them before saving.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/4-detail.jpg" width="390" height="780" alt="A record's page: the album title in large letters above its cover." loading="lazy">
+          <figcaption>A record's page leads with the album and its cover.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/5-facts.jpg" width="390" height="780" alt="Below the cover: genre, year, label, where it is, the edition, a short text about the album and the dates it was played." loading="lazy">
+          <figcaption>Below it: the facts, where it is on the shelf, the story of the album, and when I listened to it.</figcaption>
+        </figure>
+        <figure>
+          <img src="shots/6-search.jpg" width="390" height="780" alt="The search box with the word 'tango' and two tango records found." loading="lazy">
+          <figcaption>Search finds records by artist, album or genre, with or without accents.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="text-section" aria-labelledby="design-title">
+      <h2 id="design-title">Design</h2>
+      <p>It shares its look with <a href="/apps/wamc/">WAMC</a>: black ink on white paper, heavy rules, one condensed typeface, and yellow only for what needs attention. Here the cover is the picture and the album title is the poster. Buttons are big enough for one hand, and the artists, genres and shelves already used come back as one-tap buttons.</p>
+    </section>
+
+    <section class="text-section" aria-labelledby="scope-title">
+      <h2 id="scope-title">Scope</h2>
+      <p>One person, one collection, on the phone's web browser. It keeps up to 5,000 records, each with up to 500 listens. OpenAI is optional: without a key, everything is typed by hand. It does not stream music, track prices over time or connect to a marketplace.</p>
+    </section>
+
+    <section class="text-section" aria-labelledby="built-title">
+      <h2 id="built-title">How it is built</h2>
+      <ol class="flow">
+        <li><b>The page</b><span>One HTML file with plain JavaScript: no framework and no build step. The front photo is shrunk on the phone; the back keeps more pixels so its small print stays readable.</span></li>
+        <li><b>The server</b><span>One PHP file on ordinary shared hosting.</span></li>
+        <li><b>The AI</b><span>The server sends both photos to OpenAI's gpt-5-mini and asks for a fixed JSON shape, so every answer fits the form. It also sends the genres already in the collection, so new records reuse them. The OpenAI key stays on the server and never reaches the phone.</span></li>
+        <li><b>The data</b><span>No database. The list is a JSON file, written under a file lock so two saves cannot collide. Photos sit in a folder the web cannot open, and only a signed-in phone gets them.</span></li>
+        <li><b>The lock</b><span>One password, stored hashed. Five wrong tries lock the app for 15 minutes, and a sign-in lasts 90 days.</span></li>
+        <li><b>The demo</b><span>The same page with the server swapped for a pretend one inside the page. OpenAI is not called: each sample record has its answer recorded in advance.</span></li>
+      </ol>
+    </section>
+
+    <section class="text-section" aria-labelledby="credits-title">
+      <h2 id="credits-title">Photo credits</h2>
+      <p class="detail">The sample records in the demo are photos from Wikimedia Commons of records from 1915 to 1946.</p>
+      <ul class="credits">
+        <li><a href="https://commons.wikimedia.org/wiki/File:At_the_Jazz_Band_Ball_ODJB_Victor_18457_1918.jpg" target="_blank" rel="noopener">At the Jazz Band Ball, Victor 18457</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:A_Media_Luz_-_Carlos_Gardel.png" target="_blank" rel="noopener">A media luz, Odeón 18179</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Hoagy_Carmichael_and_His_Orchestra_-_Georgia_on_My_Mind.png" target="_blank" rel="noopener">Georgia on My Mind, Victor 23013</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Black_and_Tan_Fantasie.jpg" target="_blank" rel="noopener">Black and Tan Fantasie, Victor 21137</a>, TuttiFrutti1955, CC0</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Ellington-Black-Brown-Beige-78.png" target="_blank" rel="noopener">Black, Brown and Beige, RCA Victor cover</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Ch%C3%B3r_Eryana_-_Graj_mi_Cyganie_-_ODEON_N45118a.jpg" target="_blank" rel="noopener">Chór Eryana, Odeon N 45118 a</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Ch%C3%B3r_Eryana_-_Panna_Anna_bierze_%C5%9Blub_-_ODEON_N45118b.jpg" target="_blank" rel="noopener">Chór Eryana, Odeon N 45118 b</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Feodor_Chaliapin_-_Song_of_the_Volga_Boatmen_-_Victor_14901A.jpg" target="_blank" rel="noopener">Chaliapin, Victor 14901 A</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:Feodor_Chaliapin_-_Song_of_the_Flea_-_Victor_14901B.jpg" target="_blank" rel="noopener">Chaliapin, Victor 14901 B</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:%22Nancy_(with_the_Laughing_Face)%22_-_Frank_Sinatra_(1945_A-side,_Columbia_36868).jpg" target="_blank" rel="noopener">Nancy, Columbia 36868</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:17929A-Lucia_di_Lammermoor.jpg" target="_blank" rel="noopener">Lapitino, Victor 17929 A</a>, public domain</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:17929B-Fantasia.jpg" target="_blank" rel="noopener">Lapitino, Victor 17929 B</a>, public domain</li>
+      </ul>
+    </section>
+
+    <footer><a href="/apps/"><span aria-hidden="true">←</span> All apps</a><span>2026</span></footer>
+  </main>
+</body>
+</html>
