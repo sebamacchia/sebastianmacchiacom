@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>SP404MK2 crate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<link rel="stylesheet" href="style.css?v=2.0.0">
+<script type="module" src="js/app.js?v=2.0.0"></script>
+</head>
+<body>
+<main class="app">
+  <!-- Home: masthead, search, projects (or search results) -->
+  <section id="home" hidden>
+    <header class="strip masthead">
+      <h1>SP404MK2<br>crate</h1>
+      <p>Sampler<br>projects<br><span id="count" class="quiet"></span></p>
+    </header>
+
+    <div id="searchStrip" class="strip" hidden>
+      <input id="search" type="search" placeholder="Search samples" aria-label="Search samples and projects" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+    </div>
+
+    <ul id="list" class="list" aria-live="polite"></ul>
+    <p id="more" class="strip quiet" hidden></p>
+
+    <div id="empty" class="strip empty" hidden>
+      <h2 id="emptyTitle"></h2>
+      <p id="emptyText"></p>
+    </div>
+
+    <div id="homeActions" class="strip" hidden>
+      <div class="buttons">
+        <button id="readCard" class="primary" type="button">Read SD card</button>
+        <button id="newProject" type="button">New project</button>
+      </div>
+    </div>
+
+    <div id="importStrip" class="strip" role="status" hidden>
+      <div id="importBusy" class="march" hidden></div>
+      <p id="importText"></p>
+      <ul id="importWarnings" class="warnings" hidden></ul>
+    </div>
+
+    <div id="logoutStrip" class="strip" hidden>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <!-- Project: name, bank tabs A-J, pads 1-16 -->
+  <section id="project" hidden>
+    <nav class="strip back">
+      <button id="back" type="button">Projects</button>
+    </nav>
+
+    <header class="strip">
+      <p id="projectLabel" class="label"></p>
+      <h2 id="projectName" class="poster" tabindex="-1"></h2>
+    </header>
+
+    <div class="strip tabs-strip">
+      <div id="tabs" class="tabs" role="tablist" aria-label="Banks"></div>
+    </div>
+
+    <p id="projectHint" class="strip quiet" hidden>Tap a pad to write down what it holds.</p>
+
+    <ol id="pads" class="pads" role="tabpanel"></ol>
+
+    <div id="projectActions" class="strip">
+      <div class="buttons">
+        <button id="rename" type="button">Rename project</button>
+        <button id="delete" class="danger" type="button">Delete project</button>
+      </div>
+      <p id="projectError" class="error second" role="alert" hidden></p>
+    </div>
+
+    <div id="confirmStrip" class="strip confirm" hidden>
+      <h2 id="confirmTitle"></h2>
+      <p id="confirmText" class="second-small"></p>
+      <div class="buttons second">
+        <button id="confirmDelete" class="danger" type="button">Delete project</button>
+        <button id="confirmCancel" type="button">Cancel</button>
+      </div>
+      <p id="confirmError" class="error second" role="alert" hidden></p>
+    </div>
+  </section>
+
+  <div id="problem" class="strip empty" hidden>
+    <h2>Could not load.</h2>
+    <p id="problemText"></p>
+  </div>
+</main>
+
+<input id="sdInput" type="file" webkitdirectory multiple hidden>
+
+<!-- Pad sheet -->
+<section id="padSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="padTitle" hidden>
+  <form id="padForm" autocomplete="off" novalidate>
+    <div class="strip">
+      <p id="padWhere" class="label"></p>
+      <h2 id="padTitle"></h2>
+    </div>
+
+    <div class="strip">
+      <label for="padName">Name</label>
+      <input id="padName" type="text" placeholder="Sample name" maxlength="80" autocapitalize="off" spellcheck="false" enterkeyhint="next">
+    </div>
+
+    <div class="strip">
+      <label for="padLength">Length <span class="quiet">Minutes and seconds, like 0:03.4</span></label>
+      <input id="padLength" type="text" inputmode="decimal" placeholder="0:03.4" maxlength="12" enterkeyhint="done">
+    </div>
+
+    <div id="padCardStrip" class="strip" hidden>
+      <p class="label">On the SD card</p>
+      <p id="padCardValue"></p>
+      <button id="padUseCard" class="second" type="button" hidden>Use SD card value</button>
+    </div>
+
+    <div id="padClearStrip" class="strip" hidden>
+      <p class="quiet">This pad was written in by hand.</p>
+      <button id="padClear" class="danger second" type="button">Clear pad</button>
+    </div>
+
+    <p id="padError" class="strip error" role="alert" hidden></p>
+
+    <div class="actions">
+      <button id="padCancel" type="button">Cancel</button>
+      <button id="padSave" class="primary" type="submit">Save</button>
+    </div>
+  </form>
+</section>
+
+<!-- New project / rename project -->
+<section id="nameSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="nameTitle" hidden>
+  <form id="nameForm" autocomplete="off" novalidate>
+    <div class="strip">
+      <h2 id="nameTitle"></h2>
+      <p id="nameText" class="second-small"></p>
+    </div>
+    <div class="strip">
+      <label for="nameInput">Project name</label>
+      <input id="nameInput" type="text" placeholder="Drum kits" maxlength="80" autocapitalize="sentences" enterkeyhint="done">
+    </div>
+    <p id="nameError" class="strip error" role="alert" hidden></p>
+    <div class="actions">
+      <button id="nameCancel" type="button">Cancel</button>
+      <button id="nameSave" class="primary" type="submit"></button>
+    </div>
+  </form>
+</section>
+
+<!-- Gate: create the password once, then sign in -->
+<section id="gate" class="sheet gate" hidden>
+  <form id="gateForm" novalidate>
+    <header class="strip masthead">
+      <h1>SP404MK2<br>crate</h1>
+      <p>Sampler<br>projects</p>
+    </header>
+    <div class="strip">
+      <h2 id="gateTitle"></h2>
+      <p id="gateText" class="second-small"></p>
+    </div>
+    <div class="strip">
+      <label for="password">Password</label>
+      <input id="password" type="password" minlength="8" maxlength="200" autocomplete="current-password" required>
+      <div id="repeatWrap" class="second" hidden>
+        <label for="password2">Repeat the password</label>
+        <input id="password2" type="password" maxlength="200" autocomplete="new-password">
+      </div>
+      <p id="gateError" class="error second" role="alert" hidden></p>
+    </div>
+    <div class="actions">
+      <button id="enter" class="primary" type="submit">Enter</button>
+    </div>
+  </form>
+</section>
+</body>
+</html>
