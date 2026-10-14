@@ -128,7 +128,7 @@ label, .label { display: block; margin-bottom: 10px; font-weight: 600; }
 label .quiet { margin-left: 6px; font-weight: 400; }
 .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* ── Lists: one full-width row per project, pad or result ── */
+/* ── Lists: one full-width row per project or search result ── */
 .list, .pads { list-style: none; margin: 0; padding: 0; }
 .row {
   display: grid;
@@ -152,7 +152,6 @@ label .quiet { margin-left: 6px; font-weight: 400; }
 .row:active { background: var(--mark); color: var(--black); }
 @media (hover: hover) {
   .row:hover { background: var(--white); color: var(--black); box-shadow: inset 0 0 0 3px var(--black); }
-  .pad.marked:hover { background: var(--mark); }
 }
 .row:focus-visible { outline-offset: -5px; box-shadow: inset 0 0 0 2px var(--black); }
 .num {
@@ -198,22 +197,24 @@ label .quiet { margin-left: 6px; font-weight: 400; }
 }
 .poster:focus { outline: none; }
 
-/* Bank tabs: one 2px outline, 2px dividers, the active bank filled black, empty banks grey. */
+/* Bank tabs: A-E over F-J, as on the sampler. One 2px outline; the black parent shows through
+   a 2px gap as the dividers, so rules stay right in both rows. Active bank filled black, empty banks grey. */
 .tabs {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  background: var(--black);
   border: 2px solid var(--black);
 }
 .tabs button {
   min-width: 0;
-  min-height: 48px;
+  min-height: 46px;
   padding: 0;
   border: 0;
   font-size: 22px;
   font-weight: 800;
   font-stretch: 62%;
 }
-.tabs button + button { border-left: 2px solid var(--black); }
 .tabs button.none { color: var(--grey); }
 .tabs button[aria-selected='true'] { background: var(--black); color: var(--white); }
 .tabs button.none[aria-selected='true'] { color: var(--grey); }
@@ -222,20 +223,83 @@ label .quiet { margin-left: 6px; font-weight: 400; }
 }
 .tabs button:focus-visible { position: relative; z-index: 1; }
 
-/* Pads 1 to 16, a ruled list in number order. */
-.pad {
-  grid-template-columns: 34px minmax(0, 1fr) auto;
-  padding-block: 11px 12px;
-  border-bottom-width: 1.5px;
+/* Pads 1 to 16: a 4x4 grid in reading order, pad 1 top left, like the pads on the sampler.
+   The black parent shows through a 3px gap as the rules; every cell is square. */
+.pads {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--rule);
+  background: var(--black);
+  border-bottom: var(--rule) solid var(--black);
 }
-.pads li:last-child .pad { border-bottom-width: var(--rule); }
-.pad .title { font-size: 21px; }
-.pad .len { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pads li { min-width: 0; background: var(--white); }
+.pad {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 6px 8px 5px;
+  border: 0;
+  background: var(--white);
+  color: var(--black);
+  text-align: left;
+  font-weight: 400;
+}
+.pad .num { font-size: 20px; line-height: 0.9; }
+.pad .title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  align-self: start;
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+.pad .foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.1;
+}
+.pad .edited { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--grey); }
+.pad .len {
+  flex: none;
+  margin-left: auto;
+  font-weight: 600;
+  font-stretch: 75%;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pad.blank .num,
 .pad.blank .title { color: var(--grey); }
-.pad .edited { display: block; margin-top: 3px; color: var(--grey); font-size: 13px; }
+/* Yellow only for the tap, the marked pad and focus; pointing at a cell frames it. */
+.pad:active,
 .pad.marked,
-.pad.marked:active { background: var(--mark); }
+.pad.marked:active { background: var(--mark); color: var(--black); }
 .pad.marked .edited { color: var(--black); } /* grey on yellow is too faint to read */
+@media (hover: hover) {
+  .pad:hover { background: var(--white); color: var(--black); box-shadow: inset 0 0 0 3px var(--black); }
+  .pad.marked:hover { background: var(--mark); }
+}
+.pad:focus-visible { outline-offset: -5px; box-shadow: inset 0 0 0 2px var(--black); }
+.pad.marked:focus-visible { outline-color: var(--black); }
+@media (min-width: 527px) {
+  /* The 520px column gives cells about 126px: room for a fourth line and larger type. */
+  .pad { padding: 8px 10px 7px; }
+  .pad .num { font-size: 24px; }
+  .pad .title { -webkit-line-clamp: 4; line-clamp: 4; font-size: 16px; }
+  .pad .foot { font-size: 13px; }
+}
 
 .confirm h2 { font-size: 30px; }
 

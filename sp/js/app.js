@@ -118,6 +118,16 @@ function make(tag, className, text) {
   return node;
 }
 
+/** A sample name that may break after _ - . (and anywhere else if it has to). */
+function breakable(text) {
+  const frag = document.createDocumentFragment();
+  for (const part of String(text).split(/(?<=[_.\-])/)) {
+    if (frag.childNodes.length) frag.append(document.createElement('wbr'));
+    frag.append(part);
+  }
+  return frag;
+}
+
 // ── Layers and screens ──────────────────────────────────────────────────────
 
 /** Only one full-screen layer is open at a time; the page behind must not scroll. */
@@ -363,29 +373,39 @@ function renderProject() {
   pads.setAttribute('aria-labelledby', 'tab-' + view.bank);
 
   const shown = getDisplayPads(state, id, view.bank);
-  const rows = [];
+  const cells = [];
   for (let num = 1; num <= 16; num++) {
     const padId = view.bank + num;
     const pad = shown[padId];
-    const button = make('button', 'row pad');
+    const button = make('button', 'pad');
     button.type = 'button';
     button.dataset.pad = padId;
     if (padId === view.mark) button.classList.add('marked');
-    const text = make('span');
-    if (pad && pad.name) text.append(make('span', 'title', pad.name));
-    else if (pad) text.append(make('span', 'title', 'No name'));
-    else text.append(make('span', 'title', '—'));
     if (!pad) button.classList.add('blank');
-    if (pad && pad.edited) text.append(make('span', 'edited', 'edited'));
-    const len = make('span', 'len', pad && hasLength(pad.playSec) ? (pad.approx && !own(own(crate.overrides, id), padId)?.playSec ? '≈' : '') + formatLength(pad.playSec) : '');
-    if (!pad) button.setAttribute('aria-label', `Pad ${num}, empty`);
-    button.append(make('span', 'num', String(num)), text, len);
+    const name = pad ? pad.name || 'No name' : '';
+    const approx = pad && pad.approx && !own(own(crate.overrides, id), padId)?.playSec;
+    const length = pad && hasLength(pad.playSec) ? formatLength(pad.playSec) : '';
+    const title = make('span', 'title');
+    if (pad) title.append(breakable(name));
+    else title.textContent = '—';
+    const foot = make('span', 'foot');
+    if (pad && pad.edited) foot.append(make('span', 'edited', 'edited'));
+    if (length) foot.append(make('span', 'len', (approx ? '≈' : '') + length));
+    button.append(make('span', 'num', String(num)), title, foot);
+    // The cell may cut the name short, so the full name is in the label and the tooltip.
+    const label = [`Pad ${num}`, pad ? name : 'empty'];
+    if (length) label.push((approx ? 'about ' : '') + length);
+    if (pad && pad.edited) label.push('edited');
+    button.setAttribute('aria-label', label.join(', '));
+    if (pad) button.title = name;
     button.onclick = () => openPad(padId);
     const li = make('li');
     li.append(button);
-    rows.push(li);
+    cells.push(li);
   }
-  pads.replaceChildren(...rows);
+  pads.replaceChildren(...cells);
+  // One cell is in the tab order; the arrow keys move between the others.
+  setPadStop(pads.querySelector('.marked') ?? pads.querySelector('.pad'));
   say($('projectError'), '');
 }
 
@@ -398,17 +418,49 @@ function setBank(bank, focusTab = false) {
   if (focusTab) $('tab-' + bank).focus();
 }
 
-// Arrow keys move between banks, as in any tab row.
+// The banks sit in two rows of five, as on the sampler: left and right move along
+// the row, up and down jump to the bank above or below.
 tabs.addEventListener('keydown', (e) => {
   const at = BANK_LIST.indexOf(view.bank);
+  const row = at - (at % 5);
   let next = null;
-  if (e.key === 'ArrowRight') next = BANK_LIST[(at + 1) % BANK_LIST.length];
-  else if (e.key === 'ArrowLeft') next = BANK_LIST[(at - 1 + BANK_LIST.length) % BANK_LIST.length];
+  if (e.key === 'ArrowRight') next = BANK_LIST[row + ((at % 5) + 1) % 5];
+  else if (e.key === 'ArrowLeft') next = BANK_LIST[row + ((at % 5) + 4) % 5];
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') next = BANK_LIST[(at + 5) % 10];
   else if (e.key === 'Home') next = BANK_LIST[0];
   else if (e.key === 'End') next = BANK_LIST[BANK_LIST.length - 1];
   if (!next) return;
   e.preventDefault();
   setBank(next, true);
+});
+
+/** Make `cell` the one pad in the tab order. */
+function setPadStop(cell) {
+  if (!cell) return;
+  for (const each of pads.querySelectorAll('.pad')) each.tabIndex = each === cell ? 0 : -1;
+}
+
+pads.addEventListener('focusin', (e) => {
+  if (e.target.classList.contains('pad')) setPadStop(e.target);
+});
+
+// Arrow keys move across the 4x4 grid: left and right by one pad, up and down by a row.
+pads.addEventListener('keydown', (e) => {
+  const cell = e.target.closest('.pad');
+  if (!cell) return;
+  const num = Number(cell.dataset.pad.slice(1));
+  let next = null;
+  if (e.key === 'ArrowRight') next = num + 1;
+  else if (e.key === 'ArrowLeft') next = num - 1;
+  else if (e.key === 'ArrowDown') next = num + 4;
+  else if (e.key === 'ArrowUp') next = num - 4;
+  else if (e.key === 'Home') next = 1;
+  else if (e.key === 'End') next = 16;
+  if (next == null) return;
+  e.preventDefault();
+  if (next < 1 || next > 16) return;
+  const target = pads.querySelector(`[data-pad="${view.bank}${next}"]`);
+  if (target) target.focus();
 });
 
 function hideConfirm() {
@@ -469,8 +521,8 @@ async function sendPad(body) {
     view.bank = target.padId[0];
     history.replaceState(history.state, '', hashFor(view.projectId, view.bank, view.mark));
     renderProject();
-    const row = pads.querySelector(`[data-pad="${target.padId}"]`);
-    if (row) row.focus({ preventScroll: true });
+    const cell = pads.querySelector(`[data-pad="${target.padId}"]`);
+    if (cell) cell.focus({ preventScroll: true });
   });
 }
 
